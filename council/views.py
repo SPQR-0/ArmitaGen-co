@@ -1,23 +1,35 @@
-from django.shortcuts import render
+from django.contrib import messages
+from django.shortcuts import render, redirect
 from django.views import View
 
+from .forms import GeneticConsultationRequestForm
+from .models import GeneticConsultationRequest
 
 
 class CouncilView(View):
-    temp = 'council/council.html'
+    template_name = 'council/council.html'
 
     def get(self, request):
-        return render(request, self.temp)
-    
+        form = GeneticConsultationRequestForm()
+        return render(request, self.template_name, {'form': form})
+
     def post(self, request):
-        return render(request, self.temp)
-    
+        form = GeneticConsultationRequestForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('council:con_success')
+        return render(request, self.template_name, {'form': form})
 
-# app_name/views.py
 
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import GeneticConsultationRequest
+# class CouncilView(View):
+#     temp = 'council/council.html'
+#
+#     def get(self, request):
+#         return render(request, self.temp)
+#
+#     def post(self, request):
+#         return render(request, self.temp)
+#
 
 def genetic_consultation_view(request):
     if request.method == 'POST':
@@ -29,7 +41,7 @@ def genetic_consultation_view(request):
             message = request.POST.get('message')
 
             # گرفتن فایل آپلود شده از FILES
-            prescription_file = request.FILES.get('prescription_file') 
+            prescription_file = request.FILES.get('prescription_file')
 
             # ذخیره کردن در دیتابیس
             GeneticConsultationRequest.objects.create(
@@ -37,14 +49,14 @@ def genetic_consultation_view(request):
                 phone_number=phone_number,
                 service_type=service_type,
                 message=message,
-                prescription_file=prescription_file # ذخیره فایل
+                prescription_file=prescription_file  # ذخیره فایل
             )
-            
+
             # ارسال پیام موفقیت آمیز
             messages.success(request, 'درخواست مشاوره شما با موفقیت ثبت شد. به زودی با شما تماس خواهیم گرفت.')
-            
+
             # ریدایرکت به صفحه اصلی یا هر آدرس دیگر
-            return redirect('home') # 'home' را با نام View/URL اصلی خود جایگزین کنید
+            return redirect('home')  # 'home' را با نام View/URL اصلی خود جایگزین کنید
 
         except Exception as e:
             messages.error(request, f'خطایی در ثبت درخواست رخ داد: {e}')
@@ -52,4 +64,4 @@ def genetic_consultation_view(request):
             return redirect(request.path_info)
 
     # اگر متد GET بود، فقط صفحه را نمایش بده
-    return render(request, 'your_template_name.html', {})   
+    return render(request, 'your_template_name.html', {})

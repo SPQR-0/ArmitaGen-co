@@ -1,3 +1,9 @@
-from django.contrib import admin
+# app_name/admin.py
 
-# Register your models here.
+from django.contrib import admin
+from .models import GeneticConsultationRequest
+
+
+@admin.register(GeneticConsultationRequest)
+class GeneticConsultationRequestAdmin(admin.ModelAdmin):
+    pass
