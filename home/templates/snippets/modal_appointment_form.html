@@ -1,0 +1,85 @@
+{% load static %}
+
+<div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" style="background-color: transparent; border: none;"> 
+        
+        <div class="form-wrapper style-1">
+            <div class="form-body bg-primary background-blend-burn" style="background-image: url('{% static 'assets/images/background/bg2.png' %}');">
+                
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                
+                <div class="title-head text-center m-b30">
+                    <h2 class="form-title m-b0 text-white">فرم درخواست<br>مشاوره ژنتیکی</h2>
+                </div>
+                
+                <form action="#" class="dzForm" method="POST" enctype="multipart/form-data">
+                    <div class="dzFormMsg"></div>
+                    <div class="row">
+                        
+                        <div class="col-sm-6 m-b30">
+                            <div class="form-floating floating-underline input-light">
+                                <input name="full_name" type="text" class="form-control" id="modalInputYourName" placeholder="نام">
+                                <label for="modalInputYourName">نام و نام خانوادگی</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-sm-6 m-b30">
+                                        <label for="inputPrescriptionFile" style="color: rgba(255, 255, 255, 0.7); display: block; margin-bottom: 5px;">
+                                            آپلود نسخه
+                                        </label>
+                                        
+                                        <div class="input-light"> 
+                                            <input 
+                                                name="prescription_file" 
+                                                type="file" 
+                                                class="form-control" 
+                                                id="inputPrescriptionFile" 
+                                                accept=".pdf,.jpg,.jpeg,.png"
+                                                style="
+                                                    /* این استایل‌ها را برای هماهنگی با ظاهر تیره قالب اضافه می‌کنیم */
+                                                    background-color: transparent; 
+                                                    color: #fff;
+                                                    border: 1px solid rgba(255, 255, 255, 0.3); /* خط دور کادر */
+                                                "
+                                            >
+                                            </div>
+                                    </div>
+                        
+                        <div class="col-sm-6 m-b30">
+                            <div class="form-floating floating-underline input-light">
+                                <input name="phone_number" type="text" class="form-control dz-number" id="modalInputPhoneNumber" placeholder="شماره تماس">
+                                <label for="modalInputPhoneNumber">شماره تلفن</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-sm-6 m-b30">
+                            <div class="form-floating floating-underline input-light">
+                                 <select name="service_type" class="bs-select" data-style="form-control" title="انتخاب خدمت">
+                                    <option value="">انتخاب خدمت</option>
+                                    <option value="سرطان">آزمایشگاه سرطان</option>
+                                    <option value="مادر">آزمایشگاه سلامت مادر و جنین</option>
+                                    <option value="مولکولی">ژنتیک مولکولی</option>
+                                    <option value="سایر">سایر خدمات</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-sm-12 m-b30">
+                            <div class="form-floating floating-underline input-light">
+                                <textarea name="message" class="form-control" id="modalInputMessage" rows="6" placeholder="پیام"></textarea>
+                                <label for="modalInputMessage">پیام</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-sm-12">
+                            <button type="submit" name="submit" value="submit" class="btn btn-lg btn-icon btn-white hover-secondary btn-shadow">
+                                نوبت‌دهی <span class="right-icon"><i class="feather icon-arrow-left"></i></span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                </div>
+        </div>
+
+    </div>
+</div>
