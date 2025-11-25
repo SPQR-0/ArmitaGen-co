@@ -3,7 +3,6 @@ from django.shortcuts import render, redirect
 from django.views import View
 
 from .forms import GeneticConsultationRequestForm
-from .models import GeneticConsultationRequest
 
 
 class CouncilView(View):
@@ -15,53 +14,22 @@ class CouncilView(View):
 
     def post(self, request):
         form = GeneticConsultationRequestForm(request.POST, request.FILES)
+
         if form.is_valid():
-            form.save()
-            return redirect('council:con_success')
+            try:
+                form.save()
+                messages.success(request, 'درخواست مشاوره شما با موفقیت ثبت شد.')
+                return redirect('council:con_success')
+            except Exception as e:
+                messages.error(request, f'خطا در ثبت درخواست: {str(e)}')
+        else:
+            messages.error(request, 'لطفاً اطلاعات فرم را به درستی تکمیل کنید.')
+
         return render(request, self.template_name, {'form': form})
 
 
-# class CouncilView(View):
-#     temp = 'council/council.html'
-#
-#     def get(self, request):
-#         return render(request, self.temp)
-#
-#     def post(self, request):
-#         return render(request, self.temp)
-#
+class SuccessView(View):
+    template_name = 'council/success.html'
 
-def genetic_consultation_view(request):
-    if request.method == 'POST':
-        try:
-            # گرفتن داده‌ها از POST
-            full_name = request.POST.get('full_name')
-            phone_number = request.POST.get('phone_number')
-            service_type = request.POST.get('service_type')
-            message = request.POST.get('message')
-
-            # گرفتن فایل آپلود شده از FILES
-            prescription_file = request.FILES.get('prescription_file')
-
-            # ذخیره کردن در دیتابیس
-            GeneticConsultationRequest.objects.create(
-                full_name=full_name,
-                phone_number=phone_number,
-                service_type=service_type,
-                message=message,
-                prescription_file=prescription_file  # ذخیره فایل
-            )
-
-            # ارسال پیام موفقیت آمیز
-            messages.success(request, 'درخواست مشاوره شما با موفقیت ثبت شد. به زودی با شما تماس خواهیم گرفت.')
-
-            # ریدایرکت به صفحه اصلی یا هر آدرس دیگر
-            return redirect('home')  # 'home' را با نام View/URL اصلی خود جایگزین کنید
-
-        except Exception as e:
-            messages.error(request, f'خطایی در ثبت درخواست رخ داد: {e}')
-            # ریدایرکت برای جلوگیری از ارسال مجدد فرم
-            return redirect(request.path_info)
-
-    # اگر متد GET بود، فقط صفحه را نمایش بده
-    return render(request, 'your_template_name.html', {})
+    def get(self, request):
+        return render(request, self.template_name)

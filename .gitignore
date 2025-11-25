@@ -6,6 +6,11 @@
 .IDE
 .vscode
 
+# static
+!static/admin/css/custom_admin.css
+static/*
+
+media/*
 
 # cache files
 armitagen/__pychache__

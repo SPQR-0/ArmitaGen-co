@@ -1,10 +1,270 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>success</title>
-</head>
-<body>
+{% load static %}
 
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme-color="skin-1">
+<head>
+    <title>درخواست با موفقیت ثبت شد - آزمایشگاه ژنتیک پزشکی آرمیتاژن</title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- FAVICONS ICON -->
+    <link rel="icon" type="image/x-icon" href="{% static 'assets/images/logo/ArmitaGen-logo.png' %}">
+
+    <!-- STYLESHEETS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style-2.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/fonts.css' %}">
+
+    <style>
+        .success-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .success-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 60px 40px;
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            animation: scaleIn 0.5s ease-out 0.2s both;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .success-icon i {
+            font-size: 50px;
+            color: white;
+        }
+
+        .success-card h1 {
+            color: #2d3748;
+            font-size: 2rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .success-card p {
+            color: #718096;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+
+        .info-box {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            border-right: 4px solid #667eea;
+        }
+
+        .info-box h3 {
+            color: #2d3748;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .info-box ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: right;
+        }
+
+        .info-box ul li {
+            color: #4a5568;
+            padding: 8px 0;
+            font-size: 1rem;
+        }
+
+        .info-box ul li i {
+            color: #667eea;
+            margin-left: 10px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-custom {
+            padding: 15px 35px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            color: white;
+        }
+
+        .btn-secondary-custom {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary-custom:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .contact-info {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .contact-info p {
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+
+        .contact-info a {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+{% if messages %}
+    <div class="container my-4">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert"
+                 style="{% if message.tags == 'error' %}background-color: #fee; border-color: #f88; color: #c33;{% endif %}">
+                <strong>
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle"></i> موفق!
+                    {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle"></i> خطا!
+                    {% endif %}
+                </strong>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+<div class="success-wrapper">
+    <div class="success-card">
+        <div class="success-icon">
+            <i class="fas fa-check"></i>
+        </div>
+
+        <h1>درخواست شما با موفقیت ثبت شد!</h1>
+        <p>
+            از اینکه به آزمایشگاه ژنتیک پزشکی آرمیتاژن اعتماد کردید، سپاسگزاریم.
+            درخواست مشاوره شما دریافت شد و به زودی کارشناسان ما با شما تماس خواهند گرفت.
+        </p>
+
+        <div class="info-box">
+            <h3>مراحل بعدی:</h3>
+            <ul>
+                <li><i class="fas fa-phone"></i> تماس تلفنی کارشناسان ما در اسرع وقت</li>
+                <li><i class="fas fa-calendar-check"></i> هماهنگی زمان مشاوره</li>
+                <li><i class="fas fa-file-medical"></i> بررسی مدارک و نسخه ارسالی</li>
+                <li><i class="fas fa-user-md"></i> مشاوره تخصصی با متخصص ژنتیک</li>
+            </ul>
+        </div>
+
+        <div class="btn-group">
+            <a href="{% url 'home:index' %}" class="btn-custom btn-primary-custom">
+                <i class="fas fa-home"></i>
+                بازگشت به صفحه اصلی
+            </a>
+            <a href="{% url 'council:con' %}" class="btn-custom btn-secondary-custom">
+                <i class="fas fa-plus"></i>
+                ثبت درخواست جدید
+            </a>
+        </div>
+
+        <div class="contact-info">
+            <p><strong>در صورت نیاز به اطلاعات بیشتر:</strong></p>
+            <p>
+                <i class="fas fa-phone"></i>
+                <a href="tel:02188985291">021-88985291-3</a>
+            </p>
+            <p>
+                <i class="fas fa-envelope"></i>
+                <a href="mailto:info@armitagen.ir">info@armitagen.ir</a>
+            </p>
+            <p>
+                <i class="fab fa-whatsapp"></i>
+                <a href="https://wa.me/989922807742" target="_blank">09922807742</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- JAVASCRIPT FILES -->
+<script src="{% static 'assets/js/global.min-2.js' %}"></script>
+
+<!-- Auto redirect after 10 seconds (optional) -->
+<script>
+    // اگر می‌خواهید بعد از 10 ثانیه خودکار به صفحه اصلی برگردد:
+    // setTimeout(function() {
+    //     window.location.href = "{% url 'home:index' %}";
+    // }, 10000);
+</script>
 </body>
 </html>
