@@ -5,246 +5,357 @@
 {% block content %}
 
 <style>
-        /* تنظیمات کلی کانتینر اسلایدر */
-        .carousel-container {
-            max-width: 800px;
-            margin: 50px auto;
-            position: relative;
-            overflow: hidden; /* پنهان کردن اسلایدهای خارج از دید */
-        }
+	/* تعریف متغیر برای رنگ‌ها و ارتفاع */
+:root {
+    --hero-min-height: 600px; /* حداقل ارتفاع Hero برای دسکتاپ */
+    --overlay-color: rgba(0, 0, 0, 0.45); /* مشکی با 45% شفافیت برای افزایش خوانایی */
+    --armitagen-secondary: #c99e69; /* رنگ طلایی/کرمی برای برجسته‌سازی */
+}
 
-      /* ردیف اسلایدها */
-.carousel-track {
+.full-width-hero {
+    position: relative;
+    min-height: var(--hero-min-height); /* ارتفاع مناسب برای حذف فضای خالی */
     display: flex;
-    transition: transform 0.5s ease-in-out; 
-    /* ویژگی 'left' دیگر نیازی نیست، چون ما با transform جابجا می‌شویم */
+    align-items: center;
+    justify-content: flex-end; /* محتوا را به سمت راست (در RTL) هل می‌دهد */
+    overflow: hidden; /* برای جلوگیری از سرریز المان‌های شناور */
 }
 
-/* استایل هر اسلاید */
-.slide {
-    /* min-width را نگه می‌داریم تا عرض کامل کانتینر را بگیرد */
-    min-width: 100%;
-    box-sizing: border-box;
-    /* این خط را اگر قبلاً داشتید، حذف کنید یا مطمئن شوید که وجود ندارد */
-    /* position: absolute; */
+/* تصویر پس‌زمینه در کل فضای Hero */
+.hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover !important;
+    background-position: center center !important;
+    z-index: 1; /* زیر Overlay و محتوا قرار گیرد */
 }
-/* ... بقیه CSS ثابت می‌ماند ... */
 
-        .slide img {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-radius: 8px; /* گوشه های گرد برای زیبایی بیشتر */
-        }
+/* لایه Overlay برای افزایش Contrast و خوانایی */
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--overlay-color);
+    z-index: 2; /* بالای تصویر، زیر محتوا */
+}
 
-        /* دات‌های راهنما */
-        .carousel-nav {
-            display: flex;
-            justify-content: center;
-            padding: 10px 0;
-            position: absolute;
-            bottom: 10px;
-            width: 100%;
-            z-index: 10;
-        }
+/* نگهدارنده محتوا */
+.hero-content-wrapper {
+    position: relative;
+    z-index: 3; /* محتوا بالاترین لایه باشد */
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding-top: 100px; /* برای جلوگیری از پوشیده شدن زیر هدر */
+    padding-bottom: 100px;
+}
 
-        .indicator {
-            border: none;
-            padding: 0;
-            width: 12px;
-            height: 12px;
-            background: #bbb;
-            border-radius: 50%;
-            margin: 0 5px;
-            cursor: pointer;
-            opacity: 0.7;
-            transition: background-color 0.3s;
-        }
+/* متن و دکمه‌ها سفید باشند تا روی لایه تیره خوانا باشند */
+.hero-content .title,
+.hero-content .text {
+    color: white;
+}
 
-        /* استایل دات فعال */
-        .indicator.current-slide {
-            background: #ffffff;
-            opacity: 1;
-        }
-    </style>
+/* تنظیم رنگ برجسته‌سازی برای بخش خاص متن */
+.hero-content .text-secondary-color {
+    color: var(--armitagen-secondary) !important;
+}
+
+/* دکمه ثانویه را طوری تعریف می‌کنم که روی پس‌زمینه تیره خوانا باشد (outline) */
+.btn-secondary-outline {
+    background-color: transparent !important;
+    color: var(--armitagen-secondary) !important;
+    border: 1px solid var(--armitagen-secondary) !important;
+}
+
+/* تنظیمات ریسپانسیو (موبایل) */
+@media (max-width: 768px) {
+    .full-width-hero {
+        min-height: 450px; /* کاهش ارتفاع در موبایل */
+    }
+    .hero-content-wrapper {
+        text-align: center;
+    }
+    .hero-content .title {
+        font-size: 36px !important;
+    }
+    /* دکمه‌ها را تمام‌عرض می‌کنیم */
+    .hero-content a.btn {
+        display: block;
+        margin-right: 0 !important;
+        margin-bottom: 15px;
+    }
+}
+</style>
+<style>
+	/* Hero Carousel Styles */
+.hero-carousel-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    transition: transform 0.8s ease-in-out; /* انیمیشن نرم برای اسلاید */
+    z-index: 1; /* زیر Overlay */
+}
+
+.hero-slide {
+    min-width: 100%; /* هر اسلاید تمام عرض را بگیرد */
+    height: 100%;
+    background-size: cover !important;
+    background-position: center center !important;
+    flex-shrink: 0; /* جلوگیری از کوچک شدن اسلایدها */
+    opacity: 0; /* در ابتدا همه اسلایدها نامرئی هستند */
+    transition: opacity 1.2s ease-in-out; /* انیمیشن fade برای تصاویر */
+    position: absolute; /* برای هم‌پوشانی و انیمیشن Fade */
+    top: 0;
+    left: 0;
+    visibility: hidden; /* برای بهینه سازی رندر */
+}
+
+.hero-slide.active {
+    opacity: 1; /* اسلاید فعال قابل مشاهده است */
+    visibility: visible;
+}
+
+/* بهبود برای رنگ سلامتی */
+.hero-content .text-secondary-color {
+    color: var(--armitagen-secondary) !important; /* مطمئن می‌شویم از رنگ طلایی/کرمی استفاده می‌شود */
+}
+
+/* بهبود برای دکمه تماس با ما */
+.btn-secondary-outline {
+    background-color: transparent !important;
+    color: var(--armitagen-secondary) !important;
+    border: 1px solid var(--armitagen-secondary) !important;
+}
+.btn-secondary-outline:hover {
+    background-color: var(--armitagen-secondary) !important;
+    color: #333 !important; /* یا رنگ تیره‌تر برای خوانایی بهتر */
+}
+</style>
+<style>
+	/* --- تعریف متغیرهای رنگی (اگر قبلاً در فایل اصلی نیست، اینجا اضافه کنید) --- */
+:root {
+    /* فرض می‌کنیم این متغیرها قبلاً تعریف شده‌اند */
+    --armitagen-primary: #72163b;     /* رنگ زرشکی (اصلی) */
+    --armitagen-secondary: #c99e69;   /* رنگ طلایی/کرمی (ثانویه) */
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --card-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
+    --text-dark: #333;
+    --text-medium: #666;
+    --transition-speed: 0.3s;
+}
+
+/* --- Quick Links Section --- */
+.quick-links-section {
+    position: relative;
+    z-index: 5;
+}
+
+/* برای قرار دادن کمی از باکس‌ها روی Hero */
+.mt--100 {
+    margin-top: -100px;
+}
+
+/* --- Quick Link Card Base Styles --- */
+.quick-link-card {
+    display: block;
+    text-align: center;
+    padding: 30px 20px;
+    border-radius: 12px;
+    background-color: white;
+    box-shadow: var(--card-shadow); 
+    transition: all var(--transition-speed) ease;
+    text-decoration: none;
+    height: 100%;
+    /* استایل‌های اولیه برای محتوا */
+    border: 1px solid transparent; /* اضافه کردن Border شفاف برای ثبات */
+}
+
+/* افکت حرکت و سایه در هاور */
+.quick-link-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--card-shadow-hover);
+}
+
+/* --- Icon Styles (Base) --- */
+.quick-link-icon {
+    font-size: 40px;
+    color: var(--armitagen-primary); /* استفاده از رنگ اصلی برای آیکون‌های عادی */
+    margin-bottom: 15px;
+    transition: all var(--transition-speed) ease;
+}
+
+.quick-link-card:hover .quick-link-icon {
+    transform: translateY(-5px); /* افکت حرکت آیکون در هاور */
+}
+
+/* --- Text Styles (Base) --- */
+.quick-link-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--text-dark);
+    margin-bottom: 5px;
+    transition: color var(--transition-speed) ease;
+}
+
+.quick-link-text {
+    font-size: 14px;
+    color: var(--text-medium);
+    margin-bottom: 0;
+    transition: color var(--transition-speed) ease;
+}
+
+/* ========================================================= */
+/* --- ۱. افکت Hover کارت‌های Primary (کارت‌های ۱ و ۳) --- */
+/* ========================================================= */
+
+/* برای برجسته‌سازی بیشتر، قبل از هاور یک حاشیه رنگی ضعیف به کارت‌های Primary می‌دهیم */
+.quick-link-card.primary-bg-hover {
+    border-color: rgba(114, 22, 59, 0.2); /* زرشکی بسیار ملایم */
+}
+
+.quick-link-card.primary-bg-hover:hover {
+    background-color: var(--armitagen-primary); /* پس‌زمینه زرشکی */
+    border-color: var(--armitagen-primary); /* حاشیه پررنگ زرشکی */
+}
+.quick-link-card.primary-bg-hover:hover .quick-link-icon,
+.quick-link-card.primary-bg-hover:hover .quick-link-title,
+.quick-link-card.primary-bg-hover:hover .quick-link-text {
+    color: white; /* محتوا کاملاً سفید شود */
+}
+
+/* =========================================================== */
+/* --- ۲. افکت Hover کارت‌های Secondary (کارت‌های ۲ و ۴) --- */
+/* =========================================================== */
+
+.quick-link-card.secondary-bg-hover:hover {
+    background-color: var(--armitagen-secondary); /* پس‌زمینه طلایی/کرمی */
+    border-color: var(--armitagen-secondary); /* حاشیه پررنگ طلایی */
+}
+
+.quick-link-card.secondary-bg-hover:hover .quick-link-icon {
+    /* آیکون در هاور به رنگ زرشکی درآید (Contrast بالا) */
+    color: var(--armitagen-primary) !important; 
+}
+.quick-link-card.secondary-bg-hover:hover .quick-link-title,
+.quick-link-card.secondary-bg-hover:hover .quick-link-text {
+    /* متن‌ها تیره باقی می‌مانند (خوانایی بهتر روی پس‌زمینه روشن) */
+    color: var(--text-dark) !important; 
+}
+</style>
 
 <main class="page-content">
 	
-	<div class="hero-banner style-1" style="background-image: url('{% static 'assets/images/hero-banner/bg1.webp' %}'); background-size: cover;">
-		<div class="container">
-			<div class="inner-wrapper">
-				<div class="row align-items-start h-100">
-					<div class="col-lg-6 align-self-start">
-						<div class="hero-content">
-								<h1 class="title wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s" style="margin-top: 200px; font-size: 50px;">کدهای ژنتیکی شما، نقشه‌ راه <span class="text-primary">سلامتی</span> شما</h1>
-								<img src="{% static 'assets/images/hero-banner/line.png' %}" alt=""><br>
-								<p class="text wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">زمان در پزشکی حیاتی است: بیش از ۶۰٪ بیماری‌ها دیر تشخیص داده می‌شوند. آیا حاضرید این ریسک را بپذیرید؟ با مشاوره اولیه رایگان، همین امروز علم را به نفع سلامتی خود تغییر دهید.</p>
-								<a href="#" 
-									class="btn btn-lg btn-icon btn-primary m-r20 wow fadeInUp" 
-									data-wow-delay="0.6s" 
-									data-wow-duration="0.8s"
-									
-									data-bs-toggle="modal"        
-									data-bs-target="#armitagenAppointmentModal" 
-									
-									style="cursor: pointer;"
-									>
-										نوبت دهی
-										<span class="right-icon"><i class="feather icon-arrow-left"></i></span>
-								</a>
-						<a href="#" class="btn btn-lg btn-icon btn-secondary wow fadeInUp" data-wow-delay="0.6s" data-wow-duration="0.8s">
-							تماس با ما
-							<span class="right-icon"><i class="feather icon-arrow-left"></i></span>
-						</a>
-						</div>
-					</div>
-					<div class="col-lg-6 wow fadeInRight" data-wow-delay="0.8s" data-wow-duration="0.8s">
-						<div class="hero-thumbnail" data-bottom-top="transform: translateY(-50px)" data-top-bottom="transform: translateY(50px)">
-							<div class="carousel-container">
-								<div class="carousel-track">
-									<div class="slide current-slide">
-										<img src="{% static 'assets/images/Dropbox/council/header.png' %}" alt="تصویر ۱">
-									</div>
-									<!-- <div class="slide">
-										<img src="{% static 'assets/images/Dropbox/council/header3.png' %}" alt="تصویر ۲">
-									</div> -->
-									<div class="slide">
-										<img src="{% static 'assets/images/Dropbox/council/header4.png' %}" alt="تصویر ۳">
-									</div>
-								</div>
-							</div>
-							<!-- <video class="video-player" muted loop>
-								<source src="{% static 'assets/videos/vectee.mov' %}" type="video/quicktime">
-								<source src="{% static 'assets/videos/158617051_main_xxl.mp4' %}" type="Video/mp4">
-								مرورگر شما از تگ ویدیو پشتیبانی نمی‌کند.
-							</video> -->
-							<div class="item2" data-bottom-top="transform: translateY(-50px)" data-top-bottom="transform: translateY(50px)">
-								<div class="info-widget style-1 move-3">
-									<div class="avatar-group">
-										<img class="avatar rounded-circle avatar-sm border border-white border-2" src="{% static 'assets/images/avatar/small/avatar1.webp' %}" alt="">
-										<img class="avatar rounded-circle avatar-sm border border-white border-2" src="{% static 'assets/images/avatar/small/avatar2.webp' %}" alt="">
-										<img class="avatar rounded-circle avatar-sm border border-white border-2" src="{% static 'assets/images/avatar/small/avatar3.webp' %}" alt="">
-										<img class="avatar rounded-circle avatar-sm border border-white border-2" src="{% static 'assets/images/avatar/small/avatar4.webp' %}" alt="">
-									</div>
-									<div class="clearfix ms-2">
-										<span class="number text-primary">2 هزار</span>
-										<span> مشاوره تخصصی </span>
-									</div>
-								</div>
-							</div>
-							<!-- <div class="item3" data-bottom-top="transform: translateY(-50px)" data-top-bottom="transform: translateY(50px)">
-								<div class="info-widget style-2 move-2">
-									<div id="progressChart"></div>
-									<div class="widget-content">
-										<h6 class="mb-0">تشخیص موفقیت آمیز</h6>
-										<a href="#" class="btn btn-square btn-outline-light text-primary rounded-circle">
-											<i class="feather icon-arrow-up-left"></i>
-										</a>
-									</div>
-								</div>
-							</div> -->
-							<!-- <div class="item4" data-bottom-top="transform: translateY(-50px)" data-top-bottom="transform: translateY(50px)">
-								<div class="info-widget style-3 move-1">
-									<div class="widget-head">
-										<div class="widget-media">
-											<img src="{% static 'assets/images/avatar/small/avatar5.webp' %}" alt="">
-										</div>
-										<div class="widget-content">
-											<h6 class="title"> دکتر کاووسی </h6>
-											<ul class="star-list">
-												<li><i class="fa fa-star"></i></li>
-												<li><i class="fa fa-star"></i></li>
-												<li><i class="fa fa-star"></i></li>
-												<li><i class="fa fa-star"></i></li>
-												<li><i class="fa fa-star"></i></li>
-											</ul>
-										</div>
-									</div>
-									<p>"این یک واقعیت طولانی است که یک خواننده از محتوای قابل خواندن پریشان می شود"</p>
-								</div>
-							</div> -->
-						</div>
-					</div>
-				</div>
-				<div class="item5" data-bottom-top="transform: translateY(-30px)" data-top-bottom="transform: translateY(30px)">
-					<div class="info-widget style-4 move-4">
-						<div class="widget-media">
-							<img src="{% static 'assets/images/avatar/small/avatar6.webp' %}" alt="">
-						</div>
-						<div class="widget-content">
-							<h6 class="title">سوالی دارید؟</h6>
-							<a href="mailto:info@example.com">info@armitagen.ir</a>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+	<div class="hero-banner style-1 full-width-hero">
+    <div class="hero-overlay"></div>
+    
+    <div class="hero-carousel-track">
+        <div class="hero-slide active" style="background-image: url('{% static 'assets/images/Dropbox/council/header.png' %}');"></div>
+        <div class="hero-slide" style="background-image: url('{% static 'assets/images/Dropbox/council/header3.png' %}');"></div>
+        <div class="hero-slide" style="background-image: url('{% static 'assets/images/Dropbox/council/header4.png' %}');"></div>
+        </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        
-        // انتخاب المان‌ها
-        const track = document.querySelector('.carousel-track');
-        const slides = Array.from(document.querySelectorAll('.slide'));
-        const indicators = Array.from(document.querySelectorAll('.indicator'));
+    <div class="container hero-content-wrapper">
+        <div class="inner-wrapper">
+            <div class="col-lg-6 align-self-center text-white"><br><br> 
+                <div class="hero-content">
+                    <h1 class="title wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">
+                        کدهای ژنتیکی شما، نقشه‌ راه <span class="text-secondary-color">سلامتی</span> شما
+                    </h1>
+                    <p class="text wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
+                        زمان در پزشکی حیاتی است: بیش از ۶۰٪ بیماری‌ها دیر تشخیص داده می‌شوند. آیا حاضرید این ریسک را بپذیرید؟ با مشاوره اولیه رایگان، همین امروز علم را به نفع سلامتی خود تغییر دهید.
+                    </p>
+                    
+                    <a href="#appointment-modal" 
+                        class="btn btn-lg btn-icon btn-primary m-r20 wow fadeInUp" 
+                        data-wow-delay="0.6s" 
+                        data-wow-duration="0.8s"
+                        data-bs-toggle="modal"
+                        data-bs-target="#armitagenAppointmentModal">
+                        نوبت دهی آنلاین
+                        <span class="right-icon"><i class="feather icon-arrow-left"></i></span>
+                    </a>
+                    <a href="#" class="btn btn-lg btn-icon btn-secondary-outline wow fadeInUp" data-wow-delay="0.6s" data-wow-duration="0.8s">
+                        تماس و مشاوره تلفنی
+                        <span class="right-icon"><i class="feather icon-arrow-left"></i></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<section class="quick-links-section py-5">
+    <div class="container">
+        <div class="row justify-content-center g-4 mt--100"> <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                <a href="#appointment-modal" class="quick-link-card primary-bg-hover" data-bs-toggle="modal" data-bs-target="#armitagenAppointmentModal">
+                    <i class="fas fa-calendar-check quick-link-icon"></i>
+                    <h5 class="quick-link-title">نوبت دهی فوری</h5>
+                    <p class="quick-link-text">آنلاین، تلفنی و مجازی</p>
+                </a>
+            </div>
 
-        if (slides.length === 0) return;
-        
-        const autoPlayInterval = 3000; // 3 ثانیه
-        let currentSlideIndex = 0;
+            <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.2s">
+                <a href="#" class="quick-link-card secondary-bg-hover">
+                    <i class="fas fa-flask quick-link-icon"></i>
+                    <h5 class="quick-link-title">خدمات تخصصی ژنتیک</h5>
+                    <p class="quick-link-text">مشاهده لیست کامل آزمایش‌ها</p>
+                </a>
+            </div>
 
-        // تابع کمکی برای دریافت عرض اسلاید
-        const getSlideWidth = () => {
-            // این تابع حالا هر بار که لازم باشد، عرض واقعی را می‌گیرد
-            return slides.length > 0 ? slides[0].getBoundingClientRect().width : 0;
-        };
-
-        // تابع اصلی جابجایی اسلاید
-        const moveToSlide = (index) => {
-            const slideWidth = getSlideWidth(); // عرض اسلاید را اینجا دوباره محاسبه می‌کنیم
-            const amountToMove = index * slideWidth;
+            <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
+                <a href="#" class="quick-link-card primary-bg-hover">
+                    <i class="fas fa-user-md quick-link-icon"></i>
+                    <h5 class="quick-link-title">مشاوره حضوری</h5>
+                    <p class="quick-link-text">سریع‌ترین راهکار تشخیصی</p>
+                </a>
+            </div>
             
-            // چون dir="rtl" داریم، به جای منفی از مثبت استفاده می‌کنیم
-            track.style.transform = `translateX(${amountToMove}px)`;
+            <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.4s">
+                <a href="#" class="quick-link-card secondary-bg-hover">
+                    <i class="fas fa-book-medical quick-link-icon"></i>
+                    <h5 class="quick-link-title">راهنمای مراجعین</h5>
+                    <p class="quick-link-text">قبل از مراجعه چه می‌دانید؟</p>
+                </a>
+            </div>
+            
+        </div>
+    </div>
+</section>
+<script>
+	document.addEventListener('DOMContentLoaded', () => {
+    const heroSlides = Array.from(document.querySelectorAll('.hero-slide'));
+    let currentHeroSlideIndex = 0;
+    const heroAutoPlayInterval = 5000; // 5 ثانیه برای هر اسلاید پس‌زمینه
 
-            currentSlideIndex = index;
-        };
+    if (heroSlides.length === 0) return;
 
-        // ** اضافه کردن شنونده برای تغییر اندازه پنجره **
-        const handleResize = () => {
-             // پس از تغییر اندازه، اسلایدر را به مکان صحیح خود (اسلاید فعلی) جابجا کن
-            moveToSlide(currentSlideIndex);
-        };
-        // هر بار که اندازه پنجره تغییر کند، عرض را آپدیت کن
-        window.addEventListener('resize', handleResize);
+    const showHeroSlide = (index) => {
+        heroSlides.forEach((slide, i) => {
+            if (i === index) {
+                slide.classList.add('active');
+            } else {
+                slide.classList.remove('active');
+            }
+        });
+    };
 
+    const nextHeroSlide = () => {
+        currentHeroSlideIndex = (currentHeroSlideIndex + 1) % heroSlides.length;
+        showHeroSlide(currentHeroSlideIndex);
+    };
 
-        // تابع به‌روزرسانی دات‌ها (بدون تغییر)
-        const updateIndicators = (targetIndex) => {
-            indicators.forEach((indicator, index) => {
-                // ... (بقیه کد دات‌ها) ...
-            });
-        };
-
-        // **منطق اسلاید خودکار**
-        const autoSlide = () => {
-            let nextIndex = (currentSlideIndex + 1) % slides.length;
-            moveToSlide(nextIndex);
-            updateIndicators(nextIndex);
-        };
-
-        // شروع اسلاید خودکار
-        let timer = setInterval(autoSlide, autoPlayInterval);
-
-        // **توقف اسلاید هنگام نگه داشتن ماوس و کلیک روی دات‌ها (بدون تغییر)**
-        // ... (بقیه کدهای timer و indicators) ...
-
-
-        // **تنظیمات اولیه دات‌ها**
-        updateIndicators(currentSlideIndex);
-
-    });
+    // شروع اسلایدر
+    showHeroSlide(currentHeroSlideIndex); // نمایش اسلاید اول
+    setInterval(nextHeroSlide, heroAutoPlayInterval);
+});
 </script>
 		
 			<section class="content-inner" style="background-image: url('{% static 'assets/images/background/bg1.png' %}'); background-repeat: no-repeat; background-position: left bottom;">
@@ -341,16 +452,16 @@
 				<div class="row align-items-sm-center">
 					<div class="col-lg-3 col-12 m-b30 wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">
 						<div class="avatar-group m-b20">
-							<img class="avatar rounded-circle border border-white border-3" src="{% static 'assets/images/avatar/small/avatar1.webp' %}" alt="">
-							<img class="avatar rounded-circle border border-white border-3" src="{% static 'assets/images/avatar/small/avatar2.webp' %}" alt="">
-							<img class="avatar rounded-circle border border-white border-3" src="{% static 'assets/images/avatar/small/avatar3.webp' %}" alt="">
-							<img class="avatar rounded-circle border border-white border-3" src="{% static 'assets/images/avatar/small/avatar4.webp' %}" alt="">
+							<img class="avatar rounded-circle border border-white border-3" src="{% static 'assets/images/category/1.jpeg' %}" alt="">
+							<img class="avatar rounded-circle border border-white border-3" src="{% static 'assets/images/category/2.jpeg' %}" alt="">
+							<img class="avatar rounded-circle border border-white border-3" src="{% static 'assets/images/category/3.jpeg' %}" alt="">
+							<img class="avatar rounded-circle border border-white border-3" src="{% static 'assets/images/category/4.jpeg' %}" alt="">
 						</div>
 						<h2 class="text-white font-20 m-b0 fw-medium">100+ نوبت برای این هفته تأیید شد</h2>
 					</div>
 					<div class="col-lg-3 col-4 m-b30 d-flex wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
 						<div class="content-bx style-1 mx-auto">
-							<span class="content-text text-white"><span class="counter">120</span>+</span>
+							<span class="content-text text-white"><span class="counter">50</span>+</span>
 							<h3 class="title text-white m-b0"> تعداد متخصصان </h3>
 						</div>
 					</div>
