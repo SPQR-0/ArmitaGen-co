@@ -91,10 +91,21 @@ WSGI_APPLICATION = 'armitagen.wsgi.application'
 #     }
 # }
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        # 'ENGINE': 'mysql.connector.django',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'armitagen_db',
+        # 'USER': 'armitagen_admin',
+        # 'PASSWORD': 'armitagen@1234',
+
     }
 }
 
