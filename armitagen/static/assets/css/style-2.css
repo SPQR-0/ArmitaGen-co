@@ -22132,7 +22132,7 @@ fieldset:disabled .btn {
 }
 
 .py-5 {
-   padding-top: 3rem !important;
+   padding-top: 0rem !important;
    padding-bottom: 3rem !important
 }
 
@@ -30522,7 +30522,7 @@ section {
 }
 
 .hero-banner.style-1 .hero-content {
-   margin-right: -50px;
+   margin-right: -25px;
 }
 
 .hero-banner.style-1 .circle-wrapper {
@@ -61718,7 +61718,7 @@ table.wishlist_table {
 
 .site-header.box-header:after,
 .site-header.box-header:before {
-   content: "";
+   /* content: ""; */
    position: absolute;
    top: 0;
    left: 0;
