@@ -1,0 +1,965 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme-color="skin-1">
+<head>
+
+    <!-- Title -->
+	<title>آزمایشگاه ژنتیک پزشکی آرمیتاژن</title>
+
+	<!-- Meta -->
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="author" content="DexignZone">
+	<meta name="robots" content="index, follow">
+	<meta name="format-detection" content="telephone=no">
+
+	<meta name="keywords" content="healthcare HTML template, medical Bootstrap template, clinic website template, hospital HTML template, responsive medical template, healthcare web design, Bootstrap health template, ClinicMaster medical design, modern medical template, health website design">
+	<meta name="description" content="کلینیک مستر یک الگوی بوت سترپ اچ تی ام ال مدرن و پاسخگو است که برای وب سایت های بهداشتی و پزشکی طراحی شده است.ایده آل برای کلینیک ها ، بیمارستان ها و متخصصان مراقبت های بهداشتی که به دنبال حضور حرفه ای آنلاین با طراحی زیبا و کاربر پسند هستند.">
+
+	<meta property="og:title" content="آزمایشگاه ژنتیک پزشکی آرمیتاژن - ArmitaGen">
+	<meta property="og:description" content="کلینیک مستر یک الگوی بوت سترپ اچ تی ام ال مدرن و پاسخگو است که برای وب سایت های بهداشتی و پزشکی طراحی شده است.ایده آل برای کلینیک ها ، بیمارستان ها و متخصصان مراقبت های بهداشتی که به دنبال حضور حرفه ای آنلاین با طراحی زیبا و کاربر پسند هستند.">
+	<meta property="og:image" content="https://clinicmaster.dexignzone.com/xhtml/social-image.png">
+
+	<!-- TWITTER META -->
+	<meta name="twitter:title" content="آزمایشگاه ژنتیک پزشکی آرمیتاژن - ArmitaGen">
+	<meta name="twitter:description" content="کلینیک مستر یک الگوی بوت سترپ اچ تی ام ال مدرن و پاسخگو است که برای وب سایت های بهداشتی و پزشکی طراحی شده است.ایده آل برای کلینیک ها ، بیمارستان ها و متخصصان مراقبت های بهداشتی که به دنبال حضور حرفه ای آنلاین با طراحی زیبا و کاربر پسند هستند.">
+	<meta name="twitter:image" content="https://clinicmaster.dexignzone.com/xhtml/social-image.png">
+	<meta name="twitter:card" content="summary_large_image">
+
+	<!-- CANONICAL URL -->
+	<link rel="canonical" href="#">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+	<!-- MOBILE SPECIFIC -->
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- FAVICONS ICON -->
+	<link rel="icon" type="image/x-icon" href="{% static 'assets/images/logo/ArmitaGen-logo.png' %}">
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+	<link rel="stylesheet" type="text/css" href="{% static 'assets/vendor/swiper/swiper-bundle.min-2.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'assets/vendor/bootstrap-select/css/bootstrap-select.min-1.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'assets/vendor/magnific-popup/magnific-popup.min-2.css' %}">
+
+	<!-- Custom Stylesheet -->
+	<link rel="stylesheet" type="text/css" href="{% static 'assets/css/style-2.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'assets/css/fonts.css' %}">
+
+
+</head>
+<style>
+	/* Container برای دکمه واتساپ */
+	.whatsapp-float-container {
+		position: fixed; /* دکمه ثابت روی صفحه می‌ماند */
+		bottom: 20px;    /* فاصله از پایین */
+		right: 20px;     /* فاصله از راست */
+		z-index: 1000;   /* بالاتر از بقیه عناصر قرار می‌گیرد */
+	}
+
+	/* استایل دکمه واتساپ */
+	.whatsapp-float-button {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		width: 60px;
+		height: 60px;
+		background-color: #25d366; /* رنگ واتساپ */
+		color: white;
+		font-size: 30px;
+		border-radius: 50%; /* دایره‌ای کردن دکمه */
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+		transition: transform 0.3s ease-in-out;
+	}
+
+	/* انیمیشن هنگام هاور (بردن موس روی دکمه) */
+	.whatsapp-float-button:hover {
+		transform: scale(1.1); /* دکمه کمی بزرگ می‌شود */
+	}
+
+
+	.youtube-link {
+    color: #ff0000;
+    text-decoration: none;
+    font-weight: bold;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.3s ease;
+}
+
+.youtube-link i {
+    font-size: 18px;
+}
+
+.youtube-link:hover {
+    color: #fff;
+    background: #ff0000;
+    padding: 5px 10px;
+    border-radius: 6px;
+    box-shadow: 0 0 12px rgba(255,0,0,0.8);
+    transform: scale(1.05);
+}
+
+
+.instagram-link {
+    color: #E1306C; /* رنگ اصلی اینستاگرام */
+    text-decoration: none;
+    font-weight: bold;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.3s ease;
+}
+
+.instagram-link i {
+    font-size: 18px;
+}
+
+/* افکت هاور با گرادینت شیک */
+.instagram-link:hover {
+    color: #fff;
+    background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
+    padding: 5px 10px;
+    border-radius: 6px;
+    box-shadow: 0 0 12px rgba(226,48,108,0.8);
+    transform: scale(1.05);
+}
+
+
+/* استایل لینکدین */
+.linkedin-link {
+    color: #0077B5;
+    text-decoration: none;
+    font-weight: bold;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.3s ease;
+}
+.linkedin-link i { font-size: 18px; }
+.linkedin-link:hover {
+    color: #fff;
+    background: #0077B5;
+    padding: 5px 10px;
+    border-radius: 6px;
+    box-shadow: 0 0 12px rgba(0,119,181,0.8);
+    transform: scale(1.05);
+}
+
+.whatsapp-link {
+    color: #25D366; /* رنگ سبز واتساپ */
+    text-decoration: none;
+    font-weight: bold;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.3s ease;
+}
+
+.whatsapp-link i {
+    font-size: 18px;
+}
+
+.whatsapp-link:hover {
+    color: #fff;
+    background: #25D366;
+    padding: 5px 10px;
+    border-radius: 6px;
+    box-shadow: 0 0 12px rgba(37, 211, 102, 0.8);
+    transform: scale(1.05);
+}
+</style>
+<style>
+    /* =======================================================
+    استایل های عمومی و شبکه های اجتماعی (بدون تغییر)
+    ======================================================= */
+    .whatsapp-float-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+    .whatsapp-float-button { display: flex; justify-content: center; align-items: center; width: 60px; height: 60px; background-color: #25d366; color: white; font-size: 30px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); transition: transform 0.3s ease-in-out; }
+    .whatsapp-float-button:hover { transform: scale(1.1); }
+
+    .youtube-link { color: #ff0000; text-decoration: none; font-weight: bold; margin-left: 8px; display: inline-flex; align-items: center; gap: 6px; transition: 0.3s ease; }
+    .youtube-link i { font-size: 18px; }
+    .youtube-link:hover { color: #fff; background: #ff0000; padding: 5px 10px; border-radius: 6px; box-shadow: 0 0 12px rgba(255,0,0,0.8); transform: scale(1.05); }
+
+    .instagram-link { color: #E1306C; text-decoration: none; font-weight: bold; margin-left: 8px; display: inline-flex; align-items: center; gap: 6px; transition: 0.3s ease; }
+    .instagram-link i { font-size: 18px; }
+    .instagram-link:hover { color: #fff; background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5); padding: 5px 10px; border-radius: 6px; box-shadow: 0 0 12px rgba(226,48,108,0.8); transform: scale(1.05); }
+
+    .linkedin-link { color: #0077B5; text-decoration: none; font-weight: bold; margin-left: 8px; display: inline-flex; align-items: center; gap: 6px; transition: 0.3s ease; }
+    .linkedin-link i { font-size: 18px; }
+    .linkedin-link:hover { color: #fff; background: #0077B5; padding: 5px 10px; border-radius: 6px; box-shadow: 0 0 12px rgba(0,119,181,0.8); transform: scale(1.05); }
+
+    .whatsapp-link { color: #25D366; text-decoration: none; font-weight: bold; margin-left: 8px; display: inline-flex; align-items: center; gap: 6px; transition: 0.3s ease; }
+    .whatsapp-link i { font-size: 18px; }
+    .whatsapp-link:hover { color: #fff; background: #25D366; padding: 5px 10px; border-radius: 6px; box-shadow: 0 0 12px rgba(37, 211, 102, 0.8); transform: scale(1.05); }
+
+    /* =======================================================
+    کدهای نهایی مگامنو (MEGA MENU) - حرفه ای، گرد و نرم
+    ======================================================= */
+    .main-bar-wraper, .main-bar {
+        position: relative;
+    }
+
+    .nav.navbar-nav > .mega-menu-item {
+        position: static !important;
+    }
+
+    .nav.navbar-nav > .mega-menu-item > .mega-menu-panel {
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100vw !important;
+        top: 100% !important;
+        margin-left: calc(-50vw + 50%) !important;
+        margin-right: calc(-50vw + 50%) !important;
+        margin-top: -1px !important;
+
+        background-color: #ffffff !important;
+        border-radius: **12px** !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 0, 0, 0.05) !important;
+        padding: 35px 50px !important;
+        z-index: 1050 !important;
+        border-top: none !important;
+        text-align: right !important;
+
+        display: none !important;
+        opacity: 0 !important;
+        transform: translateY(10px) scale(0.95) !important;
+        transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1), transform 0.5s cubic-bezier(0.23, 1, 0.32, 1) !important;
+    }
+
+    .nav.navbar-nav > .mega-menu-item:hover > .mega-menu-panel {
+        display: block !important;
+        opacity: 1 !important;
+        transform: translateY(0) scale(1) !important;
+    }
+
+    .mega-menu-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        display: flex;
+        align-items: center;
+    }
+    .mega-menu-title i {
+        color: #d8a05c;
+        font-size: 1.3rem;
+        margin-left: 10px;
+    }
+
+    .mega-menu-list {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 25px;
+    }
+
+    .mega-menu-list li a {
+        display: block;
+        padding: 8px 0;
+        color: #555;
+        text-decoration: none;
+        font-size: 0.95rem;
+        position: relative;
+        transition: color 0.2s ease, padding-right 0.2s ease;
+    }
+
+    .mega-menu-list li a:hover {
+        color: #d8a05c !important;
+        padding-right: 10px;
+    }
+
+    .mega-menu-col {
+        position: relative;
+        padding: 0 25px;
+    }
+
+    .mega-menu-panel .row > [class*="col-lg"] {
+        width: 20%;
+        max-width: 20%;
+        flex: 0 0 20%;
+    }
+
+    .mega-menu-cta-box {
+        background: linear-gradient(135deg, #fefefe 0%, #f9f9f9 100%);
+        border: 1px solid #f0f0f0;
+        padding: 25px;
+        border-radius: 8px;
+        text-align: center;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        border-right: 4px solid #d8a05c;
+    }
+    .mega-menu-cta-box h6 {
+        color: #d8a05c !important;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+    .mega-menu-cta-box .btn {
+        background-color: #d8a05c !important;
+        border-color: #d8a05c !important;
+        color: white !important;
+        margin-top: 15px;
+        padding: 10px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .mega-menu-cta-box .btn:hover {
+        background-color: #c48b4c !important;
+        box-shadow: 0 5px 15px rgba(216, 160, 92, 0.4);
+    }
+
+
+    @media (max-width: 991.98px) {
+
+        .mega-menu-panel .row > [class*="col-lg"] {
+            width: 100%;
+            max-width: 100%;
+            flex: 0 0 100%;
+        }
+
+        .nav.navbar-nav > .mega-menu-item > .mega-menu-panel {
+            position: relative !important;
+            width: 100% !important;
+            margin: 0 !important;
+            border-radius: 10px !important;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+            padding: 15px 15px 5px 15px !important;
+            opacity: 1 !important;
+            transform: none !important;
+            transition: none !important;
+            display: block !important;
+        }
+
+        .mega-menu-cta-box {
+            border-right: none;
+            border-bottom: 4px solid #d8a05c;
+            margin-bottom: 20px;
+        }
+        .mega-menu-col:not(:last-child) {
+            padding-left: 15px;
+        }
+    }
+
+
+    /* =======================================================
+    استایل های زیرمنو (Sub-Menu) - لوکس، گرد و مدرن
+    ======================================================= */
+    .nav.navbar-nav li.sub-menu-down > .sub-menu {
+        /* تنظیمات جعبه زیرمنو - دسکتاپ */
+        background-color: #ffffff;
+        border-radius: **10px** !important; /* گوشه‌های گرد */
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 0 5px rgba(0, 0, 0, 0.05); /* سایه حرفه‌ای */
+        padding: 10px 0 !important; /* پدینگ داخل جعبه */
+        border: none; /* حذف خطوط اضافی */
+        min-width: 220px; /* عرض مناسب */
+
+        /* انیمیشن باز شدن نرم (مانند مگامنو) */
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+        transition: opacity 0.3s cubic-bezier(0.23, 1, 0.32, 1), transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+
+        /* تنظیم موقعیت دقیق زیر آیتم */
+        right: 0 !important;
+        left: auto !important;
+        top: 100% !important;
+    }
+
+    /* نمایش زیرمنو هنگام هاور */
+    .nav.navbar-nav li.sub-menu-down:hover > .sub-menu {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        display: block !important;
+    }
+
+    /* استایل دهی آیتم‌های لیست داخل زیرمنو */
+    .nav.navbar-nav li.sub-menu-down > .sub-menu li a {
+        color: #444 !important; /* رنگ متن */
+        padding: 10px 20px !important; /* پدینگ داخل آیتم */
+        font-size: 0.95rem;
+        position: relative;
+        border-right: 3px solid transparent; /* خط کناری نامرئی */
+        transition: all 0.2s ease;
+    }
+
+    /* هاور روی آیتم‌های زیرمنو */
+    .nav.navbar-nav li.sub-menu-down > .sub-menu li a:hover {
+        background-color: #f7f7f7 !important; /* رنگ ملایم پس‌زمینه هنگام هاور */
+        color: #d8a05c !important; /* رنگ اصلی برند هنگام هاور */
+        border-right: 3px solid #d8a05c; /* خط کناری رنگی هنگام هاور */
+        padding-right: 25px !important; /* حرکت کوچک به راست */
+    }
+
+    /* استایل زیرمنوهای تو در تو (Nested Sub-Menu) */
+    .nav.navbar-nav li.sub-menu-down .sub-menu li.has-submenu > .sub-menu {
+        /* موقعیت زیرمنو داخلی - سمت چپ آیتم والد */
+        left: 100% !important; /* تنظیم جهت به سمت چپ (برای rtl) */
+        right: auto !important;
+        top: 0 !important;
+
+        /* انیمیشن برای زیرمنوهای داخلی */
+        transform: translateX(-10px) scale(0.98);
+        opacity: 0;
+        pointer-events: none; /* غیرفعال کردن کلیک قبل از نمایش */
+    }
+
+    .nav.navbar-nav li.sub-menu-down .sub-menu li.has-submenu:hover > .sub-menu {
+        /* نمایش زیرمنو داخلی هنگام هاور */
+        transform: translateX(0) scale(1);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* حذف آیکون فلش برای زیرمنوهای سطح دوم (اختیاری) */
+    .nav.navbar-nav li.sub-menu-down > a i,
+    .nav.navbar-nav li.sub-menu-down .sub-menu li.has-submenu > a i {
+        font-size: 0.75rem;
+        transition: transform 0.3s ease;
+    }
+
+    /* چرخش آیکون فلش در منوی والد */
+    .nav.navbar-nav li.sub-menu-down:hover > a i {
+        transform: rotate(180deg);
+    }
+
+    /* ریسپانسیو برای زیرمنوها در موبایل */
+    @media (max-width: 991.98px) {
+        .nav.navbar-nav li.sub-menu-down > .sub-menu,
+        .nav.navbar-nav li.sub-menu-down .sub-menu li.has-submenu > .sub-menu {
+            /* در موبایل باید ظاهر معمولی به خود بگیرند تا با JS اصلی قالب هماهنگ شوند */
+            position: relative !important;
+            width: 100% !important;
+            left: auto !important;
+            right: auto !important;
+            box-shadow: none;
+            border: none;
+            border-radius: 0;
+            padding: 0 !important;
+            opacity: 1;
+            transform: none;
+            transition: none;
+        }
+
+        .nav.navbar-nav li.sub-menu-down > .sub-menu li a {
+            padding: 10px 30px !important; /* پدینگ بیشتر برای آیتم‌های موبایل */
+            border-right: none;
+            border-left: 4px solid transparent;
+        }
+        .nav.navbar-nav li.sub-menu-down > .sub-menu li a:hover {
+            padding-right: 30px !important; /* حذف حرکت اضافه در موبایل */
+            padding-left: 20px !important;
+            border-right: none;
+            border-left: 4px solid #d8a05c;
+        }
+
+        .nav.navbar-nav li.sub-menu-down .sub-menu li.has-submenu > .sub-menu {
+            padding-right: 20px !important; /* فرورفتگی بیشتر برای زیرمنو داخلی در موبایل */
+        }
+    }
+
+    </style>
+<body id="bg">
+
+	<div class="whatsapp-float-container">
+		<a href="https://wa.me/989922807742?text=سلام،%20من%20به جهت%20دریافت%20مشاوره%20پیام میدهم." target="_blank" class="whatsapp-float-button">
+			<i class="fab fa-whatsapp"></i>
+		</a>
+	</div>
+
+<div class="page-wraper">
+
+	<div class="dz-preloader-1" id="dzPreloader">
+	<div class="preloader-inner">
+		<svg class="dz_svg" width="240" height="240" viewbox="0 0 240 240">
+			<circle class="dz_ring dz_ring_1" cx="120" cy="120" r="105" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 660" stroke-dashoffset="-330" stroke-linecap="round"></circle>
+			<circle class="dz_ring dz_ring_2" cx="120" cy="120" r="35" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 220" stroke-dashoffset="-110" stroke-linecap="round"></circle>
+			<circle class="dz_ring dz_ring_3" cx="85" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+			<circle class="dz_ring dz_ring_4" cx="155" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+		</svg>
+	</div>
+</div>
+
+    	<!-- Header Star -->
+	<header class="site-header header header-transparent box-header style-1">
+
+		<div class="top-bar">
+			<div class="container">
+				<!-- <div class="dz-topbar-inner d-flex justify-content-between align-items-center">
+					<div class="dz-topbar-left">
+						<ul>
+							<li><a href="tel:+11234567890"><i class="feather icon-phone-call text-primary"></i> +1 123 456 7890</a></li>
+							<li><a href="mailto:info@example.com"><i class="feather icon-mail text-primary"></i> info@example.com</a></li>
+						</ul>
+					</div>
+					<div class="dz-topbar-right">
+						<ul class="text-secondary">
+							<li>
+								<a href="https://www.linkedin.com" target="_blank">
+									<i class="fa-brands fa-linkedin"></i>
+								</a>
+							</li>
+							<li>
+								<a href="https://www.instagram.com" target="_blank">
+									<i class="fa-brands fa-instagram"></i>
+								</a>
+							</li>
+							<li>
+								<a href="https://www.facebook.com" target="_blank">
+									<i class="fa-brands fa-facebook-f"></i>
+								</a>
+							</li>
+							<li>
+								<a href="https://twitter.com" target="_blank">
+									<i class="fa-brands fa-x-twitter"></i>
+								</a>
+							</li>
+							<li>
+								<a href="https://www.youtube.com" target="_blank">
+									<i class="fa-brands fa-youtube"></i>
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div> -->
+			</div>
+		</div>
+
+		<!-- Main Header -->
+		<div class="sticky-header main-bar-wraper">
+			<div class="main-bar clearfix">
+				<div class="container clearfix inner-bar text-white">
+
+					<!-- EXTRA NAV -->
+					<!-- <div class="extra-nav">
+						<div class="extra-cell">
+							<ul class="header-right">
+								<li class="nav-item">
+									<a href="appointment.html" class="btn btn-primary btn-hover1">
+										نوبت‌دهی
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div> -->
+
+					<!-- Nav Toggle Button -->
+					<button class="w3menu-toggler navicon" type="button" data-target="#W3Menu">
+						<span></span>
+						<span></span>
+						<span></span>
+					</button>
+
+					<!-- Main Nav -->
+					<div class="menu-close fade-overlay"></div>
+					<div class="header-nav w3menu w3menu-end mo-left" id="W3Menu">
+
+						<div class="logo-header logo-dark">
+							<a href="{% url 'home:index' %}"><img src="{% static 'assets/images/logo/ArmitaGen-logo-white.png' %}" alt=""></a>
+						</div>
+
+						<ul class="nav navbar-nav">
+							<!-- <li>
+								<a href="javascript:void(0);"><span>خانه</span></a>
+							</li> -->
+
+							<!-- search btn -->
+							<button id="search-btn">
+								<svg class="btn-icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<circle cx="11" cy="11" r="8"></circle>
+									<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+								</svg>
+							</button>
+							<div id="search-overlay" class="search-overlay">
+								<div class="search-container">
+									<input type="text" id="search-input" placeholder="جستجو کنید..." class="search-input">
+								</div>
+							</div>
+
+
+							<li class="sub-menu-down mega-menu-item">
+								<a href="javascript:void(0);"><span>خدمات آزمایشگاهی</span> <i class="fas fa-chevron-down tabindex"></i></a>
+
+
+								<div class="mega-menu-panel">
+									<div class="row">
+
+										<div class="col-lg-3 col-md-6 mb-4 mb-lg-0 mega-menu-col">
+											<h6 class="mega-menu-title"><i class="fas fa-briefcase-medical"></i>آزمایشات سرطان</h6>
+											<ul class="mega-menu-list">
+												<li><a href="{% url 'home:brca' %}">بررسی ژن های <span class="no-translate-num">BRCA1</span> و <span class="no-translate-num">BRCA2</span></a></li>
+												<li><a href="{% url 'home:cancer' %}">تشخیص سرطان های ارثی</a></li>
+												<li><a href="{% url 'home:hrd' %}">آزمایش HRD</a></li>
+												<li><a href="{% url 'home:tmb' %}">آزمایش TMB</a></li>
+												<li><a href="{% url 'home:hist' %}">بررسی کامل ژنتیکی و هیستولوژیک نمونه تومور</a></li>
+											</ul>
+										</div>
+										<style>
+											.no-translate-num {
+												font-family: Arial, sans-serif !important;
+												direction: ltr; /* جهت رو هم اجباری کنید */
+											}
+										</style>
+
+										<div class="col-lg-3 col-md-6 mb-4 mb-lg-0 mega-menu-col">
+											<h6 class="mega-menu-title"><i class="fas fa-baby"></i>آزمایشگاه سلامت مادر و جنین</h6>
+											<ul class="mega-menu-list">
+												<li><a href="{% url 'home:nipt' %}">آزمایش سل فری (NIPT)</a></li>
+												<li><a href="{% url 'home:pgd' %}">تشخیص پیش از لانه گزینی (PGD)</a></li>
+												<li><a href="{% url 'home:pnd' %}">تشخیص پیش از تولد (PND)</a></li>
+												<li><a href="{% url 'home:panelT' %}">پنل ترومبوفیلی</a></li>
+											</ul>
+
+										</div>
+
+										<div class="col-lg-3 col-md-6 mb-4 mb-md-0 mega-menu-col">
+											<h6 class="mega-menu-title"><i class="fas fa-flask"></i>ژنتیک مولکولی</h6>
+											<ul class="mega-menu-list">
+												<li><a href="{% url 'home:ngs' %}">توالی یابی نسل جدید(NGS)</a></li>
+												<li><a href="{% url 'home:syndromx' %}">سندروم X شکننده</a></li>
+												<li><a href="{% url 'home:azo' %}">آزو اسپرمی</a></li>
+												<li><a href="{% url 'home:sma' %}">آتروفی نخاعی-عضلانی (SMA)</a></li>
+											</ul>
+										</div>
+
+										<div class="col-lg-3 col-md-6 mb-4 mb-md-0 mega-menu-col">
+											<h6 class="mega-menu-title"><i class="fas fa-cogs"></i>سایر خدمات</h6>
+											<ul class="mega-menu-list">
+												<li><a href="{% url 'home:bcs' %}">تشخیص کم خونی های ارثی (تالاسمی)</a></li>
+												<li><a href="{% url 'home:Cytogenetic' %}">آزمایشات سیتوژنتیکی</a></li>
+												<li><a href="{% url 'home:Microbiome' %}">آنالیز میکروبیوم</a></li>
+												<li><a href="{% url 'home:talent' %}">پنل استعداد یابی</a></li>
+											</ul>
+										</div>
+
+										<div class="col-lg-3 col-md-6 mega-menu-col">
+											<div class="mega-menu-cta-box">
+												<i class="fas fa-headset" style="font-size: 3.5rem; color: #d8a05c; margin-bottom: 20px;"></i>
+												<h6>مشاوره تخصصی ژنتیک</h6>
+												<p class="fs-6 mb-3 text-dark" style="font-size: 0.95rem; line-height: 1.8;">برای دریافت دقیق‌ترین راهنمایی‌ها در زمینه خدمات آزمایشگاهی، همین امروز مشاوره خود را رزرو کنید.</p>
+												<a href="{% url 'council:con' %}" class="btn btn-sm btn-primary btn-hover1">رزرو وقت آنلاین</a>
+											</div>
+										</div>
+
+									</div>
+								</div>
+								</li>
+                            <li>
+								<a href="{% url 'council:con' %}"><span>مشاوره ژنتیک</span></a>
+							</li>
+							<!-- <li class="sub-menu-down">
+								<a href="javascript:void(0);"><span>مشاوره ژنتیک</span> <i class="fas fa-chevron-down tabindex"></i></a>
+								<ul class="sub-menu">
+									<li><a href="about-us.html">توالی یابی Sanger</a></li>
+									<li><a href="about-us-2.html">توالی یابی کل ژنوم</a></li>
+									<li><a href="appointment.html">توالی یابی کل اگزوم</a></li>
+									<li><a href="pricing-table.html">آنالیز میکروبیوم</a></li>
+									<li><a href="testimonial.html">پنل استعدادیابی</a></li>
+									<li><a href="faqs.html">سیتوژنتیک</a></li>
+									<li><a href="error-404.html">خدمات مولکولی</a></li>
+								</ul>
+							</li> -->
+
+							<!-- <li class="sub-menu-down">
+								<a href="javascript:void(0);"><span>خدمات</span> <i class="fas fa-chevron-down tabindex"></i></a>
+								<ul class="sub-menu">
+									<li><a href="services.html">خدمات</a></li>
+									<li><a href="services-2.html">خدمات 2</a></li>
+									<li><a href="service-detail.html">جزییات خدمات</a></li>
+									<li><a href="service-detail-2.html">جزییات خدمات 2</a></li>
+								</ul>
+							</li> -->
+							<li>
+								<a href="javascript:void(0);"><span>آکادمی ژنتیک</span></a>
+							</li>
+
+							<!-- <li>
+								<a href="javascript:void(0);"><span>آرمیتابلاگ</span></a>
+							</li> -->
+
+							<li class="sub-menu-down">
+								<a href="javascript:void(0);"><span>آرمیتابلاگ</span> <i class="fas fa-chevron-down tabindex"></i></a>
+								<ul class="sub-menu">
+									<li><a href="blog-grid.html">وبلاگ علمی</a></li>
+									<!-- <li><a href="blog-list-sidebar.html"></a></li> -->
+									<li><a href="blog-details.html">اخبار ژنتیکی</a></li>
+								</ul>
+							</li>
+							<li class="sub-menu-down">
+								<a href="javascript:void(0);"><span>راهنمای مراجعین</span> <i class="fas fa-chevron-down tabindex"></i></a>
+								<ul class="sub-menu">
+									<li><a href="blog-grid.html">ساعت کاری آزمایشگاه</a></li>
+									<li><a href="blog-grid.html">مشاهده تمامی خدمات</a></li>
+									<!-- <li><a href="blog-list-sidebar.html"></a></li> -->
+									<li class="has-submenu">
+										<a href="team.html">خدمات غیر حضوری</a>
+										<ul class="sub-menu">
+											<li><a href="about-us.html">مشاوره آنلاین</a></li>
+											<li><a href="about-us-2.html">نمونه گیری در محل</a></li>
+											<li><a href="{% url 'council:con' %}">جواب دهی آنلاین</a></li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<!-- <li><a href="{% url 'team:about-us' %}"><span>درباره ما</span></a></li> -->
+							<li class="sub-menu-down">
+								<a href="javascript:void(0);"><span>ارتباط با ما</span> <i class="fas fa-chevron-down tabindex"></i></a>
+								<ul class="sub-menu">
+									<li><a href="{% url 'team:about-us' %}">درباره ما</a></li>
+									<!-- <li><a href="blog-list-sidebar.html"></a></li> -->
+									<li><a href="#">تماس با ما</a></li>
+									<li><a href="#">تیم ما</a></li>
+								</ul>
+							</li>
+						</ul>
+
+						<div class="dz-social-icon">
+							<ul>
+								<li>
+									<a href="https://www.facebook.com" target="_blank">
+										<i class="fa-brands fa-facebook-f"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://twitter.com" target="_blank">
+										<i class="fa-brands fa-x-twitter"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.linkedin.com" target="_blank">
+										<i class="fa-brands fa-linkedin"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.instagram.com" target="_blank">
+										<i class="fa-brands fa-instagram"></i>
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+
+					<!-- Website Logo -->
+					<div class="logo-header logo-dark">
+						<a href="{% url 'home:index' %}"><img src="{% static 'assets/images/logo/Armita2.png' %}" alt="logo"></a>
+					</div>
+
+				<div class="3"></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Main Header End -->
+	</header>
+	<!-- Header End -->
+
+	<!-- <hr><hr> -->
+
+	<div class="modal fade" id="armitagenAppointmentModal" tabindex="-1" aria-labelledby="armitagenAppointmentModalLabel" aria-hidden="true">
+    {% include 'snippets/modal_appointment_form.html' %}
+</div>
+
+	{% block content %} {% endblock %}
+
+		<!-- Footer -->
+	<footer class="site-footer style-1 overlay-primary-light" style="background-image: url('{% static 'assets/images/background/bg4.webp' %}')">
+
+		<!-- Footer Top -->
+		<div class="footer-top">
+			<div class="container">
+    <div class="row">
+        <div class="col-xl-3 col-sm-12 wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">
+			<div class="widget widget_about me-2">
+				<div class="footer-logo logo-white" style="text-align:left;">
+					<a href="{% url 'home:index' %}"><img src="{% static 'assets/images/logo/Armita2.png' %}" alt=""></a>
+				</div>
+				<p style="text-align: justify;">در آرمیتاژن، ما با قدرت دانش و فناوری‌های جدید در حوزه‌های مختلف پزشکی باور داریم و مفتخریم در خط مقدم این حوزه با عنوان پیشگام در حوزه پزشکی فرادقیق (Precision Medicine) در حال خدمت رسانی به انسانها می‌باشیم. با شما در کشف اطلاعات ژنتیکی مورد نیاز برای آینده‌ای سالم‌تر همراه خواهیم بود.</p>
+			</div>
+		</div>
+
+        <div class="col-xl-2 col-md-3 col-6 wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
+            <div class="widget widget_services">
+                <h2 class="footer-title">خدمات آزمایشگاهی</h2>
+                <ul class="list-hover1">
+                    <li><a href="#"><span> آزمایشگاه سرطان </span></a></li>
+                    <li><a href="#"><span>آزمایشگاه سلامت مادر و جنین</span></a></li>
+                    <li><a href="#"><span> ژنتیک مولکولی</span></a></li>
+                    <li><a href="#"><span> آنالیز میکروبیوم</span></a></li>
+                    <li><a href="#"><span> پنل استعدادیابی</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-3 col-6 wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
+            <div class="widget widget_services">
+                <h2 class="footer-title">راهنمای مراجعین</h2>
+                <ul class="list-hover1">
+                    <li><a href="#"><span> خدمات حضوری و غیرحضوری </span></a></li>
+                    <li><a href="#"><span> مشاوره آنلاین </span></a></li>
+                    <li><a href="#"><span> نمونه گیری در محل  </span></a></li>
+                    <li><a href="#"><span> جوابدهی آنلاین </span></a></li>
+                    <li><a href="#"><span> همکاری با ما </span></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-3 col-6 wow fadeInUp" data-wow-delay="1.0s" data-wow-duration="0.8s">
+            <div class="widget widget_services">
+                <h2 class="footer-title">پیوندهای سریع</h2>
+                <ul class="list-hover1">
+                    <li><a href="#"><span>درباره ما</span></a></li>
+                    <li><a href="#"><span> تماس ما </span></a></li>
+                    <li><a href="#"><span> آرمیتابلاگ </span></a></li>
+                    <li><a href="#"><span> آکادمی ژنتیک </span></a></li>
+                    <li><a href="#"><span>مشاوره ژنتیک</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 col-12 wow fadeInUp" data-wow-delay="0.6s" data-wow-duration="0.8s">
+            <div class="footer-widget app-download-widget">
+                <h2 class="footer-title">با ما در ارتباط باشید</h2>
+                <p>
+                    <a href="#" target="_blank" class="youtube-link">
+                        <i class="fab fa-youtube"></i>یوتیوب
+                    </a>
+                </p>
+                <p>
+                    <a href="#" target="_blank" class="instagram-link">
+                        <i class="fab fa-instagram"></i>اینستاگرام
+                    </a>
+                </p>
+                <p>
+                    <a href="#" target="_blank" class="linkedin-link">
+                        <i class="fab fa-linkedin"></i>لینکداین
+                    </a>
+                </p>
+                <p>
+                    <a href="#" target="_blank" class="whatsapp-link">
+                        <i class="fab fa-whatsapp"></i>واتساپ
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-6 col-12 wow fadeInUp" data-wow-delay="0.8s" data-wow-duration="0.8s">
+            <div class="widget">
+                </div>
+        </div>
+    </div>
+</div>
+		</div>
+		<!-- Footer Top End -->
+
+        <!-- Footer Bottom -->
+		<div class="footer-bottom">
+			<div class="container">
+				<div class="fb-inner">
+					<div class="row">
+						<div class="col-lg-6 col-md-12 text-start">
+							<p class="copyright-text">تمامی حقوق و محتوای سایت متعلق به تیم آرمیتاژن می‌باشد.</p>
+						</div>
+						<div class="col-lg-6 col-md-12 text-end">
+							<div class="d-flex align-items-center justify-content-center justify-content-md-center justify-content-xl-end">
+								<div class="widget-rating1">
+									<img src="{% static 'assets/images/google.svg' %}" alt="">
+									<ul class="star-list">
+										<li><i class="fa fa-star"></i></li>
+										<li><i class="fa fa-star"></i></li>
+										<li><i class="fa fa-star"></i></li>
+										<li><i class="fa fa-star"></i></li>
+										<li><i class="fa fa-star"></i></li>
+									</ul>
+									<span class="rating">(4.8)</span>
+									<span class="text">12 هزار امتیاز در گوگل</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Footer Bottom End -->
+
+        <div class="item1">
+			<div class="info-widget style-4">
+				<div class="widget-media">
+					<img src="{% static 'assets/images/avatar/small/avatar6.webp' %}" alt="">
+				</div>
+				<div class="widget-content">
+					<h6 class="title">سوالی دارید؟</h6>
+					<a href="mailto:info@armitagen.ir">info@armitagen.ir</a>
+					<span class="text">پشتیبانی</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- <div class="item1">
+			<div class="info-widget style-4" sty>
+				<div class="widget-media">
+					<img src="{% static 'assets/images/avatar/small/avatar6.webp' %}" alt="">
+				</div>
+				<div class="widget-content">
+					<h6 class="title">سوالی دارید؟</h6>
+					<a href="mailto:info@example.com">info@example.com</a>
+					<span class="text">جانی ویتی</span>
+				</div>
+			</div>
+		</div> -->
+
+	</footer>
+	<!-- Footer End -->
+
+	<button class="scroltop" type="button"><i class="fas fa-arrow-up"></i></button>
+
+</div>
+<!-- JAVASCRIPT FILES ========================================= -->
+<script src="{% static 'assets/js/global.min-2.js' %}"></script>
+<script src="{% static 'assets/vendor/swiper/swiper-bundle.min-2.js' %}"></script>
+<script src="{% static 'assets/vendor/imagesloaded/imagesloaded-2.js' %}"></script>
+<script src="{% static 'assets/vendor/apexchart/apexchart.js' %}"></script>
+<script src="{% static 'assets/js/init-apexchart.js' %}"></script>
+<script src="{% static 'assets/js/dz.carousel-2.js' %}"></script>
+<script src="{% static 'assets/js/dz.ajax-2.js' %}"></script>
+<script src="{% static 'assets/js/custom-2.js' %}"></script>
+
+
+<script>
+	const searchBtn = document.getElementById('search-btn');
+	const searchOverlay = document.getElementById('search-overlay');
+	const searchInput = document.getElementById('search-input');
+
+	searchBtn.addEventListener('click', () => {
+		searchOverlay.classList.add('active');
+		searchInput.focus(); // فوکوس خودکار
+	});
+
+	searchOverlay.addEventListener('click', (event) => {
+		// بستن پاپ‌آپ با کلیک در خارج از باکس جستجو
+		if (event.target === searchOverlay) {
+			searchOverlay.classList.remove('active');
+		}
+	});
+
+	// بستن پاپ‌آپ با فشردن دکمه Escape
+	document.addEventListener('keydown', (event) => {
+		if (event.key === 'Escape' && searchOverlay.classList.contains('active')) {
+			searchOverlay.classList.remove('active');
+		}
+	});
+</script>
+
+</body>
+</html>

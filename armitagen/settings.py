@@ -38,13 +38,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # APPS
+    # Apps
     'home.apps.HomeConfig',
     'academy.apps.AcademyConfig',
     'blog.apps.BlogConfig',
     'council.apps.CouncilConfig',
     'services.apps.ServicesConfig',
-    'team.apps.TeamConfig'
+    'team.apps.TeamConfig',
+    # Packages
+    'django_render_partial',
 ]
 
 MIDDLEWARE = [
@@ -105,7 +107,8 @@ DATABASES = {
         'NAME': 'armitagen_db',
         # 'USER': 'armitagen_admin',
         # 'PASSWORD': 'armitagen@1234',
-
+        'USER': 'root',
+        'PASSWORD': 'Mohammad_M22',
 
     }
 }

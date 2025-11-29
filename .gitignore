@@ -7,9 +7,8 @@
 .vscode
 
 # static
-!static/admin/css/custom_admin.css
-static/*
-
+#static/*
+static/assets/images/*
 media/*
 
 # cache files

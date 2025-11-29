@@ -1,0 +1,30 @@
+/* هدر جداول */
+#result_list thead th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white !important;
+}
+
+/* ردیف‌های جدول */
+#result_list tbody tr:hover {
+    background-color: #f3f4f6 !important;
+}
+
+/* بهبود نمایش فیلترها */
+#changelist-filter {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+/* دکمه‌های اکشن */
+.button, input[type=submit], input[type=button] {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border: none !important;
+    border-radius: 6px !important;
+    transition: all 0.3s ease !important;
+}
+
+.button:hover, input[type=submit]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
+}
