@@ -1,0 +1,292 @@
+{% load static %}
+
+<header class="site-header header header-transparent box-header style-1">
+
+    <div class="top-bar">
+        <div class="container">
+            <!-- <div class="dz-topbar-inner d-flex justify-content-between align-items-center">
+                <div class="dz-topbar-left">
+                    <ul>
+                        <li><a href="tel:+11234567890"><i class="feather icon-phone-call text-primary"></i> +1 123 456 7890</a></li>
+                        <li><a href="mailto:info@example.com"><i class="feather icon-mail text-primary"></i> info@example.com</a></li>
+                    </ul>
+                </div>
+                <div class="dz-topbar-right">
+                    <ul class="text-secondary">
+                        <li>
+                            <a href="https://www.linkedin.com" target="_blank">
+                                <i class="fa-brands fa-linkedin"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.instagram.com" target="_blank">
+                                <i class="fa-brands fa-instagram"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.facebook.com" target="_blank">
+                                <i class="fa-brands fa-facebook-f"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com" target="_blank">
+                                <i class="fa-brands fa-x-twitter"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.youtube.com" target="_blank">
+                                <i class="fa-brands fa-youtube"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div> -->
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <div class="sticky-header main-bar-wraper">
+        <div class="main-bar clearfix">
+            <div class="container clearfix inner-bar text-white">
+
+                <!-- EXTRA NAV -->
+                <!-- <div class="extra-nav">
+                    <div class="extra-cell">
+                        <ul class="header-right">
+                            <li class="nav-item">
+                                <a href="appointment.html" class="btn btn-primary btn-hover1">
+                                    نوبت‌دهی
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div> -->
+
+                <!-- Nav Toggle Button -->
+                <button class="w3menu-toggler navicon" type="button" data-target="#W3Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <!-- Main Nav -->
+                <div class="menu-close fade-overlay"></div>
+                <div class="header-nav w3menu w3menu-end mo-left" id="W3Menu">
+
+                    <div class="logo-header logo-dark">
+                        <a href="{% url 'home:index' %}"><img
+                                src="{% static 'assets/images/logo/ArmitaGen-logo-white.png' %}" alt=""></a>
+                    </div>
+
+                    <ul class="nav navbar-nav">
+                        <!-- <li>
+                            <a href="javascript:void(0);"><span>خانه</span></a>
+                        </li> -->
+
+                        <!-- search btn -->
+                        <button id="search-btn">
+                            <svg class="btn-icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                        <div id="search-overlay" class="search-overlay">
+                            <div class="search-container">
+                                <input type="text" id="search-input" placeholder="جستجو کنید..."
+                                       class="search-input">
+                            </div>
+                        </div>
+
+
+                        <li class="sub-menu-down mega-menu-item">
+                            <a href="javascript:void(0);"><span>خدمات آزمایشگاهی</span> <i
+                                    class="fas fa-chevron-down tabindex"></i></a>
+
+
+                            <div class="mega-menu-panel">
+                                <div class="row">
+
+                                    <div class="col-lg-3 col-md-6 mb-4 mb-lg-0 mega-menu-col">
+                                        <h6 class="mega-menu-title"><i class="fas fa-briefcase-medical"></i>آزمایشات
+                                            سرطان</h6>
+                                        <ul class="mega-menu-list">
+                                            <li><a href="{% url 'home:brca' %}">بررسی ژن های <span
+                                                    class="no-translate-num">BRCA1</span> و <span
+                                                    class="no-translate-num">BRCA2</span></a></li>
+                                            <li><a href="{% url 'home:cancer' %}">تشخیص سرطان های ارثی</a></li>
+                                            <li><a href="{% url 'home:hrd' %}">آزمایش HRD</a></li>
+                                            <li><a href="{% url 'home:tmb' %}">آزمایش TMB</a></li>
+                                            <li><a href="{% url 'home:hist' %}">بررسی کامل ژنتیکی و هیستولوژیک نمونه
+                                                تومور</a></li>
+                                        </ul>
+                                    </div>
+                                    <style>
+                                        .no-translate-num {
+                                            font-family: Arial, sans-serif !important;
+                                            direction: ltr; /* جهت رو هم اجباری کنید */
+                                        }
+                                    </style>
+
+                                    <div class="col-lg-3 col-md-6 mb-4 mb-lg-0 mega-menu-col">
+                                        <h6 class="mega-menu-title"><i class="fas fa-baby"></i>آزمایشگاه سلامت مادر
+                                            و جنین</h6>
+                                        <ul class="mega-menu-list">
+                                            <li><a href="{% url 'home:nipt' %}">آزمایش سل فری (NIPT)</a></li>
+                                            <li><a href="{% url 'home:pgd' %}">تشخیص پیش از لانه گزینی (PGD)</a>
+                                            </li>
+                                            <li><a href="{% url 'home:pnd' %}">تشخیص پیش از تولد (PND)</a></li>
+                                            <li><a href="{% url 'home:panelT' %}">پنل ترومبوفیلی</a></li>
+                                        </ul>
+
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-6 mb-4 mb-md-0 mega-menu-col">
+                                        <h6 class="mega-menu-title"><i class="fas fa-flask"></i>ژنتیک مولکولی</h6>
+                                        <ul class="mega-menu-list">
+                                            <li><a href="{% url 'home:ngs' %}">توالی یابی نسل جدید(NGS)</a></li>
+                                            <li><a href="{% url 'home:syndromx' %}">سندروم X شکننده</a></li>
+                                            <li><a href="{% url 'home:azo' %}">آزو اسپرمی</a></li>
+                                            <li><a href="{% url 'home:sma' %}">آتروفی نخاعی-عضلانی (SMA)</a></li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-6 mb-4 mb-md-0 mega-menu-col">
+                                        <h6 class="mega-menu-title"><i class="fas fa-cogs"></i>سایر خدمات</h6>
+                                        <ul class="mega-menu-list">
+                                            <li><a href="{% url 'home:bcs' %}">تشخیص کم خونی های ارثی (تالاسمی)</a>
+                                            </li>
+                                            <li><a href="{% url 'home:Cytogenetic' %}">آزمایشات سیتوژنتیکی</a></li>
+                                            <li><a href="{% url 'home:Microbiome' %}">آنالیز میکروبیوم</a></li>
+                                            <li><a href="{% url 'home:talent' %}">پنل استعداد یابی</a></li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-6 mega-menu-col">
+                                        <div class="mega-menu-cta-box">
+                                            <i class="fas fa-headset"
+                                               style="font-size: 3.5rem; color: #d8a05c; margin-bottom: 20px;"></i>
+                                            <h6>مشاوره تخصصی ژنتیک</h6>
+                                            <p class="fs-6 mb-3 text-dark"
+                                               style="font-size: 0.95rem; line-height: 1.8;">برای دریافت دقیق‌ترین
+                                                راهنمایی‌ها در زمینه خدمات آزمایشگاهی، همین امروز مشاوره خود را رزرو
+                                                کنید.</p>
+                                            <a href="{% url 'council:con' %}"
+                                               class="btn btn-sm btn-primary btn-hover1">رزرو وقت آنلاین</a>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <a href="{% url 'council:con' %}"><span>مشاوره ژنتیک</span></a>
+                        </li>
+                        <!-- <li class="sub-menu-down">
+                            <a href="javascript:void(0);"><span>مشاوره ژنتیک</span> <i class="fas fa-chevron-down tabindex"></i></a>
+                            <ul class="sub-menu">
+                                <li><a href="about-us.html">توالی یابی Sanger</a></li>
+                                <li><a href="about-us-2.html">توالی یابی کل ژنوم</a></li>
+                                <li><a href="appointment.html">توالی یابی کل اگزوم</a></li>
+                                <li><a href="pricing-table.html">آنالیز میکروبیوم</a></li>
+                                <li><a href="testimonial.html">پنل استعدادیابی</a></li>
+                                <li><a href="faqs.html">سیتوژنتیک</a></li>
+                                <li><a href="error-404.html">خدمات مولکولی</a></li>
+                            </ul>
+                        </li> -->
+
+                        <!-- <li class="sub-menu-down">
+                            <a href="javascript:void(0);"><span>خدمات</span> <i class="fas fa-chevron-down tabindex"></i></a>
+                            <ul class="sub-menu">
+                                <li><a href="services.html">خدمات</a></li>
+                                <li><a href="services-2.html">خدمات 2</a></li>
+                                <li><a href="service-detail.html">جزییات خدمات</a></li>
+                                <li><a href="service-detail-2.html">جزییات خدمات 2</a></li>
+                            </ul>
+                        </li> -->
+                        <li>
+                            <a href="javascript:void(0);"><span>آکادمی ژنتیک</span></a>
+                        </li>
+
+                        <!-- <li>
+                            <a href="javascript:void(0);"><span>آرمیتابلاگ</span></a>
+                        </li> -->
+
+                        <li class="sub-menu-down">
+                            <a href="javascript:void(0);"><span>آرمیتابلاگ</span> <i
+                                    class="fas fa-chevron-down tabindex"></i></a>
+                            <ul class="sub-menu">
+                                <li><a href="blog-grid.html">وبلاگ علمی</a></li>
+                                <!-- <li><a href="blog-list-sidebar.html"></a></li> -->
+                                <li><a href="blog-details.html">اخبار ژنتیکی</a></li>
+                            </ul>
+                        </li>
+                        <li class="sub-menu-down">
+                            <a href="javascript:void(0);"><span>راهنمای مراجعین</span> <i
+                                    class="fas fa-chevron-down tabindex"></i></a>
+                            <ul class="sub-menu">
+                                <li><a href="blog-grid.html">ساعت کاری آزمایشگاه</a></li>
+                                <li><a href="blog-grid.html">مشاهده تمامی خدمات</a></li>
+                                <!-- <li><a href="blog-list-sidebar.html"></a></li> -->
+                                <li class="has-submenu">
+                                    <a href="team.html">خدمات غیر حضوری</a>
+                                    <ul class="sub-menu">
+                                        <li><a href="about-us.html">مشاوره آنلاین</a></li>
+                                        <li><a href="about-us-2.html">نمونه گیری در محل</a></li>
+                                        <li><a href="{% url 'council:con' %}">جواب دهی آنلاین</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <!-- <li><a href="{% url 'team:about-us' %}"><span>درباره ما</span></a></li> -->
+                        <li class="sub-menu-down">
+                            <a href="javascript:void(0);"><span>ارتباط با ما</span> <i
+                                    class="fas fa-chevron-down tabindex"></i></a>
+                            <ul class="sub-menu">
+                                <li><a href="{% url 'team:about-us' %}">درباره ما</a></li>
+                                <!-- <li><a href="blog-list-sidebar.html"></a></li> -->
+                                <li><a href="#">تماس با ما</a></li>
+                                <li><a href="#">تیم ما</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <div class="dz-social-icon">
+                        <ul>
+                            <li>
+                                <a href="https://www.facebook.com" target="_blank">
+                                    <i class="fa-brands fa-facebook-f"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://twitter.com" target="_blank">
+                                    <i class="fa-brands fa-x-twitter"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.linkedin.com" target="_blank">
+                                    <i class="fa-brands fa-linkedin"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.instagram.com" target="_blank">
+                                    <i class="fa-brands fa-instagram"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Website Logo -->
+                <div class="logo-header logo-dark">
+                    <a href="{% url 'home:index' %}"><img src="{% static 'assets/images/logo/Armita2.png' %}"
+                                                          alt="logo"></a>
+                </div>
+
+{#                <div class="3"></div>#}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header End -->
+</header>

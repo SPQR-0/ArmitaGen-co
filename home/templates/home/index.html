@@ -1,5 +1,7 @@
-﻿{% extends 'base.html' %}
+﻿{% extends 'shared/_layout.html' %}
 {% load static %}
+
+
 
 
 {% block content %}
@@ -171,7 +173,7 @@
     padding: 30px 20px;
     border-radius: 12px;
     background-color: white;
-    box-shadow: var(--card-shadow); 
+    box-shadow: var(--card-shadow);
     transition: all var(--transition-speed) ease;
     text-decoration: none;
     height: 100%;
@@ -243,20 +245,20 @@
 
 .quick-link-card.secondary-bg-hover:hover .quick-link-icon {
     /* آیکون در هاور به رنگ زرشکی درآید (Contrast بالا) */
-    color: var(--armitagen-primary) !important; 
+    color: var(--armitagen-primary) !important;
 }
 .quick-link-card.secondary-bg-hover:hover .quick-link-title,
 .quick-link-card.secondary-bg-hover:hover .quick-link-text {
     /* متن‌ها تیره باقی می‌مانند (خوانایی بهتر روی پس‌زمینه روشن) */
-    color: var(--text-dark) !important; 
+    color: var(--text-dark) !important;
 }
 </style>
 
 <main class="page-content">
-	
+
 	<div class="hero-banner style-1 full-width-hero">
     <div class="hero-overlay"></div>
-    
+
     <div class="hero-carousel-track">
         <div class="hero-slide active" style="background-image: url('{% static 'assets/images/Dropbox/council/header.png' %}');"></div>
         <div class="hero-slide" style="background-image: url('{% static 'assets/images/Dropbox/council/header3.png' %}');"></div>
@@ -265,7 +267,7 @@
 
     <div class="container hero-content-wrapper">
         <div class="inner-wrapper">
-            <div class="col-lg-6 align-self-center text-white"><br><br> 
+            <div class="col-lg-6 align-self-center text-white"><br><br>
                 <div class="hero-content">
                     <h1 class="title wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">
                         کدهای ژنتیکی شما، نقشه‌ راه <span class="text-secondary-color">سلامتی</span> شما
@@ -273,10 +275,10 @@
                     <p class="text wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
                         زمان در پزشکی حیاتی است: بیش از ۶۰٪ بیماری‌ها دیر تشخیص داده می‌شوند. آیا حاضرید این ریسک را بپذیرید؟ با مشاوره اولیه رایگان، همین امروز علم را به نفع سلامتی خود تغییر دهید.
                     </p>
-                    
-                    <a href="#appointment-modal" 
-                        class="btn btn-lg btn-icon btn-primary m-r20 wow fadeInUp" 
-                        data-wow-delay="0.6s" 
+
+                    <a href="#appointment-modal"
+                        class="btn btn-lg btn-icon btn-primary m-r20 wow fadeInUp"
+                        data-wow-delay="0.6s"
                         data-wow-duration="0.8s"
                         data-bs-toggle="modal"
                         data-bs-target="#armitagenAppointmentModal">
@@ -317,7 +319,7 @@
                     <p class="quick-link-text">سریع‌ترین راهکار تشخیصی</p>
                 </a>
             </div>
-            
+
             <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.4s">
                 <a href="#" class="quick-link-card secondary-bg-hover">
                     <i class="fas fa-book-medical quick-link-icon"></i>
@@ -325,7 +327,7 @@
                     <p class="quick-link-text">قبل از مراجعه چه می‌دانید؟</p>
                 </a>
             </div>
-            
+
         </div>
     </div>
 </section>
@@ -357,7 +359,7 @@
     setInterval(nextHeroSlide, heroAutoPlayInterval);
 });
 </script>
-		
+
 			<section class="content-inner" style="background-image: url('{% static 'assets/images/background/bg1.png' %}'); background-repeat: no-repeat; background-position: left bottom;">
 		<div class="container">
 			<div class="row content-wrapper style-1 align-items-center">
@@ -446,7 +448,7 @@
 			</div>
 		</div>
 	</section>
-		
+
 		<section class="content-inner-3 bg-secondary background-blend-multiply bg-img-fix" style="background-image: url('{% static 'assets/images/background/bg2.webp' %}'); background-repeat: no-repeat; background-position: left center; background-size: cover;">
 			<div class="container">
 				<div class="row align-items-sm-center">
@@ -480,7 +482,7 @@
 				</div>
 			</div>
 		</section>
-		
+
 		<section class="content-inner-2 bg-light">
 	<div class="container">
 		<div class="section-head style-3 m-b30 text-center wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">
@@ -500,10 +502,10 @@
 						<div class="dz-flex-inner">
 							<div class="dz-media">
 								<img src="{% static 'assets/images/category/1.jpeg' %}" alt="/">
-								<a href="#" class="btn btn-white" data-wow-delay="0.6s" 
+								<a href="#" class="btn btn-white" data-wow-delay="0.6s"
 									data-wow-duration="0.8s"
-									data-bs-toggle="modal"        
-									data-bs-target="#armitagenAppointmentModal" 
+									data-bs-toggle="modal"
+									data-bs-target="#armitagenAppointmentModal"
 									style="cursor: pointer;">
 									<i class="feather icon-calendar m-r5 text-primary"></i>
 									نوبت بگیرید
@@ -537,22 +539,22 @@
 							</div>
 						</div>
 					</div>
-				</div>						
+				</div>
 				<div class="dz-flex-item swiper-slide">
 					<div class="dz-flex-head" style="background-image: url('{% static 'assets/images/category/CA.jpg' %}');">
 						<a href="service-detail.html" class="btn btn-square btn-lg btn-white btn-shadow btn-rounded">
 							<i class="feather icon-arrow-up-left"></i>
 						</a>
 						<h3 class="title">تشخیص و درمان هدفمند سرطان</h3>
-					</div>	
+					</div>
 					<div class="dz-flex-info">
 						<div class="dz-flex-inner">
 							<div class="dz-media">
 								<img src="{% static 'assets/images/category/2.jpeg' %}" alt="/">
-								<a href="#" class="btn btn-white" data-wow-delay="0.6s" 
+								<a href="#" class="btn btn-white" data-wow-delay="0.6s"
 									data-wow-duration="0.8s"
-									data-bs-toggle="modal"        
-									data-bs-target="#armitagenAppointmentModal" 
+									data-bs-toggle="modal"
+									data-bs-target="#armitagenAppointmentModal"
 									style="cursor: pointer;">
 									<i class="feather icon-calendar m-r5 text-primary"></i>
 									نوبت بگیرید
@@ -593,15 +595,15 @@
 							<i class="feather icon-arrow-up-left"></i>
 						</a>
 						<h3 class="title">آزمایش‌های پیش از ازدواج</h3>
-					</div>	
+					</div>
 					<div class="dz-flex-info">
 						<div class="dz-flex-inner">
 							<div class="dz-media">
 								<img src="{% static 'assets/images/category/3.jpeg' %}" alt="/">
-								<a href="#" class="btn btn-white" data-wow-delay="0.6s" 
+								<a href="#" class="btn btn-white" data-wow-delay="0.6s"
 									data-wow-duration="0.8s"
-									data-bs-toggle="modal"        
-									data-bs-target="#armitagenAppointmentModal" 
+									data-bs-toggle="modal"
+									data-bs-target="#armitagenAppointmentModal"
 									style="cursor: pointer;">
 									<i class="feather icon-calendar m-r5 text-primary"></i>
 									نوبت بگیرید
@@ -643,15 +645,15 @@
 							<i class="feather icon-arrow-up-left"></i>
 						</a>
 						<h3 class="title">آزمایش‌های بارداری سالم</h3>
-					</div>	
+					</div>
 					<div class="dz-flex-info">
 						<div class="dz-flex-inner">
 							<div class="dz-media">
 								<img src="{% static 'assets/images/category/4.jpeg' %}" alt="/">
-								<a href="#" class="btn btn-white" data-wow-delay="0.6s" 
+								<a href="#" class="btn btn-white" data-wow-delay="0.6s"
 									data-wow-duration="0.8s"
-									data-bs-toggle="modal"        
-									data-bs-target="#armitagenAppointmentModal" 
+									data-bs-toggle="modal"
+									data-bs-target="#armitagenAppointmentModal"
 									style="cursor: pointer;">
 									<i class="feather icon-calendar m-r5 text-primary"></i>
 									نوبت بگیرید
@@ -693,15 +695,15 @@
 							<i class="feather icon-arrow-up-left"></i>
 						</a>
 						<h3 class="title">آنالیز استعدادیابی</h3>
-					</div>	
+					</div>
 					<div class="dz-flex-info">
 						<div class="dz-flex-inner">
 							<div class="dz-media">
 								<img src="{% static 'assets/images/category/5.jpeg' %}" alt="/">
-								<a href="#" class="btn btn-white" data-wow-delay="0.6s" 
+								<a href="#" class="btn btn-white" data-wow-delay="0.6s"
 									data-wow-duration="0.8s"
-									data-bs-toggle="modal"        
-									data-bs-target="#armitagenAppointmentModal" 
+									data-bs-toggle="modal"
+									data-bs-target="#armitagenAppointmentModal"
 									style="cursor: pointer;">
 									<i class="feather icon-calendar m-r5 text-primary"></i>
 									نوبت بگیرید
@@ -743,7 +745,7 @@
 		</div>
 	</div>
 		</section>
-		
+
 		<section class="content-inner-1 overflow-hidden">
 			<div class="container-left">
 				<div class="row g-0 align-items-center">
@@ -768,7 +770,7 @@
 										<div class="dz-media">
 											<img src="{% static 'assets/images/logo/Iso2015-Logo.jpg' %}" alt="">
 										</div>
-										<!-- <div class="dz-content">	
+										<!-- <div class="dz-content">
 											<h3 class="title">کلینیک مستر 1403 </h3>
 											<p> موسسه کیفیت و اعتباربخشی </p>
 											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
@@ -780,7 +782,7 @@
 										<div class="dz-media">
 											<img src="{% static 'assets/images/logo/Iso2016-Logo.jpg' %}" alt="">
 										</div>
-										<!-- <div class="dz-content">	
+										<!-- <div class="dz-content">
 											<h3 class="title">کلینیک مستر 1403 </h3>
 											<p> موسسه کیفیت و اعتباربخشی </p>
 											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
@@ -792,7 +794,7 @@
 										<div class="dz-media">
 											<img src="{% static 'assets/images/logo/GLP-Logo.jpg' %}" alt="">
 										</div>
-										<!-- <div class="dz-content">	
+										<!-- <div class="dz-content">
 											<h3 class="title">کلینیک مستر 1403 </h3>
 											<p> موسسه کیفیت و اعتباربخشی </p>
 											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
@@ -804,19 +806,19 @@
 										<div class="dz-media">
 											<img src="{% static 'assets/images/logo/Iso1725-Logo.jpg' %}" alt="">
 										</div>
-										<!-- <div class="dz-content">	
+										<!-- <div class="dz-content">
 											<h3 class="title">کلینیک مستر 1403 </h3>
 											<p> موسسه کیفیت و اعتباربخشی </p>
 											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
 										</div> -->
 									</div>
-								</div>	
+								</div>
 								<div class="swiper-slide">
 									<div class="dz-img-box style-1 box-lg grid-bx text-center">
 										<div class="dz-media">
 											<img src="{% static 'assets/images/logo/Iso2015-Logo.jpg' %}" alt="">
 										</div>
-										<!-- <div class="dz-content">	
+										<!-- <div class="dz-content">
 											<h3 class="title">کلینیک مستر 1403 </h3>
 											<p> موسسه کیفیت و اعتباربخشی </p>
 											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
@@ -828,7 +830,7 @@
 										<div class="dz-media">
 											<img src="{% static 'assets/images/logo/Iso2016-Logo.jpg' %}" alt="">
 										</div>
-										<!-- <div class="dz-content">	
+										<!-- <div class="dz-content">
 											<h3 class="title">کلینیک مستر 1403 </h3>
 											<p> موسسه کیفیت و اعتباربخشی </p>
 											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
@@ -840,7 +842,7 @@
 										<div class="dz-media">
 											<img src="{% static 'assets/images/logo/GLP-Logo.jpg' %}" alt="">
 										</div>
-										<!-- <div class="dz-content">	
+										<!-- <div class="dz-content">
 											<h3 class="title">کلینیک مستر 1403 </h3>
 											<p> موسسه کیفیت و اعتباربخشی </p>
 											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
@@ -852,7 +854,7 @@
 										<div class="dz-media">
 											<img src="{% static 'assets/images/logo/Iso1725-Logo.jpg' %}" alt="">
 										</div>
-										<!-- <div class="dz-content">	
+										<!-- <div class="dz-content">
 											<h3 class="title">کلینیک مستر 1403 </h3>
 											<p> موسسه کیفیت و اعتباربخشی </p>
 											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
@@ -922,7 +924,7 @@
 			</div>
 		</div>
 	</section>
-		
+
 			<section class="content-inner-1">
 		<div class="container">
 			<div class="section-head style-1 m-b30 row align-items-end">
@@ -934,7 +936,7 @@
 						مشاهده همه
 						<span class="right-icon"><i class="feather icon-arrow-left"></i></span>
 					</a>
-				</div> 
+				</div>
 			</div>
 			<div class="row g-20">
 				<div class="col-lg-4 wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">
@@ -1078,7 +1080,7 @@
 			</div>
 		</div>
 
-		
+
 		<section class="content-wrapper style-4">
 			<div class="container" style="min-height: 60vh; padding-bottom: 30px;">
 				<div class="map-wrapper">
@@ -1141,7 +1143,7 @@
 				</div>
 			</div>
 		</section>
-		
+
 
 	</main>
 
