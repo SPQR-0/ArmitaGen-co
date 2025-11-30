@@ -10,24 +10,28 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
+
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-2hez2&hth6=k*vo0bf8ta(8o!fl_@)x92!vwbgd*v*&6-#%3tz'
-
+SECRET_KEY = env("SECRET_KEY")
+# SECRET_KEY = "django-insecure-2hez2&hth6=k*vo0bf8ta(8o!fl_@)x92!vwbgd*v*&6-#%3tz"
+DEBUG = env.bool("DEBUG", default=False)
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -45,6 +49,9 @@ INSTALLED_APPS = [
     'council.apps.CouncilConfig',
     'services.apps.ServicesConfig',
     'team.apps.TeamConfig',
+    'accounts.apps.AccountsConfig',
+    'payments.apps.PaymentsConfig',
+    'reports.apps.ReportsConfig',
     # Packages
     'django_render_partial',
 ]
@@ -64,7 +71,7 @@ ROOT_URLCONF = 'armitagen.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR , 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -78,10 +85,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'armitagen.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Old sht
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql',
@@ -93,26 +100,21 @@ WSGI_APPLICATION = 'armitagen.wsgi.application'
 #     }
 # }
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
+# Note: On cPanel host
+# 'ENGINE': 'mysql.connector.django',
+# 'USER': 'armitagen_admin',
+# 'PASSWORD': 'armitagen@1234',
 
 DATABASES = {
     'default': {
-        # 'ENGINE': 'mysql.connector.django',
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'armitagen_db',
-        # 'USER': 'armitagen_admin',
-        # 'PASSWORD': 'armitagen@1234',
-        'USER': 'root',
-        'PASSWORD': 'Mohammad_M22',
-
+        'ENGINE': env('DB_ENGINE'),
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST', default='127.0.0.1'),
+        'PORT': env('DB_PORT', default='3306'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -132,7 +134,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -144,14 +145,14 @@ USE_I18N = True
 
 USE_TZ = True
 
-
+# Static conf
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR , 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR , 'armitagen/static',)
+    os.path.join(BASE_DIR, 'armitagen/static', )
 ]
 
-
+# Media conf
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -164,4 +165,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Prescription preview setting
 X_FRAME_OPTIONS = 'SAMEORIGIN'
