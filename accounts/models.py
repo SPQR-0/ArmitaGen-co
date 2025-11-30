@@ -2,8 +2,42 @@ import secrets
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils import timezone
+
+
+class UserManager(BaseUserManager):
+    """Custom manager for User model without username"""
+
+    def create_user(self, phone, full_name, password=None, **extra_fields):
+        """Create and return a regular user"""
+        if not phone:
+            raise ValueError('Phone number is required')
+        if not full_name:
+            raise ValueError('Full name is required')
+
+        user = self.model(
+            phone=phone,
+            full_name=full_name,
+            **extra_fields
+        )
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, phone, full_name, password=None, **extra_fields):
+        """Create and return a superuser"""
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('otp_verified', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True')
+
+        return self.create_user(phone, full_name, password, **extra_fields)
 
 
 class User(AbstractUser):
@@ -17,6 +51,7 @@ class User(AbstractUser):
 
     # Remove username requirement
     username = None
+    objects = UserManager()  # Custom Manager
     USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS = ['full_name']
 
