@@ -10,7 +10,6 @@ def prescription_upload_path(instance, filename):
     """
     prescriptions/YYYY/MM/user-name/filename
     """
-
     now = datetime.now()
     year = now.strftime("%Y")
     month = now.strftime("%m")
@@ -24,15 +23,50 @@ def prescription_upload_path(instance, filename):
 class ServiceType(models.Model):
     """Types of services offered"""
 
-    name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(max_length=100, unique=True, db_index=True)
-    description = models.TextField(null=True, blank=True)
-    price = models.DecimalField(max_digits=10, decimal_places=0)
-    duration = models.PositiveIntegerField(help_text='مدت زمان به دقیقه')
-    is_active = models.BooleanField(default=True, db_index=True)
-    order = models.PositiveIntegerField(default=0, help_text='ترتیب نمایش')
-    deleted_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name='نام خدمت'
+    )
+    slug = models.SlugField(
+        max_length=100,
+        unique=True,
+        db_index=True,
+        verbose_name='عنوان کوتاه برای URL'
+    )
+    description = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name='توضیحات'
+    )
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=0,
+        verbose_name='قیمت'
+    )
+    duration = models.PositiveIntegerField(
+        verbose_name='مدت زمان',
+        help_text='مدت زمان به دقیقه'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name='فعال'
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name='ترتیب',
+        help_text='ترتیب نمایش'
+    )
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='تاریخ حذف'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد'
+    )
 
     class Meta:
         db_table = 'service_types'
@@ -68,13 +102,24 @@ class SlotRule(models.Model):
 
     weekdays = models.CharField(
         max_length=20,
+        verbose_name='روزهای هفته',
         help_text='روزهای هفته با کاما جدا شده: 0,1,2,3,4'
     )
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-    interval_minutes = models.PositiveIntegerField(default=60)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    start_time = models.TimeField(verbose_name='زمان شروع')
+    end_time = models.TimeField(verbose_name='زمان پایان')
+    interval_minutes = models.PositiveIntegerField(
+        default=60,
+        verbose_name='فاصله زمانی',
+        help_text='به دقیقه'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name='فعال'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد'
+    )
 
     class Meta:
         db_table = 'slot_rules'
@@ -91,19 +136,34 @@ class SlotRule(models.Model):
 class TimeSlot(models.Model):
     """Available time slots for reservations"""
 
-    date = models.DateField(db_index=True)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-    is_available = models.BooleanField(default=True, db_index=True)
+    date = models.DateField(
+        db_index=True,
+        verbose_name='تاریخ'
+    )
+    start_time = models.TimeField(verbose_name='زمان شروع')
+    end_time = models.TimeField(verbose_name='زمان پایان')
+    is_available = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name='در دسترس'
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='created_slots'
+        related_name='created_slots',
+        verbose_name='ایجادکننده'
     )
-    deleted_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='تاریخ حذف'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد'
+    )
 
     class Meta:
         db_table = 'time_slots'
@@ -133,39 +193,62 @@ class Reservation(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='reservations'
+        related_name='reservations',
+        verbose_name='کاربر'
     )
     service_type = models.ForeignKey(
         ServiceType,
         on_delete=models.PROTECT,
-        related_name='reservations'
+        related_name='reservations',
+        verbose_name='نوع خدمت'
     )
     time_slot = models.ForeignKey(
         TimeSlot,
         on_delete=models.PROTECT,
-        related_name='reservations'
+        related_name='reservations',
+        verbose_name='بازه زمانی'
     )
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default='pending',
-        db_index=True
+        db_index=True,
+        verbose_name='وضعیت'
     )
-    reserved_at = models.DateTimeField(auto_now_add=True)
-    message = models.TextField(null=True, blank=True)
+    reserved_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='زمان رزرو'
+    )
+    message = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name='پیام'
+    )
     prescription = models.FileField(
         upload_to=prescription_upload_path,
         null=True,
-        blank=True
+        blank=True,
+        verbose_name='نسخه'
     )
     confirmation_code = models.CharField(
         max_length=20,
         unique=True,
-        db_index=True
+        db_index=True,
+        verbose_name='کد تایید'
     )
-    deleted_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='تاریخ حذف'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد'
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='تاریخ بروزرسانی'
+    )
 
     class Meta:
         db_table = 'reservations'

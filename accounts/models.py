@@ -43,11 +43,11 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     """Custom User model with phone-first authentication"""
 
-    phone = models.CharField(max_length=15, unique=True, db_index=True)
-    email = models.EmailField(unique=True, null=True, blank=True)
-    full_name = models.CharField(max_length=255)
-    otp_verified = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
+    phone = models.CharField(max_length=15, unique=True, db_index=True, verbose_name='تلفن')
+    email = models.EmailField(unique=True, null=True, blank=True, verbose_name='ایمیل')
+    full_name = models.CharField(max_length=255, verbose_name='نام و نام خانوادگی')
+    otp_verified = models.BooleanField(default=False, verbose_name='تایید کد پیامکی')
+    is_active = models.BooleanField(default=True, verbose_name='فعال')
 
     # Remove username requirement
     username = None
@@ -70,18 +70,19 @@ class User(AbstractUser):
 class OTP(models.Model):
     """One-Time Password for phone verification"""
 
-    phone = models.CharField(max_length=15, db_index=True)
-    code = models.CharField(max_length=6)
-    is_used = models.BooleanField(default=False)
+    phone = models.CharField(max_length=15, db_index=True, verbose_name='شماره تلفن')
+    code = models.CharField(max_length=6, verbose_name='کد')
+    is_used = models.BooleanField(default=False, verbose_name='استفاده شده')
     verified_user = models.ForeignKey(
         'User',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='otps'
+        related_name='otps',
+        verbose_name='کاربر تایید شده'
     )
-    expires_at = models.DateTimeField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(verbose_name='تاریخ انقضا')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')
 
     class Meta:
         db_table = 'otps'
@@ -97,6 +98,8 @@ class OTP(models.Model):
         return f"{self.phone} - {self.code}"
 
     def is_expired(self):
+        # if not self.is_expired():
+        #     return False
         return timezone.now() > self.expires_at
 
     @classmethod

@@ -32,13 +32,13 @@ class ServiceTypeAdmin(admin.ModelAdmin):
     def active_badge(self, obj):
         if obj.is_active:
             return format_html(
-                '<span style="background: #28a745; color: white; padding: 3px 10px; border-radius: 12px;">Active</span>'
+                '<span style="background: #28a745; color: white; padding: 3px 10px; border-radius: 12px;">فعال</span>'
             )
         return format_html(
-            '<span style="background: #6c757d; color: white; padding: 3px 10px; border-radius: 12px;">Inactive</span>'
+            '<span style="background: #6c757d; color: white; padding: 3px 10px; border-radius: 12px;">غیرفعال</span>'
         )
 
-    active_badge.short_description = 'Status'
+    active_badge.short_description = 'وضعیت'
 
 
 @admin.register(SlotRule)
@@ -68,7 +68,7 @@ class SlotRuleAdmin(admin.ModelAdmin):
             return format_html('<span style="color: green;">✓ Active</span>')
         return format_html('<span style="color: gray;">✗ Inactive</span>')
 
-    active_badge.short_description = 'Status'
+    active_badge.short_description = 'وضعیت'
 
 
 @admin.register(TimeSlot)
@@ -154,7 +154,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
 
         # GET request - show form
         context = {
-            'title': 'Bulk Generate Time Slots',
+            'title': 'تولید گروهی بازه‌های زمانی نوبت‌دهی مشاوره',
             'opts': self.model._meta,
             'has_view_permission': self.has_view_permission(request),
         }
@@ -169,14 +169,14 @@ class TimeSlotAdmin(admin.ModelAdmin):
     def time_range(self, obj):
         return f"{obj.start_time} - {obj.end_time}"
 
-    time_range.short_description = 'Time'
+    time_range.short_description = 'زمان'
 
     def availability_badge(self, obj):
         if obj.is_available:
-            return format_html('<span style="color: green;">✓ Available</span>')
-        return format_html('<span style="color: red;">✗ Reserved</span>')
+            return format_html('<span style="color: green;">✓ در دسترس</span>')
+        return format_html('<span style="color: red;">✗ رزرو شده</span>')
 
-    availability_badge.short_description = 'Status'
+    availability_badge.short_description = 'وضعیت'
 
 
 @admin.register(Reservation)
@@ -215,12 +215,12 @@ class ReservationAdmin(admin.ModelAdmin):
         url = f'/admin/accounts/user/{obj.user.id}/change/'
         return format_html('<a href="{}">{}</a>', url, obj.user.full_name)
 
-    user_link.short_description = 'User'
+    user_link.short_description = 'کاربر'
 
     def slot_info(self, obj):
         return f"{obj.time_slot.date} | {obj.time_slot.start_time}"
 
-    slot_info.short_description = 'Slot'
+    slot_info.short_description = 'زمان‌بندی نوبت'
 
     def status_badge(self, obj):
         colors = {
@@ -236,4 +236,4 @@ class ReservationAdmin(admin.ModelAdmin):
             obj.get_status_display().upper()
         )
 
-    status_badge.short_description = 'Status'
+    status_badge.short_description = 'وضعیت'

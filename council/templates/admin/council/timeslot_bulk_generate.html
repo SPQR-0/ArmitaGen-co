@@ -195,8 +195,8 @@
 {% block content %}
 <div class="bulk-generate-container">
     <div class="page-header">
-        <h1>⚡ Bulk Generate Time Slots</h1>
-        <p>Create multiple time slots at once with advanced filtering options</p>
+        <h1>⚡ ایجاد گروهی بازه‌های زمانی</h1>
+        <p>ایجاد چندین بازه زمانی به صورت همزمان با تنظیمات پیشرفته</p>
     </div>
 
     <form method="post" class="form-card">
@@ -204,14 +204,14 @@
 
         <!-- Date Range Section -->
         <div class="form-section">
-            <div class="section-title">📅 Date Range</div>
+            <div class="section-title">📅 بازه تاریخ</div>
             <div class="form-grid-2">
                 <div class="form-group">
-                    <label for="start_date">Start Date</label>
+                    <label for="start_date">تاریخ شروع</label>
                     <input type="date" id="start_date" name="start_date" required>
                 </div>
                 <div class="form-group">
-                    <label for="end_date">End Date</label>
+                    <label for="end_date">تاریخ پایان</label>
                     <input type="date" id="end_date" name="end_date" required>
                 </div>
             </div>
@@ -219,47 +219,46 @@
 
         <!-- Time Configuration Section -->
         <div class="form-section">
-            <div class="section-title">⏰ Time Configuration</div>
+            <div class="section-title">⏰ تنظیمات زمان</div>
             <div class="form-grid-3">
                 <div class="form-group">
-                    <label for="start_time">Start Time</label>
+                    <label for="start_time">ساعت شروع</label>
                     <input type="time" id="start_time" name="start_time" value="09:00" required>
                 </div>
                 <div class="form-group">
-                    <label for="end_time">End Time</label>
+                    <label for="end_time">ساعت پایان</label>
                     <input type="time" id="end_time" name="end_time" value="18:00" required>
                 </div>
                 <div class="form-group">
-                    <label for="interval">Interval (minutes)</label>
+                    <label for="interval">فاصله (دقیقه)</label>
                     <input type="number" id="interval" name="interval" value="60" min="15" step="15" required>
-                    <span class="help-text">Duration of each slot</span>
+                    <span class="help-text">مدت هر بازه</span>
                 </div>
             </div>
         </div>
 
         <!-- Exclusions Section -->
         <div class="form-section">
-            <div class="section-title">🚫 Exclusions (Optional)</div>
+            <div class="section-title">🚫 استثناها (اختیاری)</div>
             <div class="form-group">
-                <label for="exclude_dates">Exclude Specific Dates</label>
+                <label for="exclude_dates">تاریخ‌های مستثنا</label>
                 <input type="text" id="exclude_dates" name="exclude_dates"
                        placeholder="2025-12-25, 2025-12-31">
-                <span class="help-text">Comma-separated dates in YYYY-MM-DD format (e.g., holidays)</span>
+                <span class="help-text">تاریخ‌ها را با کاما جدا کنید (فرمت YYYY-MM-DD)</span>
             </div>
         </div>
 
         <!-- Preview Section -->
         <div class="form-section">
             <div class="preview-box">
-                <strong>📊 Generation Preview</strong>
-                <span class="estimate-badge" id="estimate">~0 slots</span>
+                <strong>📊 پیش‌نمایش ایجاد</strong>
+                <span class="estimate-badge" id="estimate">~0 بازه</span>
                 <ul>
-                    <li>✓ Slots will be created for each day in the selected range</li>
-                    <li>✓ Each day will have slots from <strong id="preview-start">09:00</strong> to <strong
-                            id="preview-end">18:00</strong></li>
-                    <li>✓ Each slot will be <strong id="preview-interval">60</strong> minutes long</li>
-                    <li>✓ Excluded dates will be automatically skipped</li>
-                    <li>✓ Duplicate slots will be ignored</li>
+                    <li>✓ برای هر روز در بازه انتخاب‌شده بازه ایجاد می‌شود</li>
+                    <li>✓ بازه‌ها از <strong id="preview-start">09:00</strong> تا <strong id="preview-end">18:00</strong> خواهند بود</li>
+                    <li>✓ مدت هر بازه <strong id="preview-interval">60</strong> دقیقه است</li>
+                    <li>✓ تاریخ‌های مستثنا نادیده گرفته می‌شوند</li>
+                    <li>✓ بازه‌های تکراری ایجاد نخواهند شد</li>
                 </ul>
             </div>
         </div>
@@ -267,10 +266,10 @@
         <!-- Action Buttons -->
         <div class="button-group">
             <a href="{% url 'admin:council_timeslot_changelist' %}" class="btn btn-cancel">
-                Cancel
+                انصراف
             </a>
             <button type="submit" class="btn btn-primary">
-                Generate Slots
+                ایجاد بازه‌ها
             </button>
         </div>
     </form>
@@ -326,7 +325,7 @@
         // Total estimate
         const totalSlots = (daysDiff - excludedCount) * slotsPerDay;
 
-        document.getElementById('estimate').textContent = `~${totalSlots} slots`;
+        document.getElementById('estimate').textContent = `~${totalSlots} بازه`;
     }
 
     function timeToMinutes(time) {
