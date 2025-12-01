@@ -8,20 +8,24 @@ from django.utils.text import slugify
 
 def prescription_upload_path(instance, filename):
     """
-    prescriptions/YYYY/MM/user-name/filename
+    Generate upload path for prescription files
+    Format: prescriptions/YYYY/MM/user-name/filename
     """
     now = datetime.now()
     year = now.strftime("%Y")
     month = now.strftime("%m")
 
-    user_name = slugify(instance.user.full_name, allow_unicode=True)
+    user_name = slugify(instance.full_name, allow_unicode=True)
     ext = filename.split('.')[-1]
     filename = f"prescription.{ext}"
     return f"prescriptions/{year}/{month}/{user_name}/{filename}"
 
 
 class ServiceType(models.Model):
-    """Types of services offered"""
+    """
+    Types of consultation services offered
+    e.g., Online, Phone, Text, In-person consultations
+    """
 
     name = models.CharField(
         max_length=100,
@@ -32,7 +36,7 @@ class ServiceType(models.Model):
         max_length=100,
         unique=True,
         db_index=True,
-        verbose_name='عنوان کوتاه برای URL'
+        verbose_name='شناسه URL'
     )
     description = models.TextField(
         null=True,
@@ -42,11 +46,16 @@ class ServiceType(models.Model):
     price = models.DecimalField(
         max_digits=10,
         decimal_places=0,
-        verbose_name='قیمت'
+        verbose_name='قیمت (تومان)'
     )
     duration = models.PositiveIntegerField(
-        verbose_name='مدت زمان',
-        help_text='مدت زمان به دقیقه'
+        verbose_name='مدت زمان (دقیقه)',
+        help_text='مدت زمان مشاوره به دقیقه'
+    )
+    is_online = models.BooleanField(
+        default=True,
+        verbose_name='غیرحضوری',
+        help_text='آیا این خدمت به صورت غیرحضوری ارائه می‌شود؟'
     )
     is_active = models.BooleanField(
         default=True,
@@ -55,8 +64,8 @@ class ServiceType(models.Model):
     )
     order = models.PositiveIntegerField(
         default=0,
-        verbose_name='ترتیب',
-        help_text='ترتیب نمایش'
+        verbose_name='ترتیب نمایش',
+        help_text='ترتیب نمایش در لیست'
     )
     deleted_at = models.DateTimeField(
         null=True,
@@ -82,13 +91,17 @@ class ServiceType(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
+        # Auto-generate slug from name if not provided
         if not self.slug:
             self.slug = slugify(self.name, allow_unicode=True)
         super().save(*args, **kwargs)
 
 
 class SlotRule(models.Model):
-    """Rules for automatic slot generation"""
+    """
+    Rules for automatic time slot generation
+    Defines patterns like: "Every Saturday 9-13" or "Monday/Wednesday 8-12"
+    """
 
     WEEKDAY_CHOICES = [
         (0, 'شنبه'),
@@ -100,52 +113,112 @@ class SlotRule(models.Model):
         (6, 'جمعه'),
     ]
 
+    name = models.CharField(
+        max_length=100,
+        verbose_name='نام الگو',
+        help_text='مثال: برنامه حضوری پاییز 1403'
+    )
+    service_type = models.ForeignKey(
+        'ServiceType',
+        on_delete=models.CASCADE,
+        related_name='slot_rules',
+        verbose_name='نوع خدمت'
+    )
     weekdays = models.CharField(
         max_length=20,
         verbose_name='روزهای هفته',
         help_text='روزهای هفته با کاما جدا شده: 0,1,2,3,4'
     )
-    start_time = models.TimeField(verbose_name='زمان شروع')
-    end_time = models.TimeField(verbose_name='زمان پایان')
-    interval_minutes = models.PositiveIntegerField(
+    start_time = models.TimeField(
+        verbose_name='زمان شروع'
+    )
+    end_time = models.TimeField(
+        verbose_name='زمان پایان'
+    )
+    slot_duration = models.PositiveIntegerField(
         default=60,
-        verbose_name='فاصله زمانی',
-        help_text='به دقیقه'
+        verbose_name='مدت هر نوبت (دقیقه)',
+        help_text='مدت زمان هر نوبت به دقیقه'
     )
     is_active = models.BooleanField(
         default=True,
         verbose_name='فعال'
     )
+    apply_from_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name='تاریخ شروع اعمال',
+        help_text='از چه تاریخی این الگو اعمال شود (اختیاری)'
+    )
+    apply_to_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name='تاریخ پایان اعمال',
+        help_text='تا چه تاریخی این الگو اعمال شود (اختیاری)'
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='تاریخ ایجاد'
     )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='تاریخ بروزرسانی'
+    )
 
     class Meta:
         db_table = 'slot_rules'
-        verbose_name = 'قانون بازه زمانی'
-        verbose_name_plural = 'قوانین بازه‌های زمانی'
+        verbose_name = 'الگو بازه زمانی'
+        verbose_name_plural = 'الگو های بازه‌های زمانی'
+        ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.start_time} - {self.end_time} (هر {self.interval_minutes} دقیقه)"
+        return f"{self.name} - {self.start_time} تا {self.end_time}"
 
     def get_weekdays_list(self):
-        return [int(d) for d in self.weekdays.split(',')]
+        """Convert comma-separated weekdays string to list of integers"""
+        return [int(d) for d in self.weekdays.split(',') if d.strip()]
 
 
 class TimeSlot(models.Model):
-    """Available time slots for reservations"""
+    """
+    Available time slots for reservations
+    Can be created manually or automatically from SlotRule
+    """
 
+    service_type = models.ForeignKey(
+        'ServiceType',
+        on_delete=models.CASCADE,
+        related_name='time_slots',
+        verbose_name='نوع خدمت'
+    )
     date = models.DateField(
         db_index=True,
         verbose_name='تاریخ'
     )
-    start_time = models.TimeField(verbose_name='زمان شروع')
-    end_time = models.TimeField(verbose_name='زمان پایان')
+    start_time = models.TimeField(
+        verbose_name='زمان شروع'
+    )
+    end_time = models.TimeField(
+        verbose_name='زمان پایان'
+    )
     is_available = models.BooleanField(
         default=True,
         db_index=True,
-        verbose_name='در دسترس'
+        verbose_name='در دسترس',
+        help_text='آیا این نوبت قابل رزرو است؟'
+    )
+    created_from_rule = models.ForeignKey(
+        'SlotRule',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='generated_slots',
+        verbose_name='ایجاد شده از الگو'
+    )
+    is_manual = models.BooleanField(
+        default=False,
+        verbose_name='ایجاد دستی',
+        help_text='آیا این نوبت به صورت دستی ایجاد شده است؟'
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -174,40 +247,89 @@ class TimeSlot(models.Model):
             models.Index(fields=['date'], name='idx_slot_date'),
             models.Index(fields=['date', 'start_time'], name='idx_time_lookup'),
             models.Index(fields=['date', 'is_available'], name='idx_available_slots'),
+            models.Index(fields=['service_type'], name='idx_slot_service'),
+        ]
+        constraints = [
+            # Prevent duplicate slots for same service at same time
+            models.UniqueConstraint(
+                fields=['service_type', 'date', 'start_time'],
+                name='unique_service_datetime'
+            )
         ]
 
     def __str__(self):
-        return f"{self.date} | {self.start_time} - {self.end_time}"
+        return f"{self.service_type.name} - {self.date} | {self.start_time} - {self.end_time}"
 
 
 class Reservation(models.Model):
-    """User reservations"""
+    """
+    User reservations for consultation appointments
+    Handles the complete booking flow: creation -> OTP -> payment -> completion
+    """
 
     STATUS_CHOICES = [
-        ('pending', 'در انتظار پرداخت'),
-        ('confirmed', 'تایید شده'),
-        ('cancelled', 'لغو شده'),
+        ('pending', 'در انتظار تایید شماره'),
+        ('phone_verified', 'شماره تایید شده - در انتظار پرداخت'),
+        ('paid', 'پرداخت شده'),
         ('completed', 'انجام شده'),
+        ('cancelled', 'لغو شده'),
     ]
 
+    PAYMENT_STATUS_CHOICES = [
+        ('unpaid', 'پرداخت نشده'),
+        ('paid', 'پرداخت شده'),
+        ('refunded', 'بازگشت داده شده'),
+    ]
+
+    # Tracking
+    tracking_code = models.CharField(
+        max_length=20,
+        unique=True,
+        db_index=True,
+        verbose_name='کد پیگیری',
+        help_text='کد یکتای رزرو برای پیگیری'
+    )
+
+    # Relations
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name='reservations',
-        verbose_name='کاربر'
+        verbose_name='کاربر',
+        help_text='پس از تایید OTP، کاربر مرتبط می‌شود'
     )
     service_type = models.ForeignKey(
-        ServiceType,
+        'ServiceType',
         on_delete=models.PROTECT,
         related_name='reservations',
         verbose_name='نوع خدمت'
     )
     time_slot = models.ForeignKey(
-        TimeSlot,
+        'TimeSlot',
         on_delete=models.PROTECT,
         related_name='reservations',
         verbose_name='بازه زمانی'
     )
+
+    # Contact Information (collected before OTP verification)
+    full_name = models.CharField(
+        max_length=255,
+        verbose_name='نام و نام خانوادگی'
+    )
+    phone_number = models.CharField(
+        max_length=15,
+        db_index=True,
+        verbose_name='شماره تلفن'
+    )
+    email = models.EmailField(
+        null=True,
+        blank=True,
+        verbose_name='ایمیل'
+    )
+
+    # Status
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -215,26 +337,37 @@ class Reservation(models.Model):
         db_index=True,
         verbose_name='وضعیت'
     )
-    reserved_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='زمان رزرو'
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default='unpaid',
+        verbose_name='وضعیت پرداخت'
     )
+    phone_verified_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='زمان تایید شماره'
+    )
+
+    # Additional info
     message = models.TextField(
         null=True,
         blank=True,
-        verbose_name='پیام'
+        verbose_name='پیام و توضیحات',
+        help_text='یادداشت یا توضیحات کاربر'
     )
     prescription = models.FileField(
         upload_to=prescription_upload_path,
         null=True,
         blank=True,
-        verbose_name='نسخه'
+        verbose_name='نسخه پزشک',
+        help_text='فایل نسخه (در صورت نیاز)'
     )
-    confirmation_code = models.CharField(
-        max_length=20,
-        unique=True,
-        db_index=True,
-        verbose_name='کد تایید'
+
+    # Timestamps
+    reserved_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='زمان رزرو'
     )
     deleted_at = models.DateTimeField(
         null=True,
@@ -258,19 +391,29 @@ class Reservation(models.Model):
         indexes = [
             models.Index(fields=['user'], name='idx_reservation_user'),
             models.Index(fields=['status'], name='idx_reservation_status'),
-            models.Index(fields=['confirmation_code'], name='idx_confirmation_code'),
-        ]
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'time_slot'],
-                name='idx_unique_user_slot'
-            )
+            models.Index(fields=['tracking_code'], name='idx_tracking_code'),
+            models.Index(fields=['phone_number'], name='idx_reservation_phone'),
         ]
 
     def __str__(self):
-        return f"{self.user.full_name} - {self.confirmation_code}"
+        full_name = f"{self.full_name}"
+        return f"{full_name} - {self.tracking_code}"
 
     def save(self, *args, **kwargs):
-        if not self.confirmation_code:
-            self.confirmation_code = str(uuid.uuid4())[:10].upper()
+        # Auto-generate tracking code if not exists
+        if not self.tracking_code:
+            self.tracking_code = f"RES-{str(uuid.uuid4())[:8].upper()}"
         super().save(*args, **kwargs)
+
+    @property
+    def full_name_display(self):
+        """Get full name of person who made reservation"""
+        return f"{self.full_name}"
+
+    def is_paid(self):
+        """Check if reservation is paid"""
+        return self.payment_status == 'paid'
+
+    def can_be_cancelled(self):
+        """Check if reservation can be cancelled"""
+        return self.status in ['pending', 'phone_verified', 'paid']

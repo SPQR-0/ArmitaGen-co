@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load static %}
+{% load i18n static %}
 
 {% block extrahead %}
 <style>
@@ -22,12 +22,6 @@
         margin: 0;
         font-size: 28px;
         font-weight: 600;
-    }
-
-    .page-header p {
-        margin: 8px 0 0 0;
-        opacity: 0.9;
-        font-size: 14px;
     }
 
     .form-card {
@@ -54,21 +48,10 @@
         border-bottom: 2px solid #e2e8f0;
     }
 
-    .form-grid-2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-
-    .form-grid-3 {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 20px;
-    }
-
     .form-group {
         display: flex;
         flex-direction: column;
+        margin-bottom: 20px;
     }
 
     .form-group label {
@@ -93,6 +76,19 @@
         outline: none;
         border-color: #667eea;
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .weekday-checkboxes {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .weekday-checkboxes label {
+        font-weight: normal;
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }
 
     .help-text {
@@ -122,6 +118,17 @@
         color: #4a5568;
         margin: 8px 0;
         line-height: 1.6;
+    }
+
+    .estimate-badge {
+        display: inline-block;
+        background: #48bb78;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-left: 10px;
     }
 
     .button-group {
@@ -163,17 +170,6 @@
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
 
-    .estimate-badge {
-        display: inline-block;
-        background: #48bb78;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 13px;
-        font-weight: 600;
-        margin-left: 10px;
-    }
-
     @media (max-width: 768px) {
         .form-grid-2,
         .form-grid-3 {
@@ -196,56 +192,72 @@
 <div class="bulk-generate-container">
     <div class="page-header">
         <h1>⚡ ایجاد گروهی بازه‌های زمانی</h1>
-        <p>ایجاد چندین بازه زمانی به صورت همزمان با تنظیمات پیشرفته</p>
     </div>
 
     <form method="post" class="form-card">
         {% csrf_token %}
 
-        <!-- Date Range Section -->
+        <!-- Service Type -->
         <div class="form-section">
-            <div class="section-title">📅 بازه تاریخ</div>
+            <div class="form-group">
+                <label for="service_type">نوع خدمت:</label>
+                <select name="service_type" id="service_type" required>
+                    <option value="">-- انتخاب کنید --</option>
+                    {% for service in service_types %}
+                    <option value="{{ service.id }}">{{ service.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Date Range -->
+        <div class="form-section">
             <div class="form-grid-2">
                 <div class="form-group">
                     <label for="start_date">تاریخ شروع</label>
-                    <input type="date" id="start_date" name="start_date" required>
+                    <input type="date" name="start_date" id="start_date" required>
+                    <span class="help-text">تاریخ شروع تولید نوبت‌ها</span>
                 </div>
                 <div class="form-group">
                     <label for="end_date">تاریخ پایان</label>
-                    <input type="date" id="end_date" name="end_date" required>
+                    <input type="date" name="end_date" id="end_date" required>
+                    <span class="help-text">تاریخ پایان تولید نوبت‌ها</span>
                 </div>
             </div>
         </div>
 
-        <!-- Time Configuration Section -->
+        <!-- Time Configuration -->
         <div class="form-section">
-            <div class="section-title">⏰ تنظیمات زمان</div>
             <div class="form-grid-3">
                 <div class="form-group">
-                    <label for="start_time">ساعت شروع</label>
-                    <input type="time" id="start_time" name="start_time" value="09:00" required>
+                    <label for="start_time">زمان شروع</label>
+                    <input type="time" name="start_time" id="start_time" value="08:00" required>
                 </div>
                 <div class="form-group">
-                    <label for="end_time">ساعت پایان</label>
-                    <input type="time" id="end_time" name="end_time" value="18:00" required>
+                    <label for="end_time">زمان پایان</label>
+                    <input type="time" name="end_time" id="end_time" value="12:00" required>
                 </div>
                 <div class="form-group">
-                    <label for="interval">فاصله (دقیقه)</label>
-                    <input type="number" id="interval" name="interval" value="60" min="15" step="15" required>
-                    <span class="help-text">مدت هر بازه</span>
+                    <label for="interval">فاصله زمانی (دقیقه)</label>
+                    <input type="number" name="interval" id="interval" value="60" min="15" max="240" required>
+                    <span class="help-text">فاصله بین هر نوبت به دقیقه</span>
                 </div>
             </div>
         </div>
 
-        <!-- Exclusions Section -->
+        <!-- Weekdays -->
         <div class="form-section">
-            <div class="section-title">🚫 استثناها (اختیاری)</div>
-            <div class="form-group">
-                <label for="exclude_dates">تاریخ‌های مستثنا</label>
-                <input type="text" id="exclude_dates" name="exclude_dates"
-                       placeholder="2025-12-25, 2025-12-31">
-                <span class="help-text">تاریخ‌ها را با کاما جدا کنید (فرمت YYYY-MM-DD)</span>
+            <div class="section-title">📆 روزهای هفته</div>
+            <div class="weekday-checkboxes">
+                <label><input type="checkbox" name="weekdays" value="5"> شنبه</label>
+                <label><input type="checkbox" name="weekdays" value="6"> یکشنبه</label>
+                <label><input type="checkbox" name="weekdays" value="0"> دوشنبه</label>
+                <label><input type="checkbox" name="weekdays" value="1"> سه‌شنبه</label>
+                <label><input type="checkbox" name="weekdays" value="2"> چهارشنبه</label>
+                <label><input type="checkbox" name="weekdays" value="3"> پنج‌شنبه</label>
+                <label><input type="checkbox" name="weekdays" value="4"> جمعه</label>
             </div>
+            <span class="help-text">نوبت‌ها فقط در روزهای انتخاب شده ایجاد می‌شوند</span>
         </div>
 
         <!-- Preview Section -->
@@ -255,7 +267,9 @@
                 <span class="estimate-badge" id="estimate">~0 بازه</span>
                 <ul>
                     <li>✓ برای هر روز در بازه انتخاب‌شده بازه ایجاد می‌شود</li>
-                    <li>✓ بازه‌ها از <strong id="preview-start">09:00</strong> تا <strong id="preview-end">18:00</strong> خواهند بود</li>
+                    <li>✓ بازه‌ها از <strong id="preview-start">09:00</strong> تا <strong
+                            id="preview-end">18:00</strong> خواهند بود
+                    </li>
                     <li>✓ مدت هر بازه <strong id="preview-interval">60</strong> دقیقه است</li>
                     <li>✓ تاریخ‌های مستثنا نادیده گرفته می‌شوند</li>
                     <li>✓ بازه‌های تکراری ایجاد نخواهند شد</li>
@@ -265,40 +279,37 @@
 
         <!-- Action Buttons -->
         <div class="button-group">
-            <a href="{% url 'admin:council_timeslot_changelist' %}" class="btn btn-cancel">
-                انصراف
-            </a>
-            <button type="submit" class="btn btn-primary">
-                ایجاد بازه‌ها
-            </button>
+            <a href="{% url 'admin:council_timeslot_changelist' %}" class="btn btn-cancel">انصراف</a>
+            <button type="submit" class="btn btn-primary">تولید نوبت‌ها</button>
         </div>
     </form>
 </div>
 
 <script>
+    // Set today as minimum date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('start_date').min = today;
+    document.getElementById('end_date').min = today;
+
     // Real-time preview updates
     const inputs = {
         startDate: document.getElementById('start_date'),
         endDate: document.getElementById('end_date'),
         startTime: document.getElementById('start_time'),
         endTime: document.getElementById('end_time'),
-        interval: document.getElementById('interval'),
-        excludeDates: document.getElementById('exclude_dates')
+        interval: document.getElementById('interval')
     };
 
-    // Update preview on input change
     Object.values(inputs).forEach(input => {
         input.addEventListener('change', updatePreview);
         input.addEventListener('input', updatePreview);
     });
 
     function updatePreview() {
-        // Update time preview
         document.getElementById('preview-start').textContent = inputs.startTime.value || '09:00';
         document.getElementById('preview-end').textContent = inputs.endTime.value || '18:00';
         document.getElementById('preview-interval').textContent = inputs.interval.value || '60';
 
-        // Calculate estimate
         calculateEstimate();
     }
 
@@ -307,24 +318,14 @@
 
         const start = new Date(inputs.startDate.value);
         const end = new Date(inputs.endDate.value);
-        const startTime = inputs.startTime.value || '09:00';
-        const endTime = inputs.endTime.value || '18:00';
+        const startMinutes = timeToMinutes(inputs.startTime.value || '09:00');
+        const endMinutes = timeToMinutes(inputs.endTime.value || '18:00');
         const interval = parseInt(inputs.interval.value) || 60;
 
-        // Calculate days
         const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-
-        // Calculate slots per day
-        const startMinutes = timeToMinutes(startTime);
-        const endMinutes = timeToMinutes(endTime);
         const slotsPerDay = Math.floor((endMinutes - startMinutes) / interval);
 
-        // Excluded dates
-        const excludedCount = inputs.excludeDates.value.split(',').filter(d => d.trim()).length;
-
-        // Total estimate
-        const totalSlots = (daysDiff - excludedCount) * slotsPerDay;
-
+        const totalSlots = daysDiff * slotsPerDay;
         document.getElementById('estimate').textContent = `~${totalSlots} بازه`;
     }
 
@@ -333,7 +334,14 @@
         return hours * 60 + minutes;
     }
 
-    // Initialize
+    function updatePreview() {
+        document.getElementById('preview-start').textContent = inputs.startTime.value || '08:00';
+        document.getElementById('preview-end').textContent = inputs.endTime.value || '12:00';
+        document.getElementById('preview-interval').textContent = inputs.interval.value || '60';
+        calculateEstimate();
+    }
+
+
     updatePreview();
 </script>
 {% endblock %}

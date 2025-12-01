@@ -4,32 +4,63 @@
 {{ block.super }}
 <style>
     .bulk-generate-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 10px 20px;
+        background: linear-gradient(135deg, #7f5cff 0%, #a873ff 100%);
+        padding: 10px 22px;
         color: white !important;
-        border-radius: 6px;
+        border-radius: 8px;
         text-decoration: none;
         font-weight: 600;
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        transition: all 0.2s;
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 14px rgba(127, 92, 255, 0.45),
+        0 0 12px rgba(168, 115, 255, 0.35);
     }
 
     .bulk-generate-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        /*transform: translateY(-3px);*/
+        box-shadow: 0 6px 20px rgba(127, 92, 255, 0.55),
+        0 0 16px rgba(168, 115, 255, 0.45);
     }
+
+
+    .generate-from-rule-btn {
+        background: linear-gradient(135deg, #28c76f 0%, #32e992 100%);
+        padding: 10px 22px;
+        color: white !important;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 14px rgba(40, 199, 111, 0.45),
+        0 0 12px rgba(50, 233, 146, 0.35);
+    }
+
+    .generate-from-rule-btn:hover {
+        /*transform: translateY(-3px);*/
+        box-shadow: 0 6px 20px rgba(40, 199, 111, 0.55),
+        0 0 16px rgba(50, 233, 146, 0.45);
+    }
+
 </style>
 {% endblock %}
 
 {% block object-tools-items %}
-    {{ block.super }}
-    <li>
-        <a href="{% url 'admin:timeslot_bulk_generate' %}" class="bulk-generate-btn">
-            <span style="font-size: 16px;">⚡</span>
-            ایجاد گروهی
-        </a>
-    </li>
+{{ block.super }}
+<li>
+    <a href="{% url 'admin:timeslot_bulk_generate' %}" class="bulk-generate-btn">
+        <span style="font-size: 16px;">⚡</span>
+        ایجاد گروهی
+    </a>
+</li>
+<li>
+    <a href="{% url 'admin:timeslot_generate_from_rule' %}" class="generate-from-rule-btn">
+        <span style="font-size: 16px;">🧩</span>
+        ایجاد از الگو
+    </a>
+</li>
 {% endblock %}

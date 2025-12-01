@@ -1,242 +1,157 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from django.utils.translation import gettext_lazy as _
 from django.db.models import Count
-from django.urls import reverse
-from import_export.admin import ExportActionMixin
-from import_export import resources, fields
-from jalali_date import datetime2jalali
+
 from .models import Report
 
 
-# Resource for Export
-class ReportResource(resources.ModelResource):
-    """Export configuration for reports"""
-
-    creator_name = fields.Field(column_name='نام ایجادکننده')
-    type_display = fields.Field(column_name='نوع گزارش')
-    visibility = fields.Field(column_name='نمایش به کاربر')
-    created_at_jalali = fields.Field(column_name='تاریخ ایجاد')
-
-    class Meta:
-        model = Report
-        fields = (
-            'id',
-            'type_display',
-            'related_id',
-            'title',
-            'content',
-            'creator_name',
-            'visibility',
-            'created_at_jalali',
-        )
-
-    def dehydrate_creator_name(self, report):
-        return report.created_by.full_name
-
-    def dehydrate_type_display(self, report):
-        return report.get_type_display()
-
-    def dehydrate_visibility(self, report):
-        return 'بله' if report.is_visible_to_user else 'خیر'
-
-    def dehydrate_created_at_jalali(self, report):
-        return datetime2jalali(report.created_at).strftime('%Y/%m/%d %H:%M')
-
-
-# Custom Filters
-class ReportTypeFilter(admin.SimpleListFilter):
-    title = 'نوع گزارش'
-    parameter_name = 'type'
-
-    def lookups(self, request, model_admin):
-        types = Report.objects.values('type').annotate(count=Count('id')).order_by('type')
-        return [
-            (t['type'], f"{dict(Report.TYPE_CHOICES)[t['type']]} ({t['count']})")
-            for t in types
-        ]
-
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(type=self.value())
-        return queryset
-
-
-class VisibilityFilter(admin.SimpleListFilter):
-    title = 'نمایش به کاربر'
-    parameter_name = 'visibility'
-
-    def lookups(self, request, model_admin):
-        return [
-            ('visible', 'قابل مشاهده'),
-            ('hidden', 'مخفی'),
-        ]
-
-    def queryset(self, request, queryset):
-        if self.value() == 'visible':
-            return queryset.filter(is_visible_to_user=True)
-        elif self.value() == 'hidden':
-            return queryset.filter(is_visible_to_user=False)
-        return queryset
-
-
 @admin.register(Report)
-class ReportAdmin(ExportActionMixin, admin.ModelAdmin):
-    resource_class = ReportResource
+class ReportAdmin(admin.ModelAdmin):
+    """Admin panel for report management"""
 
     list_display = [
         'id',
-        'colored_type',
-        'title_display',
-        'creator_info',
-        'related_entity',
-        'visibility_badge',
-        'jalali_created_at',
-        'actions_column',
-    ]
-
-    list_filter = [
-        ReportTypeFilter,
-        VisibilityFilter,
-        ('created_at', admin.DateFieldListFilter),
+        'type_badge',
+        'title',
+        'related_object_link',
         'created_by',
+        'visibility_badge',
+        'created_at'
     ]
-
+    list_filter = [
+        'type',
+        'is_visible_to_user',
+        'created_at',
+        'created_by'
+    ]
     search_fields = [
         'title',
         'content',
-        'created_by__full_name',
         'related_id',
+        'created_by__full_name',
+        'created_by__phone'
     ]
-
-    readonly_fields = [
-        'id',
-        'created_at',
-        'updated_at',
-        'report_preview',
-    ]
+    readonly_fields = ['created_at', 'updated_at']
+    date_hierarchy = 'created_at'
+    list_per_page = 50
 
     fieldsets = (
-        ('اطلاعات اصلی', {'fields': ('id', 'type', 'related_id', 'title')}),
-        ('محتوای گزارش', {'fields': ('content', 'report_preview'), 'classes': ('wide',)}),
-        ('تنظیمات', {'fields': ('created_by', 'is_visible_to_user')}),
-        ('زمان‌بندی', {'fields': ('created_at', 'updated_at'), 'classes': ('collapse',)}),
+        ('اطلاعات گزارش', {
+            'fields': ('type', 'title', 'content')
+        }),
+        ('ارتباط', {
+            'fields': ('related_id',),
+            'description': 'شناسه رکورد مرتبط (مثلاً ID رزرو، کاربر یا پرداخت)'
+        }),
+        ('دسترسی', {
+            'fields': ('created_by', 'is_visible_to_user')
+        }),
+        ('اطلاعات سیستمی', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
     )
 
-    list_per_page = 20
-    date_hierarchy = 'created_at'
+    def type_badge(self, obj):
+        """Display report type with colored badge"""
+        colors = {
+            'reservation': '#007bff',
+            'user': '#28a745',
+            'payment': '#ffc107',
+            'system': '#6c757d',
+        }
+        icons = {
+            'reservation': '📋',
+            'user': '👤',
+            'payment': '💳',
+            'system': '⚙️',
+        }
+        color = colors.get(obj.type, '#6c757d')
+        icon = icons.get(obj.type, '📄')
 
-    actions = ['make_visible', 'make_hidden', 'duplicate_report']
-
-    @admin.display(description='نوع', ordering='type')
-    def colored_type(self, obj):
-        colors = {'reservation': '#007bff', 'user': '#28a745', 'payment': '#ffc107', 'system': '#dc3545'}
-        icons = {'reservation': '📅', 'user': '👤', 'payment': '💳', 'system': '⚙️'}
         return format_html(
-            '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">{} {}</span>',
-            colors.get(obj.type, '#999'),
-            icons.get(obj.type, '📄'),
+            '<span style="background: {}; color: white; padding: 4px 10px; '
+            'border-radius: 10px; font-size: 11px; font-weight: bold;">{} {}</span>',
+            color,
+            icon,
             obj.get_type_display()
         )
 
-    @admin.display(description='عنوان', ordering='title')
-    def title_display(self, obj):
-        title = obj.title[:50] + '...' if len(obj.title) > 50 else obj.title
-        return format_html('<strong>{}</strong>', title)
+    type_badge.short_description = 'نوع'
 
-    @admin.display(description='ایجادکننده')
-    def creator_info(self, obj):
-        user = obj.created_by
-        url = reverse('admin:accounts_user_change', args=[user.id])
+    def related_object_link(self, obj):
+        """Display link to related object if available"""
+        if not obj.related_id:
+            return format_html('<span style="color: #6c757d;">-</span>')
 
-        badge_html = ''
-        if user.is_staff:
-            badge_html = format_html(
-                '<span style="background: #dc3545; color: white; padding: 2px 5px; '
-                'border-radius: 3px; font-size: 10px; margin-left: 5px;">ADMIN</span>'
+        related = obj.get_related_object()
+        if not related:
+            return format_html(
+                '<span style="color: #dc3545;">ID: {} (یافت نشد)</span>',
+                obj.related_id
             )
 
+        # Generate appropriate admin URL based on type
+        url_mapping = {
+            'reservation': f'/admin/council/reservation/{obj.related_id}/change/',
+            'user': f'/admin/accounts/user/{obj.related_id}/change/',
+            'payment': f'/admin/payments/payment/{obj.related_id}/change/',
+        }
+
+        url = url_mapping.get(obj.type)
+        if url:
+            return format_html(
+                '<a href="{}" style="font-weight: bold;">مشاهده {}</a>',
+                url,
+                obj.get_type_display()
+            )
+
+        return format_html('<span>ID: {}</span>', obj.related_id)
+
+    related_object_link.short_description = 'مرتبط با'
+
+    def visibility_badge(self, obj):
+        """Display visibility status"""
+        if obj.is_visible_to_user:
+            return format_html(
+                '<span style="color: #28a745; font-size: 16px;" '
+                'title="کاربر می‌تواند این گزارش را ببیند">👁️ عمومی</span>'
+            )
         return format_html(
-            '{}<a href="{}" style="text-decoration: none;"><strong>{}</strong></a>',
-            badge_html,
-            url,
-            user.full_name
+            '<span style="color: #6c757d; font-size: 16px;" '
+            'title="فقط ادمین می‌تواند این گزارش را ببیند">🔒 خصوصی</span>'
         )
 
-    @admin.display(description='مرتبط با')
-    def related_entity(self, obj):
-        if not obj.related_id:
-            return format_html('<span style="color: #999;">-</span>')
+    visibility_badge.short_description = 'دسترسی'
 
-        url = None
-        if obj.type == 'reservation':
-            url = reverse('admin:council_reservation_change', args=[obj.related_id])
-        elif obj.type == 'payment':
-            url = reverse('admin:payments_payment_change', args=[obj.related_id])
-        elif obj.type == 'user':
-            url = reverse('admin:accounts_user_change', args=[obj.related_id])
+    def save_model(self, request, obj, form, change):
+        """Auto-set created_by on new reports"""
+        if not change:  # Only on creation
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
 
-        if url:
-            return format_html('<a href="{}" class="button" style="padding: 3px 10px;">مشاهده #{}</a>', url, obj.related_id)
-
-        return f'#{obj.related_id}'
-
-    @admin.display(description='نمایش')
-    def visibility_badge(self, obj):
-        if obj.is_visible_to_user:
-            return format_html('<span style="color: #28a745; font-size: 18px;" title="قابل مشاهده">👁️</span>')
-        return format_html('<span style="color: #dc3545; font-size: 18px;" title="مخفی">🚫</span>')
-
-    @admin.display(description='تاریخ ایجاد', ordering='created_at')
-    def jalali_created_at(self, obj):
-        return datetime2jalali(obj.created_at).strftime('%Y/%m/%d - %H:%M')
-
-    @admin.display(description='عملیات')
-    def actions_column(self, obj):
-        buttons = []
-        buttons.append(f'<a href="#" class="button" style="padding: 3px 10px; background: #007bff; color: white;">مشاهده</a>')
-        action = 'مخفی کردن' if obj.is_visible_to_user else 'نمایش'
-        color = '#dc3545' if obj.is_visible_to_user else '#28a745'
-        buttons.append(f'<a href="#" class="button" style="padding: 3px 10px; background: {color}; color: white;">{action}</a>')
-        return format_html(' '.join(buttons))
-
-    @admin.display(description='پیش‌نمایش گزارش')
-    def report_preview(self, obj):
-        content = obj.content[:500] + '...' if len(obj.content) > 500 else obj.content
-        return format_html('<div style="background: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #007bff; white-space: pre-wrap;">{}</div>', content)
-
-    # Actions
-    @admin.action(description='👁️ قابل مشاهده کردن برای کاربران')
-    def make_visible(self, request, queryset):
-        updated = queryset.update(is_visible_to_user=True)
-        self.message_user(request, f'{updated} گزارش برای کاربران قابل مشاهده شد.')
-
-    @admin.action(description='🚫 مخفی کردن از کاربران')
-    def make_hidden(self, request, queryset):
-        updated = queryset.update(is_visible_to_user=False)
-        self.message_user(request, f'{updated} گزارش از کاربران مخفی شد.')
-
-    @admin.action(description='📋 کپی کردن گزارش')
-    def duplicate_report(self, request, queryset):
-        for report in queryset:
-            report.pk = None
-            report.title = f"کپی - {report.title}"
-            report.created_by = request.user
-            report.save()
-        self.message_user(request, f'{queryset.count()} گزارش کپی شد.')
-
-    # Statistics
     def changelist_view(self, request, extra_context=None):
+        """Add summary statistics to changelist"""
         extra_context = extra_context or {}
+
+        # Calculate statistics
         queryset = self.get_queryset(request)
 
         stats = {
-            'total_count': queryset.count(),
-            'visible_count': queryset.filter(is_visible_to_user=True).count(),
-            'by_type': {
-                dict(Report.TYPE_CHOICES)[t['type']]: t['count']
-                for t in queryset.values('type').annotate(count=Count('id'))
-            },
+            'total_reports': queryset.count(),
+            'by_type': queryset.values('type').annotate(
+                count=Count('id')
+            ).order_by('-count'),
+            'visible_to_users': queryset.filter(is_visible_to_user=True).count(),
+            'private_reports': queryset.filter(is_visible_to_user=False).count(),
         }
+
         extra_context['report_stats'] = stats
+
         return super().changelist_view(request, extra_context)
+
+    def get_readonly_fields(self, request, obj=None):
+        """Make created_by readonly when editing"""
+        if obj:  # Editing existing report
+            return self.readonly_fields + ['created_by']
+        return self.readonly_fields

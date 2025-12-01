@@ -11,229 +11,616 @@ from .models import ServiceType, SlotRule, TimeSlot, Reservation
 
 @admin.register(ServiceType)
 class ServiceTypeAdmin(admin.ModelAdmin):
-    list_display = ['name', 'price', 'duration', 'active_badge', 'order']
-    list_filter = ['is_active', 'created_at']
-    search_fields = ['name', 'slug']
+    """Admin panel for consultation service types"""
+
+    list_display = [
+        'name',
+        'price_display',
+        'duration_display',
+        'service_type_badge',
+        'active_badge',
+        'order',
+        'reservations_count'
+    ]
+    list_filter = ['is_active', 'is_online', 'created_at']
+    search_fields = ['name', 'slug', 'description']
     prepopulated_fields = {'slug': ('name',)}
     ordering = ['order', 'name']
+    list_editable = ['order']
 
     fieldsets = (
-        ('Basic Info', {
+        ('اطلاعات پایه', {
             'fields': ('name', 'slug', 'description')
         }),
-        ('Pricing & Duration', {
+        ('قیمت و مدت زمان', {
             'fields': ('price', 'duration')
         }),
-        ('Settings', {
-            'fields': ('is_active', 'order')
+        ('تنظیمات', {
+            'fields': ('is_online', 'is_active', 'order')
         }),
     )
 
-    def active_badge(self, obj):
-        if obj.is_active:
+    def price_display(self, obj):
+        """Display price with thousand separators"""
+        price_str = "{:,}".format(obj.price)
+        return format_html(
+            '<strong style="color: #28a745;">{} تومان</strong>',
+            price_str
+        )
+
+    price_display.short_description = 'قیمت'
+
+    def duration_display(self, obj):
+        """Display duration in a friendly format"""
+        return f"{obj.duration} دقیقه"
+
+    duration_display.short_description = 'مدت زمان'
+
+    def service_type_badge(self, obj):
+        """Display service type badge (online/in-person)"""
+        if obj.is_online:
             return format_html(
-                '<span style="background: #28a745; color: white; padding: 3px 10px; border-radius: 12px;">فعال</span>'
+                '<span style="background: #17a2b8; color: white; padding: 3px 10px; '
+                'border-radius: 12px; font-size: 11px;">📱 غیرحضوری</span>'
             )
         return format_html(
-            '<span style="background: #6c757d; color: white; padding: 3px 10px; border-radius: 12px;">غیرفعال</span>'
+            '<span style="background: #6f42c1; color: white; padding: 3px 10px; '
+            'border-radius: 12px; font-size: 11px;">🏢 حضوری</span>'
+        )
+
+    service_type_badge.short_description = 'نوع خدمت'
+
+    def active_badge(self, obj):
+        """Display active status badge"""
+        if obj.is_active:
+            return format_html(
+                '<span style="background: #28a745; color: white; padding: 3px 10px; '
+                'border-radius: 12px; font-size: 11px;">✓ فعال</span>'
+            )
+        return format_html(
+            '<span style="background: #6c757d; color: white; padding: 3px 10px; '
+            'border-radius: 12px; font-size: 11px;">✗ غیرفعال</span>'
         )
 
     active_badge.short_description = 'وضعیت'
 
+    def reservations_count(self, obj):
+        """Count total reservations for this service"""
+        count = obj.reservations.count()
+        return format_html('<strong>{}</strong>', count)
+
+    reservations_count.short_description = 'تعداد رزرو'
+
 
 @admin.register(SlotRule)
 class SlotRuleAdmin(admin.ModelAdmin):
-    list_display = ['time_range', 'interval_display', 'weekdays_display', 'active_badge']
-    list_filter = ['is_active', 'created_at']
+    """Admin panel for slot generation rules"""
+
+    list_display = [
+        'name',
+        'service_type',
+        'time_range',
+        'duration_display',
+        'weekdays_display',
+        'date_range',
+        'active_badge'
+    ]
+    list_filter = ['is_active', 'service_type', 'created_at']
+    search_fields = ['name']
+    readonly_fields = ['created_at', 'updated_at']
+
+    fieldsets = (
+        ('اطلاعات پایه', {
+            'fields': ('name', 'service_type', 'is_active')
+        }),
+        ('زمان‌بندی', {
+            'fields': ('weekdays', 'start_time', 'end_time', 'slot_duration')
+        }),
+        ('محدوده تاریخی (اختیاری)', {
+            'fields': ('apply_from_date', 'apply_to_date'),
+            'classes': ('collapse',)
+        }),
+        ('اطلاعات سیستمی', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
     def time_range(self, obj):
-        return f"{obj.start_time} - {obj.end_time}"
+        """Display time range"""
+        return format_html(
+            '<strong>{}</strong> تا <strong>{}</strong>',
+            obj.start_time.strftime('%H:%M'),
+            obj.end_time.strftime('%H:%M')
+        )
 
-    time_range.short_description = 'Time Range'
+    time_range.short_description = 'بازه زمانی'
 
-    def interval_display(self, obj):
-        return f"{obj.interval_minutes} min"
+    def duration_display(self, obj):
+        """Display slot duration"""
+        return f"{obj.slot_duration} دقیقه"
 
-    interval_display.short_description = 'Interval'
+    duration_display.short_description = 'مدت هر نوبت'
 
     def weekdays_display(self, obj):
-        days = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri']
-        selected = [days[int(d)] for d in obj.weekdays.split(',')]
-        return ', '.join(selected)
+        """Display selected weekdays in Persian"""
+        days_map = {
+            '0': 'شنبه', '1': 'یکشنبه', '2': 'دوشنبه',
+            '3': 'سه‌شنبه', '4': 'چهارشنبه', '5': 'پنج‌شنبه', '6': 'جمعه'
+        }
+        selected = [days_map.get(d.strip(), d) for d in obj.weekdays.split(',')]
+        return format_html('<span style="color: #007bff;">{}</span>', ' - '.join(selected))
 
-    weekdays_display.short_description = 'Weekdays'
+    weekdays_display.short_description = 'روزهای هفته'
+
+    def date_range(self, obj):
+        """Display date range if set"""
+        if obj.apply_from_date and obj.apply_to_date:
+            return f"{obj.apply_from_date} تا {obj.apply_to_date}"
+        elif obj.apply_from_date:
+            return f"از {obj.apply_from_date}"
+        elif obj.apply_to_date:
+            return f"تا {obj.apply_to_date}"
+        return format_html('<span style="color: #6c757d;">نامحدود</span>')
+
+    date_range.short_description = 'محدوده تاریخی'
 
     def active_badge(self, obj):
+        """Display active status"""
         if obj.is_active:
-            return format_html('<span style="color: green;">✓ Active</span>')
-        return format_html('<span style="color: gray;">✗ Inactive</span>')
+            return format_html('<span style="color: green; font-size: 18px;">✓</span>')
+        return format_html('<span style="color: gray; font-size: 18px;">✗</span>')
 
-    active_badge.short_description = 'وضعیت'
+    active_badge.short_description = 'فعال'
 
 
 @admin.register(TimeSlot)
 class TimeSlotAdmin(admin.ModelAdmin):
-    list_display = ['date', 'time_range', 'availability_badge', 'created_by', 'created_at']
-    list_filter = ['is_available', 'date', 'created_at']
-    search_fields = ['date']
+    """Admin panel for individual time slots"""
+
+    list_display = [
+        'date',
+        'service_type',
+        'time_range',
+        'availability_badge',
+        'source_badge',
+        'created_by',
+        'created_at'
+    ]
+    list_filter = [
+        'is_available',
+        'service_type',
+        'date',
+        'is_manual',
+        'created_at'
+    ]
+    search_fields = ['date', 'service_type__name']
     date_hierarchy = 'date'
-    actions = ['bulk_generate_slots']
+    readonly_fields = ['created_by', 'created_at', 'created_from_rule']
+    actions = ['mark_as_unavailable', 'mark_as_available', 'delete_selected_slots']
     change_list_template = 'admin/council/timeslot_changelist.html'
 
-    # Custom URLs for bulk generation
+    fieldsets = (
+        ('اطلاعات نوبت', {
+            'fields': ('service_type', 'date', 'start_time', 'end_time')
+        }),
+        ('وضعیت', {
+            'fields': ('is_available',)
+        }),
+        ('اطلاعات سیستمی', {
+            'fields': ('is_manual', 'created_from_rule', 'created_by', 'created_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
     def get_urls(self):
+        """Add custom URLs for bulk generation"""
         urls = super().get_urls()
         custom_urls = [
-            path('bulk-generate/', self.admin_site.admin_view(self.bulk_generate_view), name='timeslot_bulk_generate'),
+            path(
+                'bulk-generate/',
+                self.admin_site.admin_view(self.bulk_generate_view),
+                name='timeslot_bulk_generate'
+            ),
+            path(
+                'generate-from-rule/',
+                self.admin_site.admin_view(self.generate_from_rule_view),
+                name='timeslot_generate_from_rule'
+            ),
         ]
         return custom_urls + urls
 
     def bulk_generate_view(self, request):
-        """Bulk slot generation view"""
+        """Manual bulk slot generation view"""
         if request.method == 'POST':
-            # Get form data
-            start_date = datetime.strptime(request.POST['start_date'], '%Y-%m-%d').date()
-            end_date = datetime.strptime(request.POST['end_date'], '%Y-%m-%d').date()
-            start_time = datetime.strptime(request.POST['start_time'], '%H:%M').time()
-            end_time = datetime.strptime(request.POST['end_time'], '%H:%M').time()
-            interval = int(request.POST['interval'])
-            exclude_dates = request.POST.get('exclude_dates', '').strip()
+            try:
+                # Get form data
+                service_type_id = request.POST.get('service_type')
+                start_date = datetime.strptime(request.POST['start_date'], '%Y-%m-%d').date()
+                end_date = datetime.strptime(request.POST['end_date'], '%Y-%m-%d').date()
+                start_time = datetime.strptime(request.POST['start_time'], '%H:%M').time()
+                end_time = datetime.strptime(request.POST['end_time'], '%H:%M').time()
+                interval = int(request.POST['interval'])
+                weekdays = request.POST.getlist('weekdays')
 
-            # Parse excluded dates
-            excluded = []
-            if exclude_dates:
-                for date_str in exclude_dates.split(','):
-                    try:
-                        excluded.append(datetime.strptime(date_str.strip(), '%Y-%m-%d').date())
-                    except ValueError:
-                        pass
+                service_type = ServiceType.objects.get(id=service_type_id)
 
-            # Generate slots
-            created_count = 0
-            current_date = start_date
+                # Generate slots
+                created_count = 0
+                current_date = start_date
 
-            while current_date <= end_date:
-                # Skip excluded dates
-                if current_date in excluded:
+                while current_date <= end_date:
+                    # Check if current weekday is selected
+                    if str(current_date.weekday()) in weekdays:
+                        # Generate time slots for this day
+                        current_time = start_time
+
+                        while current_time < end_time:
+                            # Calculate end time for this slot
+                            slot_end = (
+                                    datetime.combine(current_date, current_time) +
+                                    timedelta(minutes=interval)
+                            ).time()
+
+                            if slot_end > end_time:
+                                break
+
+                            # Create slot if not exists
+                            slot, created = TimeSlot.objects.get_or_create(
+                                service_type=service_type,
+                                date=current_date,
+                                start_time=current_time,
+                                end_time=slot_end,
+                                defaults={
+                                    'is_available': True,
+                                    'is_manual': True,
+                                    'created_by': request.user
+                                }
+                            )
+
+                            if created:
+                                created_count += 1
+
+                            # Move to next slot
+                            current_time = slot_end
+
                     current_date += timedelta(days=1)
-                    continue
 
-                # Generate time slots for this day
-                current_time = start_time
-                while current_time < end_time:
-                    # Calculate end time for this slot
-                    slot_end = (
-                            datetime.combine(current_date, current_time) +
-                            timedelta(minutes=interval)
-                    ).time()
+                messages.success(
+                    request,
+                    f'✓ {created_count} نوبت با موفقیت ایجاد شد!'
+                )
+                return redirect('admin:council_timeslot_changelist')
 
-                    if slot_end > end_time:
-                        break
-
-                    # Create slot if not exists
-                    slot, created = TimeSlot.objects.get_or_create(
-                        date=current_date,
-                        start_time=current_time,
-                        end_time=slot_end,
-                        defaults={
-                            'is_available': True,
-                            'created_by': request.user
-                        }
-                    )
-
-                    if created:
-                        created_count += 1
-
-                    # Move to next slot
-                    current_time = slot_end
-
-                current_date += timedelta(days=1)
-
-            messages.success(request, f'{created_count} time slots created successfully!')
-            return redirect('admin:council_timeslot_changelist')
+            except Exception as e:
+                messages.error(request, f'خطا: {str(e)}')
 
         # GET request - show form
         context = {
-            'title': 'تولید گروهی بازه‌های زمانی نوبت‌دهی مشاوره',
+            'title': 'تولید گروهی نوبت‌ها (دستی)',
+            'service_types': ServiceType.objects.filter(is_active=True),
             'opts': self.model._meta,
             'has_view_permission': self.has_view_permission(request),
         }
         return render(request, 'admin/council/timeslot_bulk_generate.html', context)
 
-    def bulk_generate_slots(self, request, queryset):
-        """Redirect to bulk generation page"""
-        return redirect('admin:timeslot_bulk_generate')
+    def generate_from_rule_view(self, request):
+        """Generate slots from SlotRule patterns"""
+        if request.method == 'POST':
+            try:
+                rule_id = request.POST.get('rule_id')
+                start_date = datetime.strptime(request.POST['start_date'], '%Y-%m-%d').date()
+                end_date = datetime.strptime(request.POST['end_date'], '%Y-%m-%d').date()
 
-    bulk_generate_slots.short_description = 'Bulk generate time slots'
+                rule = SlotRule.objects.get(id=rule_id, is_active=True)
+                weekdays = rule.get_weekdays_list()
+                created_count = 0
+                current_date = start_date
+
+                while current_date <= end_date:
+                    # Check if current weekday matches rule
+                    if current_date.weekday() in weekdays:
+                        # Generate slots for this day
+                        current_time = rule.start_time
+
+                        while current_time < rule.end_time:
+                            slot_end = (
+                                    datetime.combine(current_date, current_time) +
+                                    timedelta(minutes=rule.slot_duration)
+                            ).time()
+
+                            if slot_end > rule.end_time:
+                                break
+
+                            slot, created = TimeSlot.objects.get_or_create(
+                                service_type=rule.service_type,
+                                date=current_date,
+                                start_time=current_time,
+                                end_time=slot_end,
+                                defaults={
+                                    'is_available': True,
+                                    'is_manual': False,
+                                    'created_from_rule': rule,
+                                    'created_by': request.user
+                                }
+                            )
+
+                            if created:
+                                created_count += 1
+
+                            current_time = slot_end
+
+                    current_date += timedelta(days=1)
+
+                messages.success(
+                    request,
+                    f'✓ {created_count} نوبت از الگو "{rule.name}" ایجاد شد!'
+                )
+                return redirect('admin:council_timeslot_changelist')
+
+            except Exception as e:
+                messages.error(request, f'خطا: {str(e)}')
+
+        # GET request
+        context = {
+            'title': 'تولید نوبت از الگو',
+            'rules': SlotRule.objects.filter(is_active=True).select_related('service_type'),
+            'opts': self.model._meta,
+            'has_view_permission': self.has_view_permission(request),
+        }
+        return render(request, 'admin/council/timeslot_from_rule.html', context)
 
     def time_range(self, obj):
-        return f"{obj.start_time} - {obj.end_time}"
+        """Display time range"""
+        return format_html(
+            '{} - {}',
+            obj.start_time.strftime('%H:%M'),
+            obj.end_time.strftime('%H:%M')
+        )
 
     time_range.short_description = 'زمان'
 
     def availability_badge(self, obj):
+        """Display availability status"""
         if obj.is_available:
-            return format_html('<span style="color: green;">✓ در دسترس</span>')
-        return format_html('<span style="color: red;">✗ رزرو شده</span>')
+            return format_html(
+                '<span style="background: #28a745; color: white; padding: 3px 10px; '
+                'border-radius: 12px; font-size: 11px;">✓ در دسترس</span>'
+            )
+        return format_html(
+            '<span style="background: #dc3545; color: white; padding: 3px 10px; '
+            'border-radius: 12px; font-size: 11px;">✗ رزرو شده</span>'
+        )
 
     availability_badge.short_description = 'وضعیت'
+
+    def source_badge(self, obj):
+        """Display how slot was created"""
+        if obj.is_manual:
+            return format_html(
+                '<span style="background: #6f42c1; color: white; padding: 2px 8px; '
+                'border-radius: 8px; font-size: 10px;">دستی</span>'
+            )
+        elif obj.created_from_rule:
+            return format_html(
+                '<span style="background: #17a2b8; color: white; padding: 2px 8px; '
+                'border-radius: 8px; font-size: 10px;" title="{}">از الگو</span>',
+                obj.created_from_rule.name
+            )
+        return format_html('<span style="color: #6c757d;">-</span>')
+
+    source_badge.short_description = 'منبع'
+
+    def mark_as_unavailable(self, request, queryset):
+        """Mark selected slots as unavailable"""
+        updated = queryset.update(is_available=False)
+        messages.success(request, f'{updated} نوبت به عنوان غیرقابل دسترس علامت‌گذاری شد.')
+
+    mark_as_unavailable.short_description = 'علامت‌گذاری به عنوان غیرقابل دسترس'
+
+    def mark_as_available(self, request, queryset):
+        """Mark selected slots as available"""
+        # Only mark slots without reservations as available
+        slots_with_reservations = queryset.filter(reservations__isnull=False).count()
+        updated = queryset.filter(reservations__isnull=True).update(is_available=True)
+
+        messages.success(request, f'{updated} نوبت به عنوان قابل دسترس علامت‌گذاری شد.')
+        if slots_with_reservations > 0:
+            messages.warning(
+                request,
+                f'{slots_with_reservations} نوبت دارای رزرو بودند و تغییر نکردند.'
+            )
+
+    mark_as_available.short_description = 'علامت‌گذاری به عنوان قابل دسترس'
+
+    def delete_selected_slots(self, request, queryset):
+        """Soft delete selected slots"""
+        # Only delete slots without reservations
+        slots_with_reservations = queryset.filter(reservations__isnull=False)
+        can_delete = queryset.filter(reservations__isnull=True)
+
+        deleted_count = can_delete.count()
+        can_delete.update(deleted_at=datetime.now())
+
+        messages.success(request, f'{deleted_count} نوبت حذف شد.')
+        if slots_with_reservations.exists():
+            messages.warning(
+                request,
+                f'{slots_with_reservations.count()} نوبت دارای رزرو بودند و حذف نشدند.'
+            )
+
+    delete_selected_slots.short_description = 'حذف نوبت‌های انتخاب شده'
 
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
+    """Admin panel for reservations"""
+
     list_display = [
-        'confirmation_code',
-        'user_link',
+        'tracking_code',
+        'full_name_display',
+        'phone_number',
         'service_type',
         'slot_info',
         'status_badge',
+        'payment_badge',
         'created_at'
     ]
-    list_filter = ['status', 'created_at', 'service_type']
+    list_filter = [
+        'status',
+        'payment_status',
+        'service_type',
+        'created_at',
+        'phone_verified_at'
+    ]
     search_fields = [
-        'confirmation_code',
+        'tracking_code',
+        'phone_number',
+        'full_name',
+        'email',
         'user__phone',
         'user__full_name'
     ]
-    readonly_fields = ['confirmation_code', 'reserved_at', 'created_at', 'updated_at']
+    readonly_fields = [
+        'tracking_code',
+        'phone_verified_at',
+        'reserved_at',
+        'created_at',
+        'updated_at'
+    ]
     date_hierarchy = 'created_at'
+    actions = ['mark_as_completed', 'mark_as_cancelled', 'export_to_pdf']
 
     fieldsets = (
-        ('Reservation Info', {
-            'fields': ('user', 'service_type', 'time_slot', 'status')
+        ('اطلاعات رزرو', {
+            'fields': ('tracking_code', 'service_type', 'time_slot')
         }),
-        ('Details', {
-            'fields': ('message', 'prescription', 'confirmation_code')
+        ('اطلاعات تماس', {
+            'fields': (
+                'full_name',
+                'phone_number',
+                'email'
+            )
         }),
-        ('Timestamps', {
+        ('وضعیت', {
+            'fields': ('status', 'payment_status', 'phone_verified_at')
+        }),
+        ('کاربر (پس از تایید OTP)', {
+            'fields': ('user',),
+            'classes': ('collapse',)
+        }),
+        ('جزئیات بیشتر', {
+            'fields': ('message', 'prescription'),
+            'classes': ('collapse',)
+        }),
+        ('اطلاعات سیستمی', {
             'fields': ('reserved_at', 'created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
 
-    def user_link(self, obj):
-        url = f'/admin/accounts/user/{obj.user.id}/change/'
-        return format_html('<a href="{}">{}</a>', url, obj.user.full_name)
+    def full_name_display(self, obj):
+        """Display full name with link to user if exists"""
+        full_name = obj.full_name
+        if obj.user:
+            url = f'/admin/accounts/user/{obj.user.id}/change/'
+            return format_html(
+                '<a href="{}" style="font-weight: bold;">{}</a>',
+                url,
+                full_name
+            )
+        return format_html('<strong>{}</strong>', full_name)
 
-    user_link.short_description = 'کاربر'
+    full_name_display.short_description = 'نام و نام خانوادگی'
 
     def slot_info(self, obj):
-        return f"{obj.time_slot.date} | {obj.time_slot.start_time}"
+        """Display slot date and time"""
+        return format_html(
+            '<strong>{}</strong><br/><small style="color: #6c757d;">{} - {}</small>',
+            obj.time_slot.date,
+            obj.time_slot.start_time.strftime('%H:%M'),
+            obj.time_slot.end_time.strftime('%H:%M')
+        )
 
-    slot_info.short_description = 'زمان‌بندی نوبت'
+    slot_info.short_description = 'زمان نوبت'
 
     def status_badge(self, obj):
+        """Display status with colored badge"""
         colors = {
             'pending': '#ffc107',
-            'confirmed': '#28a745',
+            'phone_verified': '#17a2b8',
+            'paid': '#28a745',
+            'completed': '#6f42c1',
             'cancelled': '#dc3545',
-            'completed': '#17a2b8',
         }
         color = colors.get(obj.status, '#6c757d')
         return format_html(
-            '<span style="background: {}; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px;">{}</span>',
+            '<span style="background: {}; color: white; padding: 4px 12px; '
+            'border-radius: 12px; font-size: 11px; font-weight: bold;">{}</span>',
             color,
-            obj.get_status_display().upper()
+            obj.get_status_display()
         )
 
     status_badge.short_description = 'وضعیت'
+
+    def payment_badge(self, obj):
+        """Display payment status"""
+        colors = {
+            'unpaid': '#dc3545',
+            'paid': '#28a745',
+            'refunded': '#6c757d',
+        }
+        icons = {
+            'unpaid': '✗',
+            'paid': '✓',
+            'refunded': '↩',
+        }
+        color = colors.get(obj.payment_status, '#6c757d')
+        icon = icons.get(obj.payment_status, '?')
+
+        return format_html(
+            '<span style="background: {}; color: white; padding: 3px 10px; '
+            'border-radius: 12px; font-size: 11px;">{} {}</span>',
+            color,
+            icon,
+            obj.get_payment_status_display()
+        )
+
+    payment_badge.short_description = 'پرداخت'
+
+    def mark_as_completed(self, request, queryset):
+        """Mark selected reservations as completed"""
+        updated = queryset.filter(status='paid').update(status='completed')
+        messages.success(request, f'{updated} رزرو به عنوان انجام شده علامت‌گذاری شد.')
+
+        if updated < queryset.count():
+            messages.warning(
+                request,
+                'فقط رزروهای پرداخت شده می‌توانند به عنوان انجام شده علامت‌گذاری شوند.'
+            )
+
+    mark_as_completed.short_description = 'علامت‌گذاری به عنوان انجام شده'
+
+    def mark_as_cancelled(self, request, queryset):
+        """Cancel selected reservations"""
+        updated = queryset.exclude(status__in=['completed', 'cancelled']).update(
+            status='cancelled'
+        )
+        # Also mark time slots as available again
+        for reservation in queryset.filter(status='cancelled'):
+            reservation.time_slot.is_available = True
+            reservation.time_slot.save()
+
+        messages.success(request, f'{updated} رزرو لغو شد.')
+
+    mark_as_cancelled.short_description = 'لغو رزرو'
+
+    def export_to_pdf(self, request, queryset):
+        """Export selected reservations to PDF (placeholder)"""
+        messages.info(
+            request,
+            f'{queryset.count()} رزرو برای خروجی PDF انتخاب شد. '
+            'این قابلیت به زودی اضافه خواهد شد.'
+        )
+
+    export_to_pdf.short_description = 'خروجی PDF'
