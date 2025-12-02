@@ -69,7 +69,7 @@ class ServiceTypeAdmin(admin.ModelAdmin):
             'border-radius: 12px; font-size: 11px;">🏢 حضوری</span>'
         )
 
-    service_type_badge.short_description = 'نوع خدمت'
+    service_type_badge.short_description = 'نوع مشاوره'
 
     def active_badge(self, obj):
         """Display active status badge"""

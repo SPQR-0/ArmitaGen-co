@@ -1,10 +1,25 @@
 from django.urls import path
-
-from .views import *
+from . import views
 
 app_name = 'council'
 
 urlpatterns = [
-    path('consultation/', CouncilView.as_view(), name='con'),
-    path('success/', SuccessView.as_view(), name='con_success'),
+    # Step 1: Initial form
+    path('consultation/', views.ReservationStep1View.as_view(), name='step1_initial'),
+    path('con/', views.ReservationStep1View.as_view(), name='con'),  # Alias
+
+    # Step 2: Select time
+    path('select-time/', views.ReservationStep2View.as_view(), name='step2_select_time'),
+
+    # Step 3: Phone verification
+    path('verify-phone/', views.ReservationStep3View.as_view(), name='step3_verify_phone'),
+
+    # Step 4: Review
+    path('review/<str:tracking_code>/', views.ReservationStep4View.as_view(), name='step4_review'),
+
+    # Final: Receipt
+    path('receipt/<str:tracking_code>/', views.ReservationReceiptView.as_view(), name='final_receipt'),
+
+    # AJAX endpoints
+    path('api/check-slot/<int:slot_id>/', views.check_slot_availability, name='check_slot_availability'),
 ]

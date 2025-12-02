@@ -102,6 +102,12 @@ class OTP(models.Model):
         #     return False
         return timezone.now() > self.expires_at
 
+    def mark_as_used(self, user=None):
+        self.is_used = True
+        if user:
+            self.verified_user = user
+        self.save(update_fields=["is_used", "verified_user"])
+
     @classmethod
     def generate_code(cls):
         """Generate cryptographically secure 6-digit OTP"""

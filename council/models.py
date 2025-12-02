@@ -30,7 +30,8 @@ class ServiceType(models.Model):
     name = models.CharField(
         max_length=100,
         unique=True,
-        verbose_name='نام خدمت'
+        verbose_name='نام سرویس',
+        help_text='یک نام برای نوع مشاوره یا سرویس ارائه کنید'
     )
     slug = models.SlugField(
         max_length=100,
@@ -55,7 +56,7 @@ class ServiceType(models.Model):
     is_online = models.BooleanField(
         default=True,
         verbose_name='غیرحضوری',
-        help_text='آیا این خدمت به صورت غیرحضوری ارائه می‌شود؟'
+        help_text='آیا این سرویس به صورت غیرحضوری ارائه می‌شود؟'
     )
     is_active = models.BooleanField(
         default=True,
@@ -79,8 +80,8 @@ class ServiceType(models.Model):
 
     class Meta:
         db_table = 'service_types'
-        verbose_name = 'نوع خدمت'
-        verbose_name_plural = 'انواع خدمات'
+        verbose_name = 'نوع سرویس'
+        verbose_name_plural = 'انواع سرویس ها'
         ordering = ['order', 'name']
         indexes = [
             models.Index(fields=['slug'], name='idx_service_slug'),
@@ -122,7 +123,7 @@ class SlotRule(models.Model):
         'ServiceType',
         on_delete=models.CASCADE,
         related_name='slot_rules',
-        verbose_name='نوع خدمت'
+        verbose_name='نوع مشاوره'
     )
     weekdays = models.CharField(
         max_length=20,
@@ -189,7 +190,7 @@ class TimeSlot(models.Model):
         'ServiceType',
         on_delete=models.CASCADE,
         related_name='time_slots',
-        verbose_name='نوع خدمت'
+        verbose_name='نوع مشاوره'
     )
     date = models.DateField(
         db_index=True,
@@ -304,7 +305,7 @@ class Reservation(models.Model):
         'ServiceType',
         on_delete=models.PROTECT,
         related_name='reservations',
-        verbose_name='نوع خدمت'
+        verbose_name='نوع مشاوره'
     )
     time_slot = models.ForeignKey(
         'TimeSlot',

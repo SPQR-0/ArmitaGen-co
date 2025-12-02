@@ -26,8 +26,7 @@ class PaymentAdmin(admin.ModelAdmin):
     search_fields = [
         'reservation__tracking_code',
         'reservation__phone_number',
-        'reservation__first_name',
-        'reservation__last_name',
+        'reservation__full_name',
         'tracking_code'
     ]
     readonly_fields = [
@@ -51,7 +50,6 @@ class PaymentAdmin(admin.ModelAdmin):
     )
 
     def reservation_info(self, obj):
-        """نمایش رزرو با لینک"""
         url = f'/admin/council/reservation/{obj.reservation.id}/change/'
         return format_html(
             '<a href="{}" style="font-weight: bold;">{}</a><br/>'
@@ -63,16 +61,16 @@ class PaymentAdmin(admin.ModelAdmin):
     reservation_info.short_description = 'رزرو'
 
     def amount_display(self, obj):
-        """نمایش مبلغ با فرمت هزارگان"""
+        formatted = f"{obj.amount:,}"
         return format_html(
-            '<strong style="color: #28a745; font-size: 13px;">{:,}</strong> '
+            '<strong style="color: #28a745; font-size: 13px;">{}</strong> '
             '<small style="color: #6c757d;">تومان</small>',
-            obj.amount
+            formatted
         )
+
     amount_display.short_description = 'مبلغ'
 
     def status_badge(self, obj):
-        """نمایش وضعیت پرداخت با رنگ و آیکون"""
         colors = {
             'pending': '#FFC107',
             'success': '#28a745',
@@ -97,7 +95,6 @@ class PaymentAdmin(admin.ModelAdmin):
     status_badge.short_description = 'وضعیت'
 
     def changelist_view(self, request, extra_context=None):
-        """اضافه کردن آمار پرداخت‌ها به صفحه لیست"""
         extra_context = extra_context or {}
         queryset = self.get_queryset(request)
 
@@ -119,7 +116,6 @@ class PaymentAdmin(admin.ModelAdmin):
         return super().changelist_view(request, extra_context)
 
     def mark_as_refunded(self, request, queryset):
-        """علامت‌گذاری پرداخت‌ها به عنوان بازگشت داده شده"""
         refundable = queryset.filter(status='success')
         updated = refundable.update(status='refunded')
 
@@ -141,7 +137,6 @@ class PaymentAdmin(admin.ModelAdmin):
     mark_as_refunded.short_description = 'بازگشت وجه'
 
     def export_payment_report(self, request, queryset):
-        """خروجی گزارش پرداخت (در آینده کامل می‌شود)"""
         total_amount = queryset.filter(status='success').aggregate(
             Sum('amount')
         )['amount__sum'] or 0
@@ -155,9 +150,7 @@ class PaymentAdmin(admin.ModelAdmin):
     export_payment_report.short_description = 'خروجی گزارش پرداخت'
 
     def has_add_permission(self, request):
-        """غیر فعال کردن ایجاد دستی پرداخت"""
         return False
 
     def has_delete_permission(self, request, obj=None):
-        """غیر فعال کردن حذف پرداخت"""
         return False

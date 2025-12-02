@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>گام ۳ — تایید شماره تلفن</title>
+</head>
+<body>
+  <h1>گام ۳ — تایید شماره تلفن</h1>
+
+  {% if messages %}
+    <ul>
+      {% for msg in messages %}
+        <li>{{ msg }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <p>کاربر: <strong>{{ reservation_data.full_name }}</strong></p>
+  <p>شماره تلفن: <strong>{{ reservation_data.phone_number }}</strong></p>
+
+  <p>زمان انتخابی: <strong>{{ time_slot.date }} — {{ time_slot.start_time }} تا {{ time_slot.end_time }}</strong></p>
+
+  <div>
+    <button id="send-otp-btn">ارسال کد تایید (OTP)</button>
+    <span id="otp-message"></span>
+  </div>
+
+  <form method="post" action="{% url 'council:step3_verify_phone' %}" id="verify-otp-form">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="verify_otp">
+    {{ form.non_field_errors }}
+
+    <div>
+      <label for="{{ form.otp_code.id_for_label }}">کد تایید ۶ رقمی</label><br>
+      {{ form.otp_code }}
+      {% if form.otp_code.errors %} <div>{{ form.otp_code.errors }}</div> {% endif %}
+    </div>
+
+    <div>
+      <button type="submit">تایید کد و ثبت رزرو</button>
+    </div>
+  </form>
+
+  <script>
+    // ارسال OTP با AJAX
+    document.getElementById('send-otp-btn').addEventListener('click', function(){
+      var btn = this;
+      btn.disabled = true;
+      document.getElementById('otp-message').textContent = 'در حال ارسال...';
+
+      var formData = new FormData();
+      formData.append('action', 'send_otp');
+
+      fetch("{% url 'council:step3_verify_phone' %}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': '{{ csrf_token }}'
+        }
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (data.success) {
+          document.getElementById('otp-message').textContent = data.message + ' (انقضا: ' + (data.expires_in || 120) + ' ثانیه)';
+          // فعال‌سازی دکمه پس از مدتی (برای نمونه 120s)
+          setTimeout(function(){ btn.disabled = false; }, 120 * 1000);
+        } else {
+          document.getElementById('otp-message').textContent = data.message || 'خطا در ارسال';
+          btn.disabled = false;
+        }
+      })
+      .catch(function(){
+        document.getElementById('otp-message').textContent = 'خطا در ارسال';
+        btn.disabled = false;
+      });
+    });
+
+    // ارسال فرم تایید OTP (می‌توانم AJAX هم بسازم، اما فرم پست معمولی هم پشتیبانی می‌شود)
+    // اگر بخواهی می‌تونم این رو هم AJAX کنم؛ الان از فرم معمولی استفاده شده تا با view سازگار باشه.
+  </script>
+
+  <hr>
+  <p><a href="{% url 'council:step2_select_time' %}">بازگشت به انتخاب زمان</a></p>
+</body>
+</html>

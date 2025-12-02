@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>گام ۱ — ثبت اطلاعات اولیه</title>
+</head>
+<body>
+  <h1>گام ۱ — اطلاعات اولیه</h1>
+
+  {% if messages %}
+    <ul>
+      {% for msg in messages %}
+        <li>{{ msg }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" action="{% url 'council:step1_initial' %}">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div>
+      <label for="{{ form.full_name.id_for_label }}">نام و نام خانوادگی</label><br>
+      {{ form.full_name }}
+      {% if form.full_name.errors %} <div>{{ form.full_name.errors }}</div> {% endif %}
+    </div>
+
+    <div>
+      <label for="{{ form.phone_number.id_for_label }}">شماره تلفن</label><br>
+      {{ form.phone_number }}
+      {% if form.phone_number.errors %} <div>{{ form.phone_number.errors }}</div> {% endif %}
+    </div>
+
+    <div>
+      <label for="{{ form.service_type.id_for_label }}">نوع خدمت</label><br>
+      {{ form.service_type }}
+      {% if form.service_type.errors %} <div>{{ form.service_type.errors }}</div> {% endif %}
+    </div>
+
+    <div>
+      <label for="{{ form.message.id_for_label }}">توضیحات (اختیاری)</label><br>
+      {{ form.message }}
+      {% if form.message.errors %} <div>{{ form.message.errors }}</div> {% endif %}
+    </div>
+
+    <div>
+      <label for="{{ form.prescription.id_for_label }}">آپلود نسخه (اختیاری)</label><br>
+      {{ form.prescription }}
+      {% if form.prescription.errors %} <div>{{ form.prescription.errors }}</div> {% endif %}
+    </div>
+
+    <div>
+      <button type="submit">ثبت و انتخاب زمان</button>
+    </div>
+  </form>
+
+  <hr>
+  <p>اگر قبلاً داده‌ای پر شده است، به گام بعدی بروید: <a href="{% url 'council:step2_select_time' %}">انتخاب زمان</a></p>
+</body>
+</html>
