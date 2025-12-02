@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from django.contrib import admin
 from django.contrib import messages
+from django.db import models
 from django.shortcuts import render, redirect
 from django.urls import path
 from django.utils.html import format_html
@@ -197,7 +198,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
     search_fields = ['date', 'service_type__name']
     date_hierarchy = 'date'
     readonly_fields = ['created_by', 'created_at', 'created_from_rule']
-    actions = ['mark_as_unavailable', 'mark_as_available', 'delete_selected_slots']
+    actions = ['mark_as_unavailable', 'mark_as_available', 'mark_as_available_force', 'delete_selected_slots']
     change_list_template = 'admin/council/timeslot_changelist.html'
 
     fieldsets = (
@@ -479,6 +480,51 @@ class TimeSlotAdmin(admin.ModelAdmin):
 
     mark_as_available.short_description = 'علامت‌گذاری به عنوان قابل دسترس'
 
+    def mark_as_available_force(self, request, queryset):
+        """
+        Force mark selected slots as available (even if they have reservations)
+        WARNING: This will not cancel the reservations, just marks slots as available
+        """
+        slots_with_reservations = queryset.filter(reservations__isnull=False).distinct()
+        slots_count = slots_with_reservations.count()
+
+        if slots_count > 0:
+            # Show confirmation warning
+            reservation_details = []
+            for slot in slots_with_reservations[:5]:  # Show first 5
+                reservations = slot.reservations.all()[:3]  # Show first 3 reservations
+                for res in reservations:
+                    reservation_details.append(
+                        f"• {res.tracking_code} - {res.full_name} ({slot.date} {slot.start_time})"
+                    )
+
+            warning_msg = (
+                    f'⚠️ هشدار: {slots_count} نوبت دارای رزرو هستند!\n\n'
+                    f'نمونه رزروها:\n' + '\n'.join(reservation_details[:5])
+            )
+
+            if len(reservation_details) > 5:
+                warning_msg += f'\n... و {len(reservation_details) - 5} رزرو دیگر'
+
+            messages.warning(request, warning_msg)
+
+        # Force update all selected slots
+        updated = queryset.update(is_available=True)
+
+        messages.success(
+            request,
+            f'✓ {updated} نوبت به صورت اجباری به عنوان قابل دسترس علامت‌گذاری شد.'
+        )
+
+        if slots_count > 0:
+            messages.error(
+                request,
+                f'⚠️ توجه: {slots_count} نوبت دارای رزرو فعال بودند. '
+                'رزروها لغو نشده‌اند و ممکن است تداخل ایجاد شود!'
+            )
+
+    mark_as_available_force.short_description = '🔓 علامت‌گذاری اجباری به عنوان قابل دسترس (Force)'
+
     def delete_selected_slots(self, request, queryset):
         """Soft delete selected slots"""
         # Only delete slots without reservations
@@ -564,6 +610,78 @@ class ReservationAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    def save_model(self, request, obj, form, change):
+        """Auto-mark time slot as unavailable when reservation is created/updated"""
+        old_time_slot = None
+        if change and obj.pk:
+            try:
+                old_reservation = Reservation.objects.get(pk=obj.pk)
+                old_time_slot = old_reservation.time_slot
+            except Reservation.DoesNotExist:
+                pass
+
+        super().save_model(request, obj, form, change)
+
+        if obj.time_slot:
+            obj.time_slot.is_available = False
+            obj.time_slot.save(update_fields=['is_available'])
+
+        if old_time_slot and old_time_slot != obj.time_slot:
+            if not old_time_slot.reservations.exclude(pk=obj.pk).exists():
+                old_time_slot.is_available = True
+                old_time_slot.save(update_fields=['is_available'])
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Filter time slots to show only available ones"""
+        if db_field.name == "time_slot":
+            obj_id = request.resolver_match.kwargs.get('object_id')
+
+            if obj_id:
+                try:
+                    current_reservation = Reservation.objects.get(pk=obj_id)
+                    kwargs["queryset"] = TimeSlot.objects.filter(
+                        models.Q(is_available=True) | models.Q(pk=current_reservation.time_slot.pk),
+                        deleted_at__isnull=True
+                    ).order_by('date', 'start_time')
+                except Reservation.DoesNotExist:
+                    kwargs["queryset"] = TimeSlot.objects.filter(
+                        is_available=True,
+                        deleted_at__isnull=True
+                    ).order_by('date', 'start_time')
+            else:
+                kwargs["queryset"] = TimeSlot.objects.filter(
+                    is_available=True,
+                    deleted_at__isnull=True
+                ).order_by('date', 'start_time')
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def delete_model(self, request, obj):
+        """Mark time slot as available when reservation is deleted"""
+        time_slot = obj.time_slot
+        super().delete_model(request, obj)
+
+        if time_slot and not time_slot.reservations.exists():
+            time_slot.is_available = True
+            time_slot.save(update_fields=['is_available'])
+            messages.info(request, f'بازه زمانی {time_slot} مجدداً قابل رزرو شد.')
+
+    def delete_queryset(self, request, queryset):
+        """Handle bulk deletion - mark time slots as available"""
+        time_slots = set(queryset.values_list('time_slot', flat=True))
+        super().delete_queryset(request, queryset)
+
+        for slot_id in time_slots:
+            try:
+                slot = TimeSlot.objects.get(pk=slot_id)
+                if not slot.reservations.exists():
+                    slot.is_available = True
+                    slot.save(update_fields=['is_available'])
+            except TimeSlot.DoesNotExist:
+                pass
+
+        messages.info(request, 'بازه‌های زمانی بدون رزرو مجدداً قابل رزرو شدند.')
 
     def full_name_display(self, obj):
         """Display full name with link to user if exists"""
