@@ -313,11 +313,50 @@ class TimeSlotAdmin(admin.ModelAdmin):
                 end_date = datetime.strptime(request.POST['end_date'], '%Y-%m-%d').date()
 
                 rule = SlotRule.objects.get(id=rule_id, is_active=True)
+
+                # Validate date range against rule's apply dates
+                effective_start_date = start_date
+                effective_end_date = end_date
+
+                # Check if requested range is completely outside rule's range
+                if rule.apply_from_date and end_date < rule.apply_from_date:
+                    messages.error(
+                        request,
+                        f'❌ خطا: بازه زمانی درخواستی ({start_date} تا {end_date}) '
+                        f'قبل از تاریخ شروع الگو ({rule.apply_from_date}) است.'
+                    )
+                    return redirect('admin:timeslot_generate_from_rule')
+
+                if rule.apply_to_date and start_date > rule.apply_to_date:
+                    messages.error(
+                        request,
+                        f'❌ خطا: بازه زمانی درخواستی ({start_date} تا {end_date}) '
+                        f'بعد از تاریخ پایان الگو ({rule.apply_to_date}) است.'
+                    )
+                    return redirect('admin:timeslot_generate_from_rule')
+
+                # Adjust dates to fit within rule's range
+                if rule.apply_from_date and start_date < rule.apply_from_date:
+                    effective_start_date = rule.apply_from_date
+                    messages.warning(
+                        request,
+                        f'⚠️ توجه: تاریخ شروع از {start_date} به {effective_start_date} '
+                        f'تغییر یافت (مطابق با تاریخ شروع الگو)'
+                    )
+
+                if rule.apply_to_date and end_date > rule.apply_to_date:
+                    effective_end_date = rule.apply_to_date
+                    messages.warning(
+                        request,
+                        f'⚠️ توجه: تاریخ پایان از {end_date} به {effective_end_date} '
+                        f'تغییر یافت (مطابق با تاریخ پایان الگو)'
+                    )
+
                 weekdays = rule.get_weekdays_list()
                 created_count = 0
-                current_date = start_date
+                current_date = effective_start_date
 
-                while current_date <= end_date:
+                while current_date <= effective_end_date:
                     # Check if current weekday matches rule
                     if current_date.weekday() in weekdays:
                         # Generate slots for this day
@@ -352,14 +391,21 @@ class TimeSlotAdmin(admin.ModelAdmin):
 
                     current_date += timedelta(days=1)
 
-                messages.success(
-                    request,
-                    f'✓ {created_count} نوبت از الگو "{rule.name}" ایجاد شد!'
-                )
+                if created_count > 0:
+                    messages.success(
+                        request,
+                        f'✓ {created_count} نوبت از الگو "{rule.name}" '
+                        f'برای بازه {effective_start_date} تا {effective_end_date} ایجاد شد!'
+                    )
+                else:
+                    messages.warning(
+                        request,
+                        f'⚠️ هیچ نوبتی ایجاد نشد. لطفاً بازه زمانی و تنظیمات الگو را بررسی کنید.'
+                    )
                 return redirect('admin:council_timeslot_changelist')
 
             except Exception as e:
-                messages.error(request, f'خطا: {str(e)}')
+                messages.error(request, f'❌ خطا: {str(e)}')
 
         # GET request
         context = {

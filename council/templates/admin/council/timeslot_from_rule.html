@@ -4,222 +4,223 @@
 {% block extrastyle %}
 {{ block.super }}
 <style>
-/* Container */
-.bulk-generate-container {
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 0 20px;
-}
-
-/* Header */
-.page-header {
-    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-    color: white;
-    padding: 30px;
-    border-radius: 12px;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.page-header h1 {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 600;
-}
-
-.page-header p {
-    margin: 8px 0 0 0;
-    opacity: 0.9;
-    font-size: 14px;
-}
-
-/* Form Card */
-.form-card {
-    background: white;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-}
-
-/* Form Sections */
-.form-row {
-    margin-bottom: 25px;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-}
-/* Form rows */
-.form-row {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 25px;
-}
-
-.form-row label {
-    font-weight: 500;
-    color: #4a5568;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-/* Unified input + select styling */
-.form-row input,
-.form-row select,
-.form-group input,
-.form-group select {
-    padding: 12px 15px;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.2s;
-    background: white;
-    height: 44px;
-}
-
-.form-row input:focus,
-.form-row select:focus,
-.form-group input:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: #38a169;
-    box-shadow: 0 0 0 3px rgba(72,187,120,0.15);
-}
-
-/* Fix select arrow alignment */
-.form-row select,
-.form-group select {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23667eea' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: left 12px center;
-    background-size: 12px;
-    padding-left: 40px;
-}
-
-.form-group label {
-    font-weight: 500;
-    color: #4a5568;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.form-group input,
-.form-group select {
-    padding: 12px 15px;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.2s;
-    background: white;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: #38a169;
-    box-shadow: 0 0 0 3px rgba(72,187,120,0.1);
-}
-
-.help-text {
-    font-size: 12px;
-    color: #718096;
-    margin-top: 5px;
-}
-
-/* Rule Preview */
-.rule-info {
-    background: linear-gradient(135deg, #f0fff4 0%, #e6ffed 100%);
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(72,187,120,0.1);
-    display: none;
-}
-
-.rule-info.active {
-    display: block;
-}
-
-.rule-info h3 {
-    margin-top: 0;
-    color: #38a169;
-    font-size: 18px;
-}
-
-.rule-detail {
-    margin: 8px 0;
-    color: #4a5568;
-    font-size: 14px;
-}
-
-/* Buttons */
-.submit-row,
-.button-group {
-    display: flex;
-    gap: 15px;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    margin-top: 30px;
-}
-
-.submit-row input[type="submit"],
-.button-group .btn-primary {
-    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-    color: white;
-    padding: 12px 30px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 4px 12px rgba(72,187,120,0.3);
-}
-
-.submit-row input[type="submit"]:hover,
-.button-group .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(72,187,120,0.4);
-}
-
-.submit-row .cancel-link,
-.button-group .btn-cancel {
-    padding: 12px 30px;
-    border-radius: 8px;
-    background: #e2e8f0;
-    color: #4a5568;
-    text-decoration: none;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    transition: all 0.2s;
-}
-
-.submit-row .cancel-link:hover,
-.button-group .btn-cancel:hover {
-    background: #cbd5e0;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .form-grid-2,
-    .form-grid-3 {
-        grid-template-columns: 1fr;
+    /* Container */
+    .bulk-generate-container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 20px;
     }
 
-    .submit-row,
-    .button-group {
+    /* Header */
+    .page-header {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .page-header h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+    }
+
+    .page-header p {
+        margin: 8px 0 0 0;
+        opacity: 0.9;
+        font-size: 14px;
+    }
+
+    /* Form Card */
+    .form-card {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Form Sections */
+    .form-row {
+        margin-bottom: 25px;
+    }
+
+    .form-group {
+        display: flex;
         flex-direction: column;
     }
 
-    .submit-row input,
-    .submit-row .cancel-link,
-    .button-group .btn {
-        width: 100%;
-        text-align: center;
+    /* Form rows */
+    .form-row {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 25px;
     }
-}
+
+    .form-row label {
+        font-weight: 500;
+        color: #4a5568;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    /* Unified input + select styling */
+    .form-row input,
+    .form-row select,
+    .form-group input,
+    .form-group select {
+        padding: 12px 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s;
+        background: white;
+        height: 44px;
+    }
+
+    .form-row input:focus,
+    .form-row select:focus,
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #38a169;
+        box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.15);
+    }
+
+    /* Fix select arrow alignment */
+    .form-row select,
+    .form-group select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23667eea' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: left 12px center;
+        background-size: 12px;
+        padding-left: 40px;
+    }
+
+    .form-group label {
+        font-weight: 500;
+        color: #4a5568;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 12px 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s;
+        background: white;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #38a169;
+        box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.1);
+    }
+
+    .help-text {
+        font-size: 12px;
+        color: #718096;
+        margin-top: 5px;
+    }
+
+    /* Rule Preview */
+    .rule-info {
+        background: linear-gradient(135deg, #f0fff4 0%, #e6ffed 100%);
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(72, 187, 120, 0.1);
+        display: none;
+    }
+
+    .rule-info.active {
+        display: block;
+    }
+
+    .rule-info h3 {
+        margin-top: 0;
+        color: #38a169;
+        font-size: 18px;
+    }
+
+    .rule-detail {
+        margin: 8px 0;
+        color: #4a5568;
+        font-size: 14px;
+    }
+
+    /* Buttons */
+    .submit-row,
+    .button-group {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        margin-top: 30px;
+    }
+
+    .submit-row input[type="submit"],
+    .button-group .btn-primary {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+    }
+
+    .submit-row input[type="submit"]:hover,
+    .button-group .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(72, 187, 120, 0.4);
+    }
+
+    .submit-row .cancel-link,
+    .button-group .btn-cancel {
+        padding: 12px 30px;
+        border-radius: 8px;
+        background: #e2e8f0;
+        color: #4a5568;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.2s;
+    }
+
+    .submit-row .cancel-link:hover,
+    .button-group .btn-cancel:hover {
+        background: #cbd5e0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-grid-2,
+        .form-grid-3 {
+            grid-template-columns: 1fr;
+        }
+
+        .submit-row,
+        .button-group {
+            flex-direction: column;
+        }
+
+        .submit-row input,
+        .submit-row .cancel-link,
+        .button-group .btn {
+            width: 100%;
+            text-align: center;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -244,7 +245,9 @@
                             data-service="{{ rule.service_type.name }}"
                             data-weekdays="{{ rule.weekdays }}"
                             data-time="{{ rule.start_time }} - {{ rule.end_time }}"
-                            data-duration="{{ rule.slot_duration }}">
+                            data-duration="{{ rule.slot_duration }}"
+                            data-apply-from="{% if rule.apply_from_date %}{{ rule.apply_from_date }}{% endif %}"
+                            data-apply-to="{% if rule.apply_to_date %}{{ rule.apply_to_date }}{% endif %}">
                         {{ rule.name }}
                     </option>
                     {% endfor %}
@@ -258,6 +261,10 @@
                 <div class="rule-detail"><strong>روزهای هفته:</strong> <span id="preview-weekdays">-</span></div>
                 <div class="rule-detail"><strong>بازه زمانی:</strong> <span id="preview-time">-</span></div>
                 <div class="rule-detail"><strong>مدت هر نوبت:</strong> <span id="preview-duration">-</span> دقیقه</div>
+                <div class="rule-detail" id="preview-date-range-wrapper" style="display: none;">
+                    <strong>محدوده تاریخی الگو:</strong>
+                    <span id="preview-date-range" style="color: #dc3545; font-weight: bold;">-</span>
+                </div>
             </div>
 
             <div class="form-row">
@@ -281,41 +288,81 @@
 </div>
 
 <script>
-const weekdayMap = {
-    '0': 'شنبه',
-    '1': 'یکشنبه',
-    '2': 'دوشنبه',
-    '3': 'سه‌شنبه',
-    '4': 'چهارشنبه',
-    '5': 'پنج‌شنبه',
-    '6': 'جمعه'
-};
+    const weekdayMap = {
+        '0': 'شنبه',
+        '1': 'یکشنبه',
+        '2': 'دوشنبه',
+        '3': 'سه‌شنبه',
+        '4': 'چهارشنبه',
+        '5': 'پنج‌شنبه',
+        '6': 'جمعه'
+    };
 
-// Show rule preview when selected
-document.getElementById('rule_id').addEventListener('change', function() {
-    const selectedOption = this.options[this.selectedIndex];
-    const preview = document.getElementById('rule-preview');
+    // Show rule preview when selected
+    document.getElementById('rule_id').addEventListener('change', function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const preview = document.getElementById('rule-preview');
 
-    if (this.value) {
-        const service = selectedOption.dataset.service;
-        const weekdays = selectedOption.dataset.weekdays.split(',').map(d => weekdayMap[d.trim()]).join(' - ');
-        const time = selectedOption.dataset.time;
-        const duration = selectedOption.dataset.duration;
+        if (this.value) {
+            const service = selectedOption.dataset.service;
+            const weekdays = selectedOption.dataset.weekdays.split(',').map(d => weekdayMap[d.trim()]).join(' - ');
+            const time = selectedOption.dataset.time;
+            const duration = selectedOption.dataset.duration;
+            const applyFrom = selectedOption.dataset.applyFrom;
+            const applyTo = selectedOption.dataset.applyTo;
 
-        document.getElementById('preview-service').textContent = service;
-        document.getElementById('preview-weekdays').textContent = weekdays;
-        document.getElementById('preview-time').textContent = time;
-        document.getElementById('preview-duration').textContent = duration;
+            document.getElementById('preview-service').textContent = service;
+            document.getElementById('preview-weekdays').textContent = weekdays;
+            document.getElementById('preview-time').textContent = time;
+            document.getElementById('preview-duration').textContent = duration;
 
-        preview.classList.add('active');
-    } else {
-        preview.classList.remove('active');
-    }
-});
+            // Show date range if exists
+            const dateRangeWrapper = document.getElementById('preview-date-range-wrapper');
+            const dateRangeSpan = document.getElementById('preview-date-range');
 
-// Set today as minimum date
-const today = new Date().toISOString().split('T')[0];
-document.getElementById('start_date').min = today;
-document.getElementById('end_date').min = today;
+            if (applyFrom || applyTo) {
+                let dateRangeText = '';
+                if (applyFrom && applyTo) {
+                    dateRangeText = `از ${applyFrom} تا ${applyTo}`;
+                } else if (applyFrom) {
+                    dateRangeText = `از ${applyFrom} به بعد`;
+                } else if (applyTo) {
+                    dateRangeText = `تا ${applyTo}`;
+                }
+                dateRangeSpan.textContent = dateRangeText;
+                dateRangeWrapper.style.display = 'block';
+
+                // Set min/max for date inputs if rule has limits
+                const startDateInput = document.getElementById('start_date');
+                const endDateInput = document.getElementById('end_date');
+
+                if (applyFrom) {
+                    startDateInput.min = applyFrom;
+                    endDateInput.min = applyFrom;
+                }
+                if (applyTo) {
+                    startDateInput.max = applyTo;
+                    endDateInput.max = applyTo;
+                }
+            } else {
+                dateRangeWrapper.style.display = 'none';
+                // Reset to today as minimum
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('start_date').min = today;
+                document.getElementById('end_date').min = today;
+                document.getElementById('start_date').max = '';
+                document.getElementById('end_date').max = '';
+            }
+
+            preview.classList.add('active');
+        } else {
+            preview.classList.remove('active');
+        }
+    });
+
+    // Set today as minimum date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('start_date').min = today;
+    document.getElementById('end_date').min = today;
 </script>
 {% endblock %}
