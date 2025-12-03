@@ -1,38 +1,42 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <title>گام ۴ — بازبینی و پرداخت</title>
+    <meta charset="utf-8">
+    <title>گام ۴ — بازبینی و پرداخت</title>
 </head>
 <body>
-  <h1>گام ۴ — بازبینی رزرو</h1>
+<h1>گام ۴ — بازبینی رزرو</h1>
 
-  {% if messages %}
-    <ul>
-      {% for msg in messages %}
-        <li>{{ msg }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+{% if messages %}
+<ul>
+    {% for msg in messages %}
+    <li>{{ msg }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
 
-  <h2>جزئیات رزرو</h2>
-  <ul>
+<h2>جزئیات رزرو</h2>
+<ul>
     <li>کد پیگیری: <strong>{{ reservation.tracking_code }}</strong></li>
     <li>نام: <strong>{{ reservation.full_name }}</strong></li>
     <li>شماره تلفن: <strong>{{ reservation.phone_number }}</strong></li>
     <li>خدمت: <strong>{{ reservation.service_type.name }}</strong></li>
-    <li>تاریخ و زمان: <strong>{{ reservation.time_slot.date }} — {{ reservation.time_slot.start_time }} تا {{ reservation.time_slot.end_time }}</strong></li>
-    <li>پیام: <pre>{{ reservation.message }}</pre></li>
+    <li>تاریخ و زمان: <strong>{{ reservation.time_slot.date }} — {{ reservation.time_slot.start_time }} تا {{
+        reservation.time_slot.end_time }}</strong></li>
+    <li>پیام:
+        <pre>{{ reservation.message }}</pre>
+    </li>
     <li>قیمت: <strong>{{ reservation.service_type.price }} تومان</strong></li>
     <li>وضعیت پرداخت: <strong>{{ reservation.payment_status }}</strong></li>
-  </ul>
+</ul>
 
-  <form method="post" action="{% url 'council:step4_review' reservation.tracking_code %}">
+<form method="post" action="{% url 'council:step4_review' reservation.tracking_code %}">
     {% csrf_token %}
     <button type="submit">پرداخت و تکمیل رزرو (شبیه‌سازی شده)</button>
-  </form>
+</form>
 
-  <hr>
-  <p>پس از پرداخت، رسید برای شما نمایش داده می‌شود: <a href="{% url 'council:final_receipt' reservation.tracking_code %}">مشاهده رسید</a></p>
+<hr>
+<p>پس از پرداخت، رسید برای شما نمایش داده می‌شود: <a href="{% url 'council:final_receipt' reservation.tracking_code %}">مشاهده
+    رسید</a></p>
 </body>
 </html>

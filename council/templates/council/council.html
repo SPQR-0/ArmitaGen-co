@@ -748,22 +748,22 @@
 </style>
 <body id="bg">
 {% if messages %}
-    <div class="container my-4">
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert"
-                 style="{% if message.tags == 'error' %}background-color: #fee; border-color: #f88; color: #c33;{% endif %}">
-                <strong>
-                    {% if message.tags == 'success' %}
-                        <i class="fas fa-check-circle"></i> موفق!
-                    {% elif message.tags == 'error' %}
-                        <i class="fas fa-exclamation-circle"></i> خطا!
-                    {% endif %}
-                </strong>
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
+<div class="container my-4">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert"
+         style="{% if message.tags == 'error' %}background-color: #fee; border-color: #f88; color: #c33;{% endif %}">
+        <strong>
+            {% if message.tags == 'success' %}
+            <i class="fas fa-check-circle"></i> موفق!
+            {% elif message.tags == 'error' %}
+            <i class="fas fa-exclamation-circle"></i> خطا!
+            {% endif %}
+        </strong>
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
+    {% endfor %}
+</div>
 {% endif %}
 <!-- دکمه تماس -->
 <div class="call-float-container">
@@ -1474,67 +1474,128 @@
                                     </div>
                                 </form>
 
-                                {#							<form action="{% static 'assets/script/contact_smtp.php' %}" class="dzForm" method="POST">#}
-                                {#								<input type="hidden" class="form-control" name="dzToDo" value="Appointment">#}
-                                {#								<input type="hidden" class="form-control" name="reCaptchaEnable" value="0">#}
-                                {#								<div class="dzFormMsg"></div>#}
-                                {#								<div class="row">#}
-                                {#									<div class="col-sm-6 m-b30">#}
-                                {#										<div class="form-floating floating-underline input-light">#}
-                                {#											<input name="dzName" type="text" class="form-control" id="inputYourName" placeholder="نام">#}
-                                {#											<label for="inputYourName">نام و نام خانوادگی</label>#}
-                                {#										</div>#}
-                                {#									</div>#}
-                                {#									<div class="col-sm-6 m-b30">#}
-                                {#                                        <label for="inputPrescriptionFile" style="color: rgba(255, 255, 255, 0.7); display: block; margin-bottom: 5px;">#}
-                                {#                                            آپلود نسخه#}
-                                {#                                        </label>#}
-                                {#                                        #}
-                                {#                                        <div class="input-light"> #}
-                                {#                                            <input #}
-                                {#                                                name="prescription_file" #}
-                                {#                                                type="file" #}
-                                {#                                                class="form-control" #}
-                                {#                                                id="inputPrescriptionFile" #}
-                                {#                                                accept=".pdf,.jpg,.jpeg,.png"#}
-                                {#                                                style="#}
+                                {#
+                                <form action="{% static 'assets/script/contact_smtp.php' %}" class="dzForm"
+                                      method="POST">#}
+                                    {# <input type="hidden" class="form-control" name="dzToDo" value="Appointment">#}
+                                    {# <input type="hidden" class="form-control" name="reCaptchaEnable" value="0">#}
+                                    {#
+                                    <div class="dzFormMsg"></div>
+                                    #}
+                                    {#
+                                    <div class="row">#}
+                                        {#
+                                        <div class="col-sm-6 m-b30">#}
+                                            {#
+                                            <div class="form-floating floating-underline input-light">#}
+                                                {# <input name="dzName" type="text" class="form-control"
+                                                          id="inputYourName" placeholder="نام">#}
+                                                {# <label for="inputYourName">نام و نام خانوادگی</label>#}
+                                                {#
+                                            </div>
+                                            #}
+                                            {#
+                                        </div>
+                                        #}
+                                        {#
+                                        <div class="col-sm-6 m-b30">#}
+                                            {# <label for="inputPrescriptionFile"
+                                                      style="color: rgba(255, 255, 255, 0.7); display: block; margin-bottom: 5px;">#}
+                                                {# آپلود نسخه#}
+                                                {# </label>#}
+                                            {# #}
+                                            {#
+                                            <div class="input-light"> #}
+                                                {# <input #}
+                                                          {# name="prescription_file" #}
+                                                          {# type="file" #}
+                                                          {# class="form-control" #}
+                                                          {# id="inputPrescriptionFile" #}
+                                                          {# accept=".pdf,.jpg,.jpeg,.png" #}
+                                                          {# style="#}
                                 {#                                                    /* این استایل‌ها را برای هماهنگی با ظاهر تیره قالب اضافه می‌کنیم */#}
                                 {#                                                    background-color: transparent; #}
                                 {#                                                    color: #fff;#}
                                 {#                                                    border: 1px solid rgba(255, 255, 255, 0.3); /* خط دور کادر */#}
-                                {#                                                "#}
-                                {#                                            >#}
-                                {#                                            </div>#}
-                                {#                                    </div>#}
-                                {#									<div class="col-sm-6 m-b30">#}
-                                {#										<div class="form-floating floating-underline input-light">#}
-                                {#											<input name="dzPhoneNumber" type="text" class="form-control dz-number" id="inputPhoneNumber" placeholder="شماره تماس">#}
-                                {#											<label for="inputPhoneNumber">شماره تلفن</label>#}
-                                {#										</div>#}
-                                {#									</div>#}
-                                {#									<div class="col-sm-6 m-b30">#}
-                                {#										<div class="form-floating floating-underline input-light">#}
-                                {#											<select name="dzOther[Services]" class="bs-select" data-style="form-control" title="انتخاب خدمت">#}
-                                {#												<option value="آنژیوپلاستی">آزمایشکاه سرطان</option>#}
-                                {#												<option value="قلب شناسی">آزمایشکاه سلامت مادر و جنین</option>#}
-                                {#												<option value="دندانپزشکی">ژنتیک مولکولی</option>#}
-                                {#												<option value="چشم پزشکی">سایر خدمات</option>#}
-                                {#											</select>#}
-                                {#										</div>#}
-                                {#									</div>#}
-                                {#									<div class="col-sm-12 m-b30">#}
-                                {#										<div class="form-floating floating-underline input-light">#}
-                                {#											<textarea name="dzMessage" class="form-control" id="inputMessage" rows="6" placeholder="انتخاب خدمت"></textarea>#}
-                                {#											<label for="inputMessage">پیام</label>#}
-                                {#										</div>#}
-                                {#									</div>#}
-                                {#									<div class="col-sm-12">#}
-                                {#										<button type="submit" name="submit" value="submit" class="btn btn-lg btn-icon btn-white hover-secondary btn-shadow">#}
-                                {#											آنلاین نوبت مشاوره بگیرید  <span class="right-icon"><i class="feather icon-arrow-left"></i></span>#}
-                                {#										</button>#}
-                                {#									</div>#}
-                                {#								</div>#}
-                                {#							</form>#}
+                                {#                                                " #}
+                                                          {#>#}
+                                                {#
+                                            </div>
+                                            #}
+                                            {#
+                                        </div>
+                                        #}
+                                        {#
+                                        <div class="col-sm-6 m-b30">#}
+                                            {#
+                                            <div class="form-floating floating-underline input-light">#}
+                                                {# <input name="dzPhoneNumber" type="text"
+                                                          class="form-control dz-number" id="inputPhoneNumber"
+                                                          placeholder="شماره تماس">#}
+                                                {# <label for="inputPhoneNumber">شماره تلفن</label>#}
+                                                {#
+                                            </div>
+                                            #}
+                                            {#
+                                        </div>
+                                        #}
+                                        {#
+                                        <div class="col-sm-6 m-b30">#}
+                                            {#
+                                            <div class="form-floating floating-underline input-light">#}
+                                                {# <select name="dzOther[Services]" class="bs-select"
+                                                           data-style="form-control" title="انتخاب خدمت">#}
+                                                    {#
+                                                    <option value="آنژیوپلاستی">آزمایشکاه سرطان</option>
+                                                    #}
+                                                    {#
+                                                    <option value="قلب شناسی">آزمایشکاه سلامت مادر و جنین</option>
+                                                    #}
+                                                    {#
+                                                    <option value="دندانپزشکی">ژنتیک مولکولی</option>
+                                                    #}
+                                                    {#
+                                                    <option value="چشم پزشکی">سایر خدمات</option>
+                                                    #}
+                                                    {# </select>#}
+                                                {#
+                                            </div>
+                                            #}
+                                            {#
+                                        </div>
+                                        #}
+                                        {#
+                                        <div class="col-sm-12 m-b30">#}
+                                            {#
+                                            <div class="form-floating floating-underline input-light">#}
+                                                {# <textarea name="dzMessage" class="form-control" id="inputMessage"
+                                                             rows="6" placeholder="انتخاب خدمت"></textarea>#}
+                                                {# <label for="inputMessage">پیام</label>#}
+                                                {#
+                                            </div>
+                                            #}
+                                            {#
+                                        </div>
+                                        #}
+                                        {#
+                                        <div class="col-sm-12">#}
+                                            {#
+                                            <button type="submit" name="submit" value="submit"
+                                                    class="btn btn-lg btn-icon btn-white hover-secondary btn-shadow">#}
+                                                {# آنلاین نوبت مشاوره بگیرید <span class="right-icon"><i
+                                                        class="feather icon-arrow-left"></i></span>#}
+                                                {#
+                                            </button>
+                                            #}
+                                            {#
+                                        </div>
+                                        #}
+                                        {#
+                                    </div>
+                                    #}
+                                    {#
+                                </form>
+                                #}
                             </div>
                         </div>
                     </div>

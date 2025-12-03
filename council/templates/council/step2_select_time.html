@@ -1,108 +1,593 @@
-<!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <title>گام ۲ — انتخاب تاریخ و زمان</title>
-</head>
-<body>
-  <h1>گام ۲ — انتخاب تاریخ و زمان</h1>
+<!--<!doctype html>-->
+<!--<html lang="fa" dir="rtl">-->
+<!--<head>-->
+<!--    <meta charset="utf-8">-->
+<!--    <title>گام ۲ — انتخاب تاریخ و زمان</title>-->
+<!--</head>-->
+<!--<body>-->
+<!--<h1>گام ۲ — انتخاب تاریخ و زمان</h1>-->
 
-  {% if messages %}
-    <ul>
-      {% for msg in messages %}
-        <li>{{ msg }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+<!--{% if messages %}-->
+<!--<ul>-->
+<!--    {% for msg in messages %}-->
+<!--    <li>{{ msg }}</li>-->
+<!--    {% endfor %}-->
+<!--</ul>-->
+<!--{% endif %}-->
 
-  <p>خدمت انتخابی: <strong>{{ service_type.name }}</strong></p>
+<!--<p>خدمت انتخابی: <strong>{{ service_type.name }}</strong></p>-->
 
-  {% if not slots_by_date %}
-    <p>در بازه انتخاب شده نوبتی موجود نیست.</p>
-  {% else %}
-    <form method="post" action="{% url 'council:step2_select_time' %}" id="select-slot-form">
-      {% csrf_token %}
-      <input type="hidden" name="time_slot_id" id="selected-time-slot-id" value="">
+<!--{% if not slots_by_date %}-->
+<!--<p>در بازه انتخاب شده نوبتی موجود نیست.</p>-->
+<!--{% else %}-->
+<!--<form method="post" action="{% url 'council:step2_select_time' %}" id="select-slot-form">-->
+<!--    {% csrf_token %}-->
+<!--    <input type="hidden" name="time_slot_id" id="selected-time-slot-id" value="">-->
 
-      <div>
-        {% for date_key, data in slots_by_date.items %}
-          <fieldset style="margin-bottom:1rem;">
-            <legend>
-              {{ data.jalali_date }} — {{ data.date }}
-              ({{ data.count }} نوبت)
-            </legend>
+<!--    <div>-->
+<!--        {% for date_key, data in slots_by_date.items %}-->
+<!--        <fieldset style="margin-bottom:1rem;">-->
+<!--            <legend>-->
+<!--                {{ data.jalali_date }} — {{ data.date }}-->
+<!--                ({{ data.count }} نوبت)-->
+<!--            </legend>-->
 
-            <ul>
-              {% for slot in data.slots %}
-                <li>
-                  <label>
-                    <input type="radio" name="slot_radio" value="{{ slot.id }}" data-slot-id="{{ slot.id }}">
-                    {{ slot.start_time }} — {{ slot.end_time }}
-                    {% if not slot.is_available %} (ناموجود) {% endif %}
-                  </label>
-                  <!-- دکمه بررسی وضعیت (AJAX) -->
-                  <button type="button" class="check-slot-btn" data-slot-id="{{ slot.id }}">بررسی وضعیت</button>
-                  <span class="slot-status" id="slot-status-{{ slot.id }}"></span>
-                </li>
-              {% endfor %}
-            </ul>
-          </fieldset>
-        {% endfor %}
-      </div>
+<!--            <ul>-->
+<!--                {% for slot in data.slots %}-->
+<!--                <li>-->
+<!--                    <label>-->
+<!--                        <input type="radio" name="slot_radio" value="{{ slot.id }}" data-slot-id="{{ slot.id }}">-->
+<!--                        {{ slot.start_time }} — {{ slot.end_time }}-->
+<!--                        {% if not slot.is_available %} (ناموجود) {% endif %}-->
+<!--                    </label>-->
+<!--                    &lt;!&ndash; دکمه بررسی وضعیت (AJAX) &ndash;&gt;-->
+<!--                    <button type="button" class="check-slot-btn" data-slot-id="{{ slot.id }}">بررسی وضعیت</button>-->
+<!--                    <span class="slot-status" id="slot-status-{{ slot.id }}"></span>-->
+<!--                </li>-->
+<!--                {% endfor %}-->
+<!--            </ul>-->
+<!--        </fieldset>-->
+<!--        {% endfor %}-->
+<!--    </div>-->
 
-      <div>
-        <button type="submit">تأیید زمان انتخابی و ادامه</button>
-      </div>
-    </form>
-  {% endif %}
+<!--    <div>-->
+<!--        <button type="submit">تأیید زمان انتخابی و ادامه</button>-->
+<!--    </div>-->
+<!--</form>-->
+<!--{% endif %}-->
 
-  <script>
-    // وقتی رادیو انتخاب شد، مقدار در hidden قرار می‌گیرد
-    document.addEventListener('click', function(e){
-      if (e.target.matches('input[name="slot_radio"]')) {
-        document.getElementById('selected-time-slot-id').value = e.target.value;
-      }
-    });
+<!--<script>-->
+<!--    // وقتی رادیو انتخاب شد، مقدار در hidden قرار می‌گیرد-->
+<!--    document.addEventListener('click', function (e) {-->
+<!--        if (e.target.matches('input[name="slot_radio"]')) {-->
+<!--            document.getElementById('selected-time-slot-id').value = e.target.value;-->
+<!--        }-->
+<!--    });-->
 
-    // AJAX: بررسی وضعیت اسلات
-    document.querySelectorAll('.check-slot-btn').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var slotId = this.dataset.slotId;
-        var statusEl = document.getElementById('slot-status-' + slotId);
+<!--    // AJAX: بررسی وضعیت اسلات-->
+<!--    document.querySelectorAll('.check-slot-btn').forEach(function (btn) {-->
+<!--        btn.addEventListener('click', function () {-->
+<!--            var slotId = this.dataset.slotId;-->
+<!--            var statusEl = document.getElementById('slot-status-' + slotId);-->
 
-        statusEl.textContent = 'در حال بررسی...';
+<!--            statusEl.textContent = 'در حال بررسی...';-->
 
-        fetch("{% url 'council:check_slot_availability' 0 %}".replace('/0/', '/' + slotId + '/'), {
-          method: 'GET',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        })
-        .then(function(r){ if (!r.ok) throw r; return r.json(); })
-        .then(function(data){
-          if (data.available) {
-            statusEl.textContent = 'در دسترس — ' + data.date + ' (' + data.start_time + ' — ' + data.end_time + ')';
-          } else {
-            statusEl.textContent = 'ناموجود';
-          }
-        })
-        .catch(function(){
-          statusEl.textContent = 'خطا در بررسی';
+<!--            fetch("{% url 'council:check_slot_availability' 0 %}".replace('/0/', '/' + slotId + '/'), {-->
+<!--                method: 'GET',-->
+<!--                headers: {-->
+<!--                    'X-Requested-With': 'XMLHttpRequest'-->
+<!--                }-->
+<!--            })-->
+<!--                .then(function (r) {-->
+<!--                    if (!r.ok) throw r;-->
+<!--                    return r.json();-->
+<!--                })-->
+<!--                .then(function (data) {-->
+<!--                    if (data.available) {-->
+<!--                        statusEl.textContent = 'در دسترس — ' + data.date + ' (' + data.start_time + ' — ' + data.end_time + ')';-->
+<!--                    } else {-->
+<!--                        statusEl.textContent = 'ناموجود';-->
+<!--                    }-->
+<!--                })-->
+<!--                .catch(function () {-->
+<!--                    statusEl.textContent = 'خطا در بررسی';-->
+<!--                });-->
+<!--        });-->
+<!--    });-->
+
+<!--    // قبل از ارسال فرم، مطمئن شو یک اسلات انتخاب شده-->
+<!--    document.getElementById('select-slot-form').addEventListener('submit', function (e) {-->
+<!--        var selected = document.getElementById('selected-time-slot-id').value;-->
+<!--        if (!selected) {-->
+<!--            e.preventDefault();-->
+<!--            alert('لطفاً یک زمان را انتخاب کنید.');-->
+<!--        }-->
+<!--    });-->
+<!--</script>-->
+
+<!--<hr>-->
+<!--<p><a href="{% url 'council:step1_initial' %}">بازگشت به گام ۱</a></p>-->
+<!--</body>-->
+<!--</html>-->
+
+{% load static %}
+
+{% block title %}انتخاب زمان مشاوره{% endblock %}
+
+{% block extra_css %}
+<style>
+    .time-selection-wrapper {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 60px 0;
+    }
+
+    .time-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .time-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+    }
+
+    .time-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 30px 40px;
+        color: white;
+    }
+
+    .time-header h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .selected-service-info {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-top: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .time-body {
+        padding: 40px;
+    }
+
+    /* Date Slider */
+    .date-slider-container {
+        position: relative;
+        margin-bottom: 40px;
+    }
+
+    .date-slider {
+        display: flex;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        gap: 15px;
+        padding: 20px 0;
+        scrollbar-width: thin;
+        scrollbar-color: #667eea #f1f5f9;
+    }
+
+    .date-slider::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .date-slider::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+
+    .date-slider::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 10px;
+    }
+
+    .date-card {
+        min-width: 140px;
+        padding: 20px;
+        border: 2px solid #e5e7eb;
+        border-radius: 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+        flex-shrink: 0;
+    }
+
+    .date-card:hover {
+        border-color: #667eea;
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+    }
+
+    .date-card.selected {
+        border-color: #667eea;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .date-card.no-slots {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .date-card.no-slots:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .date-weekday {
+        font-size: 0.9rem;
+        color: #6b7280;
+        margin-bottom: 5px;
+    }
+
+    .date-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 10px 0;
+    }
+
+    .date-jalali {
+        font-size: 0.85rem;
+        color: #9ca3af;
+        direction: ltr;
+    }
+
+    .date-slots-count {
+        margin-top: 10px;
+        padding: 5px 10px;
+        background: #f0fdf4;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        color: #166534;
+        font-weight: 600;
+    }
+
+    .date-card.no-slots .date-slots-count {
+        background: #fef2f2;
+        color: #991b1b;
+    }
+
+    /* Time Slots */
+    .time-slots-section {
+        margin-top: 30px;
+    }
+
+    .time-slots-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .time-slots-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+    }
+
+    .time-slot {
+        padding: 15px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+        position: relative;
+    }
+
+    .time-slot:hover:not(.disabled) {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.05);
+        transform: translateY(-3px);
+        box-shadow: 0 3px 10px rgba(102, 126, 234, 0.2);
+    }
+
+    .time-slot.selected {
+        border-color: #667eea;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+        box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+    }
+
+    .time-slot.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background: #f9fafb;
+        border-color: #d1d5db;
+    }
+
+    .time-slot.disabled::after {
+        content: 'رزرو شده';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #ef4444;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 5px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .time-display {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #1f2937;
+        direction: ltr;
+    }
+
+    .time-duration {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 5px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 40px;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 16px;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-back {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .btn-back:hover {
+        background: #e5e7eb;
+    }
+
+    .btn-next {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-next:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+
+    .btn-next:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    @media (max-width: 768px) {
+        .time-body {
+            padding: 20px;
+        }
+
+        .time-slots-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="time-selection-wrapper">
+    <div class="time-container">
+        <div class="time-card">
+            <!-- Header -->
+            <div class="time-header">
+                <h1>📅 انتخاب زمان مشاوره</h1>
+                <div class="selected-service-info">
+                    <div>
+                        <strong>{{ service_type.name }}</strong>
+                        <br>
+                        <small>مدت زمان: {{ service_type.duration }} دقیقه</small>
+                    </div>
+                    <div style="font-size: 1.3rem; font-weight: 700;">
+                        {{ service_type.price|floatformat:0 }} تومان
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="time-body">
+                <!-- Date Slider -->
+                <div class="date-slider-container">
+                    <h3 style="margin-bottom: 20px; color: #1f2937;">
+                        <i class="far fa-calendar-alt"></i>
+                        روز مورد نظر را انتخاب کنید
+                    </h3>
+                    <div class="date-slider" id="dateSlider">
+                        {% for date_key, date_info in slots_by_date.items %}
+                        <div class="date-card {% if date_info.available_count == 0 %}no-slots{% endif %}"
+                             data-date="{{ date_key }}"
+                             onclick="selectDate('{{ date_key }}')">
+                            <div class="date-weekday">{{ date_info.weekday }}</div>
+                            <div class="date-number">{{ date_info.jalali_date.day }}</div>
+                            <div class="date-jalali">{{ date_info.jalali_str }}</div>
+                            <div class="date-slots-count">
+                                {% if date_info.available_count > 0 %}
+                                    {{ date_info.available_count }} نوبت آزاد
+                                {% else %}
+                                    نوبتی موجود نیست
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Time Slots Section -->
+                <div class="time-slots-section" id="timeSlotsSection" style="display: none;">
+                    <div class="time-slots-title">
+                        <i class="far fa-clock"></i>
+                        <span id="selectedDateTitle">ساعت مورد نظر را انتخاب کنید</span>
+                    </div>
+                    <div class="time-slots-grid" id="timeSlotsGrid">
+                        <!-- Slots will be loaded here via JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState">
+                    <i class="far fa-calendar-check"></i>
+                    <h3>لطفاً یک روز را انتخاب کنید</h3>
+                    <p>نوبت‌های موجود برای روز انتخابی نمایش داده خواهد شد</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <form method="post" id="timeSelectionForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="time_slot_id" id="selectedSlotId">
+
+                    <div class="action-buttons">
+                        <a href="{% url 'council:step1_initial' %}" class="btn btn-back">
+                            <i class="fas fa-arrow-right"></i>
+                            بازگشت
+                        </a>
+                        <button type="submit" class="btn btn-next" id="btnNext" disabled>
+                            <i class="fas fa-arrow-left"></i>
+                            مرحله بعد: تایید شماره
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<script>
+    // Store slots data
+    const slotsData = {{ slots_by_date|safe }};
+    let selectedSlotId = null;
+
+    function selectDate(dateKey) {
+        // Remove selection from all date cards
+        document.querySelectorAll('.date-card').forEach(card => {
+            card.classList.remove('selected');
         });
-      });
+
+        // Add selection to clicked card
+        const selectedCard = document.querySelector(`.date-card[data-date="${dateKey}"]`);
+        if (selectedCard && !selectedCard.classList.contains('no-slots')) {
+            selectedCard.classList.add('selected');
+
+            // Load time slots for this date
+            loadTimeSlots(dateKey);
+
+            // Show time slots section
+            document.getElementById('timeSlotsSection').style.display = 'block';
+            document.getElementById('emptyState').style.display = 'none';
+            // Scroll to time slots
+        document.getElementById('timeSlotsSection').scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+}
+
+function loadTimeSlots(dateKey) {
+    const dateInfo = slotsData[dateKey];
+    const grid = document.getElementById('timeSlotsGrid');
+    const title = document.getElementById('selectedDateTitle');
+
+    if (!dateInfo || !dateInfo.slots || dateInfo.slots.length === 0) {
+        grid.innerHTML = '<p>نوبتی برای این روز موجود نیست</p>';
+        return;
+    }
+
+    // Update title
+    title.innerHTML = `<i class="far fa-clock"></i> نوبت‌های ${dateInfo.weekday} ${dateInfo.jalali_str}`;
+
+    // Clear existing slots
+    grid.innerHTML = '';
+
+    // Add time slots
+    dateInfo.slots.forEach(slot => {
+        const slotElement = document.createElement('div');
+        slotElement.className = `time-slot ${!slot.is_available ? 'disabled' : ''}`;
+        slotElement.dataset.slotId = slot.id;
+
+        slotElement.innerHTML = `
+            <div class="time-display">${slot.start_time} - ${slot.end_time}</div>
+            <div class="time-duration">${slot.duration} دقیقه</div>
+        `;
+
+        if (slot.is_available) {
+            slotElement.onclick = () => selectTimeSlot(slot.id, slotElement);
+        }
+
+        grid.appendChild(slotElement);
+    });
+}
+
+function selectTimeSlot(slotId, element) {
+    // Remove selection from all time slots
+    document.querySelectorAll('.time-slot').forEach(slot => {
+        slot.classList.remove('selected');
     });
 
-    // قبل از ارسال فرم، مطمئن شو یک اسلات انتخاب شده
-    document.getElementById('select-slot-form').addEventListener('submit', function(e){
-      var selected = document.getElementById('selected-time-slot-id').value;
-      if (!selected) {
+    // Add selection to clicked slot
+    element.classList.add('selected');
+
+    // Store selected slot ID
+    selectedSlotId = slotId;
+    document.getElementById('selectedSlotId').value = slotId;
+
+    // Enable next button
+    document.getElementById('btnNext').disabled = false;
+}
+
+// Form validation
+document.getElementById('timeSelectionForm').addEventListener('submit', function(e) {
+    if (!selectedSlotId) {
         e.preventDefault();
-        alert('لطفاً یک زمان را انتخاب کنید.');
-      }
-    });
-  </script>
+        alert('لطفاً یک زمان را انتخاب کنید');
+    }
+});
 
-  <hr>
-  <p><a href="{% url 'council:step1_initial' %}">بازگشت به گام ۱</a></p>
-</body>
-</html>
+// Auto-scroll date slider with mouse wheel
+const dateSlider = document.getElementById('dateSlider');
+dateSlider.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    dateSlider.scrollLeft += e.deltaY;
+});
+</script>
