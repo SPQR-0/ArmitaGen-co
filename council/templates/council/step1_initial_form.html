@@ -69,516 +69,306 @@
 <!--</body>-->
 <!--</html>-->
 
-{% load static %}
-
-{% block title %}رزرو نوبت مشاوره ژنتیک{% endblock %}
-
-{% block extra_css %}
-<style>
-    .consultation-form-wrapper {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 60px 0;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .consultation-form-wrapper::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('{% static "assets/images/pattern.png" %}') repeat;
-        opacity: 0.05;
-        z-index: 0;
-    }
-
-    .form-container {
-        position: relative;
-        z-index: 1;
-        max-width: 900px;
-        margin: 0 auto;
-    }
-
-    .form-card {
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        overflow: hidden;
-        animation: slideUp 0.6s ease-out;
-    }
-
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .form-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 40px;
-        text-align: center;
-        color: white;
-        position: relative;
-    }
-
-    .form-header h1 {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 10px;
-    }
-
-    .form-header p {
-        opacity: 0.9;
-        font-size: 1.1rem;
-    }
-
-    .progress-steps {
-        display: flex;
-        justify-content: center;
-        margin-top: 30px;
-        position: relative;
-    }
-
-    .progress-step {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-        flex: 1;
-        max-width: 150px;
-    }
-
-    .progress-step::after {
-        content: '';
-        position: absolute;
-        top: 20px;
-        left: 50%;
-        width: 100%;
-        height: 2px;
-        background: rgba(255, 255, 255, 0.3);
-        z-index: 0;
-    }
-
-    .progress-step:last-child::after {
-        display: none;
-    }
-
-    .progress-circle {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        position: relative;
-        z-index: 1;
-        transition: all 0.3s ease;
-    }
-
-    .progress-step.active .progress-circle {
-        background: white;
-        color: #667eea;
-        box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-    }
-
-    .progress-step.completed .progress-circle {
-        background: #4ade80;
-        color: white;
-    }
-
-    .progress-label {
-        margin-top: 10px;
-        font-size: 0.85rem;
-        opacity: 0.8;
-    }
-
-    .form-body {
-        padding: 50px;
-    }
-
-    .service-type-selector {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
-    }
-
-    .service-card {
-        border: 2px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 20px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        position: relative;
-        background: white;
-    }
-
-    .service-card:hover {
-        border-color: #667eea;
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
-        transform: translateY(-3px);
-    }
-
-    .service-card input[type="radio"] {
-        position: absolute;
-        opacity: 0;
-    }
-
-    .service-card input[type="radio"]:checked + .service-content {
-        color: #667eea;
-    }
-
-    .service-card input[type="radio"]:checked ~ .checkmark {
-        opacity: 1;
-        transform: scale(1);
-    }
-
-    .service-card.selected {
-        border-color: #667eea;
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-    }
-
-    .service-content {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .service-icon {
-        font-size: 2.5rem;
-        margin-bottom: 10px;
-    }
-
-    .service-name {
-        font-weight: 600;
-        font-size: 1.1rem;
-        color: #1f2937;
-    }
-
-    .service-price {
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: #667eea;
-    }
-
-    .service-duration {
-        font-size: 0.9rem;
-        color: #6b7280;
-    }
-
-    .checkmark {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        width: 30px;
-        height: 30px;
-        background: #4ade80;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        opacity: 0;
-        transform: scale(0.5);
-        transition: all 0.3s ease;
-    }
-
-    .form-group {
-        margin-bottom: 25px;
-    }
-
-    .form-label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: #374151;
-        font-size: 0.95rem;
-    }
-
-    .form-control {
-        width: 100%;
-        padding: 12px 16px;
-        border: 2px solid #e5e7eb;
-        border-radius: 10px;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-    }
-
-    .form-control:focus {
-        outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .file-upload-wrapper {
-        position: relative;
-        overflow: hidden;
-        display: inline-block;
-        width: 100%;
-    }
-
-    .file-upload-wrapper input[type=file] {
-        position: absolute;
-        left: -9999px;
-    }
-
-    .file-upload-label {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 40px;
-        border: 2px dashed #d1d5db;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        background: #f9fafb;
-    }
-
-    .file-upload-label:hover {
-        border-color: #667eea;
-        background: rgba(102, 126, 234, 0.05);
-    }
-
-    .file-upload-label i {
-        font-size: 2rem;
-        color: #667eea;
-        margin-left: 15px;
-    }
-
-    .file-info {
-        display: none;
-        margin-top: 10px;
-        padding: 10px;
-        background: #f0fdf4;
-        border: 1px solid #86efac;
-        border-radius: 8px;
-        color: #166534;
-    }
-
-    .btn-submit {
-        width: 100%;
-        padding: 16px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn-submit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
-    }
-
-    .btn-submit:active {
-        transform: translateY(0);
-    }
-
-    @media (max-width: 768px) {
-        .form-body {
-            padding: 30px 20px;
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>گام ۱ — ثبت اطلاعات</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .service-type-selector {
-            grid-template-columns: 1fr;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'IRANSans', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
-        .form-header h1 {
-            font-size: 1.5rem;
+        .container {
+            width: 100%;
+            max-width: 500px;
         }
-    }
-</style>
-{% endblock %}
 
-{% block content %}
-<div class="consultation-form-wrapper">
-    <div class="form-container">
-        <div class="form-card">
-            <!-- Form Header -->
-            <div class="form-header">
-                <h1>🧬 رزرو نوبت مشاوره ژنتیک</h1>
-                <p>با متخصصان ژنتیک در ارتباط باشید</p>
+        /* Changed from purple gradient to minimal light design */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
 
-                <!-- Progress Steps -->
-                <div class="progress-steps">
-                    <div class="progress-step active">
-                        <div class="progress-circle">1</div>
-                        <span class="progress-label">اطلاعات</span>
-                    </div>
-                    <div class="progress-step">
-                        <div class="progress-circle">2</div>
-                        <span class="progress-label">انتخاب زمان</span>
-                    </div>
-                    <div class="progress-step">
-                        <div class="progress-circle">3</div>
-                        <span class="progress-label">تایید</span>
-                    </div>
-                    <div class="progress-step">
-                        <div class="progress-circle">4</div>
-                        <span class="progress-label">پرداخت</span>
-                    </div>
-                </div>
+        .step-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #222;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .messages {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .alert-error {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        input[type="file"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            color: #222;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]::placeholder,
+        input[type="tel"]::placeholder,
+        textarea::placeholder {
+            color: #bbb;
+        }
+
+        input[type="text"]:focus,
+        input[type="tel"]:focus,
+        input[type="file"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            background: white;
+            border-color: #999;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .error-text {
+            color: #d32f2f;
+            font-size: 12px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .button-group {
+            margin-top: 30px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: #222;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #000;
+        }
+
+        .btn-primary:active {
+            transform: translateY(2px);
+        }
+
+        .footer-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+
+        .footer-link a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        .footer-link a:hover {
+            color: #222;
+            border-bottom: 1px solid #222;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 24px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="step-header">
+                <div class="step-number">۱</div>
+                <h1>ثبت اطلاعات</h1>
+                <p class="subtitle">اطلاعات پایه خود را وارد کنید</p>
             </div>
 
-            <!-- Form Body -->
-            <div class="form-body">
-                <form method="post" enctype="multipart/form-data" id="reservationForm">
-                    {% csrf_token %}
-
-                    <!-- Service Type Selection -->
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-clipboard-list"></i>
-                            نوع مشاوره را انتخاب کنید
-                        </label>
-                        <div class="service-type-selector">
-                            {% for service in service_types %}
-                            <div class="service-card" data-service-id="{{ service.id }}">
-                                <input type="radio" name="service_type" value="{{ service.id }}" id="service_{{ service.id }}" required>
-                                <div class="service-content">
-                                    <div class="service-icon">
-                                        {% if service.is_online %}
-                                            💻
-                                        {% else %}
-                                            🏥
-                                        {% endif %}
-                                    </div>
-                                    <div class="service-name">{{ service.name }}</div>
-                                    <div class="service-price">{{ service.price|floatformat:0|add:"000"|stringformat:"s" }} تومان</div>
-                                    <div class="service-duration">
-                                        <i class="far fa-clock"></i>
-                                        {{ service.duration }} دقیقه
-                                    </div>
-                                </div>
-                                <div class="checkmark">
-                                    <i class="fas fa-check"></i>
-                                </div>
-                            </div>
-                            {% endfor %}
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}success{% endif %}">
+                            {{ message }}
                         </div>
-                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
 
-                    <!-- Full Name -->
-                    <div class="form-group">
-                        <label class="form-label" for="{{ form.full_name.id_for_label }}">
-                            <i class="fas fa-user"></i>
-                            نام و نام خانوادگی
-                        </label>
-                        {{ form.full_name }}
-                        {% if form.full_name.errors %}
-                            <div class="text-danger mt-2">{{ form.full_name.errors.0 }}</div>
-                        {% endif %}
-                    </div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
 
-                    <!-- Phone Number -->
-                    <div class="form-group">
-                        <label class="form-label" for="{{ form.phone_number.id_for_label }}">
-                            <i class="fas fa-phone"></i>
-                            شماره تلفن
-                        </label>
-                        {{ form.phone_number }}
-                        {% if form.phone_number.errors %}
-                            <div class="text-danger mt-2">{{ form.phone_number.errors.0 }}</div>
-                        {% endif %}
-                    </div>
+                <div class="form-group">
+                    <label for="{{ form.full_name.id_for_label }}">نام و نام خانوادگی</label>
+                    {{ form.full_name }}
+                    {% if form.full_name.errors %}
+                        {% for error in form.full_name.errors %}
+                            <span class="error-text">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
 
-                    <!-- Message -->
-                    <div class="form-group">
-                        <label class="form-label" for="{{ form.message.id_for_label }}">
-                            <i class="fas fa-comment-dots"></i>
-                            توضیحات و یادداشت (اختیاری)
-                        </label>
-                        {{ form.message }}
-                        {% if form.message.errors %}
-                            <div class="text-danger mt-2">{{ form.message.errors.0 }}</div>
-                        {% endif %}
-                    </div>
+                <div class="form-group">
+                    <label for="{{ form.phone_number.id_for_label }}">شماره تلفن</label>
+                    {{ form.phone_number }}
+                    {% if form.phone_number.errors %}
+                        {% for error in form.phone_number.errors %}
+                            <span class="error-text">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
 
-                    <!-- File Upload -->
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-file-medical"></i>
-                            آپلود نسخه پزشک (اختیاری)
-                        </label>
-                        <div class="file-upload-wrapper">
-                            {{ form.prescription }}
-                            <label for="{{ form.prescription.id_for_label }}" class="file-upload-label">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <span>فایل را انتخاب کنید یا اینجا بکشید</span>
-                            </label>
-                        </div>
-                        <div class="file-info" id="fileInfo"></div>
-                        <small class="text-muted">فرمت‌های مجاز: PDF, JPG, PNG - حداکثر 5MB</small>
-                    </div>
+                <div class="form-group">
+                    <label for="{{ form.service_type.id_for_label }}">نوع خدمت</label>
+                    {{ form.service_type }}
+                    {% if form.service_type.errors %}
+                        {% for error in form.service_type.errors %}
+                            <span class="error-text">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
 
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn-submit">
-                        <i class="fas fa-arrow-left"></i>
-                        مرحله بعد: انتخاب زمان
-                    </button>
-                </form>
+                <div class="form-group">
+                    <label for="{{ form.message.id_for_label }}">توضیحات (اختیاری)</label>
+                    {{ form.message }}
+                    {% if form.message.errors %}
+                        {% for error in form.message.errors %}
+                            <span class="error-text">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.prescription.id_for_label }}">آپلود نسخه (اختیاری)</label>
+                    {{ form.prescription }}
+                    {% if form.prescription.errors %}
+                        {% for error in form.prescription.errors %}
+                            <span class="error-text">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">ادامه</button>
+                </div>
+            </form>
+
+            <div class="footer-link">
+                <p>اگر قبلاً ثبت نام کردید: <a href="{% url 'council:step2_select_time' %}">به مرحله بعد بروید</a></p>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    // Service card selection
-    document.querySelectorAll('.service-card').forEach(card => {
-        card.addEventListener('click', function() {
-            // Remove selected class from all cards
-            document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
-
-            // Add selected class to clicked card
-            this.classList.add('selected');
-
-            // Check the radio button
-            this.querySelector('input[type="radio"]').checked = true;
-        });
-    });
-
-    // File upload handling
-    const fileInput = document.getElementById('{{ form.prescription.id_for_label }}');
-    const fileInfo = document.getElementById('fileInfo');
-
-    fileInput.addEventListener('change', function(e) {
-        if (this.files && this.files[0]) {
-            const file = this.files[0];
-            const fileName = file.name;
-            const fileSize = (file.size / 1024 / 1024).toFixed(2);
-
-            fileInfo.style.display = 'block';
-            fileInfo.innerHTML = `
-                <i class="fas fa-check-circle"></i>
-                <strong>${fileName}</strong> (${fileSize} MB)
-            `;
-        }
-    });
-
-    // Form validation
-    document.getElementById('reservationForm').addEventListener('submit', function(e) {
-        const serviceSelected = document.querySelector('input[name="service_type"]:checked');
-
-        if (!serviceSelected) {
-            e.preventDefault();
-            alert('لطفاً نوع مشاوره را انتخاب کنید');
-        }
-    });
-</script>
-{% endblock %}
+</body>
+</html>
