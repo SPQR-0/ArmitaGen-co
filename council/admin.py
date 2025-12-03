@@ -31,6 +31,58 @@ def date2jalali(date_obj):
     return jdate.strftime('%Y/%m/%d')
 
 
+class TimeSlotJalaliDateFilter(admin.SimpleListFilter):
+    title = 'تاریخ (شمسی)'
+    parameter_name = 'jalali_date'
+
+    def lookups(self, request, model_admin):
+        dates = (
+            TimeSlot.objects
+            .values_list('date', flat=True)
+            .distinct()
+            .order_by('date')
+        )
+
+        jalali_dates = []
+        for d in dates:
+            if d:
+                j = jdatetime.date.fromgregorian(date=d)
+                jalali_dates.append((d, j.strftime('%Y/%m/%d')))
+        return jalali_dates
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(date=value)
+        return queryset
+
+
+class JalaliDateFilter(admin.SimpleListFilter):
+    title = 'تاریخ نوبت (شمسی)'
+    parameter_name = 'jalali_date'
+
+    def lookups(self, request, model_admin):
+        dates = (
+            Reservation.objects
+            .values_list('time_slot__date', flat=True)
+            .distinct()
+            .order_by('time_slot__date')
+        )
+
+        jalali_dates = []
+        for d in dates:
+            if d:
+                j = jdatetime.date.fromgregorian(date=d)
+                jalali_dates.append((d, j.strftime('%Y/%m/%d')))
+        return jalali_dates
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(time_slot__date=value)
+        return queryset
+
+
 @admin.register(ServiceType)
 class ServiceTypeAdmin(admin.ModelAdmin):
     """Admin panel for consultation service types"""
@@ -228,6 +280,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
     list_filter = [
         'is_available',
         'service_type',
+        TimeSlotJalaliDateFilter,
         'date',
         'is_manual',
         'created_at'
@@ -755,9 +808,10 @@ class ReservationAdmin(admin.ModelAdmin):
         'status',
         'payment_status',
         'service_type',
-        'created_at',
+        JalaliDateFilter,
         'phone_verified_at',
         ('time_slot__date', admin.DateFieldListFilter),
+        'created_at',
     ]
     search_fields = [
         'tracking_code',
@@ -832,10 +886,17 @@ class ReservationAdmin(admin.ModelAdmin):
         }
 
         if obj.time_slot:
-            j_date = date2jalali(obj.time_slot.date)
-            week_day_en = jdatetime.date.fromgregorian(date=obj.time_slot.date).strftime('%A')
+            week_day_en = obj.time_slot.date.strftime('%A')
             week_day_fa = weekday_map.get(week_day_en, week_day_en)
-            return f"{j_date} ({week_day_fa})"
+
+            g_date = obj.time_slot.date.strftime('%Y-%m-%d')
+
+            return format_html(
+                '<strong style="font-size:13px;">{}</strong><br>'
+                '<small style="color:#6c757d;">{}</small>',
+                week_day_fa,
+                g_date
+            )
 
         return "-"
 
@@ -929,10 +990,16 @@ class ReservationAdmin(admin.ModelAdmin):
     full_name_display.short_description = 'نام و نام خانوادگی'
 
     def slot_info(self, obj):
-        """Display slot date and time"""
+        """Display Jalali date + time range (no weekday)"""
+        if not obj.time_slot:
+            return "-"
+
+        j_date = date2jalali(obj.time_slot.date)
+
         return format_html(
-            '<strong>{}</strong><br/><small style="color: #6c757d;">{} - {}</small>',
-            obj.time_slot.date,
+            '<strong>{}</strong><br/>'
+            '<small style="color: #6c757d;">{} - {}</small>',
+            j_date,
             obj.time_slot.start_time.strftime('%H:%M'),
             obj.time_slot.end_time.strftime('%H:%M')
         )
