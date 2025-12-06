@@ -51,15 +51,15 @@ def mark_expired_time_slots():
     Returns number of slots marked as expired.
     """
 
-    # گرفتن زمان فعلی به timezone ایران
+    # Tehran Timezone
     tehran_tz = pytz.timezone('Asia/Tehran')
     now_tehran = timezone.now().astimezone(tehran_tz)
     current_date = now_tehran.date()
     current_time = now_tehran.time()
 
-    print(f"🕐 Current Tehran Time: {now_tehran}")
-    print(f"📅 Current Date: {current_date}")
-    print(f"⏰ Current Time: {current_time}")
+    # print(f"🕐 Current Tehran Time: {now_tehran}")
+    # print(f"📅 Current Date: {current_date}")
+    # print(f"⏰ Current Time: {current_time}")
 
     # Get slots that are in the past but not marked as expired yet
     expired_slots = TimeSlot.objects.filter(
