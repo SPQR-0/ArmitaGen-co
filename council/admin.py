@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta, date
 
 import jdatetime
 from django.contrib import admin
@@ -9,7 +9,8 @@ from django.urls import path
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 
-from .models import ServiceType, SlotRule, TimeSlot, Reservation
+from council.utils.reservation_expiration import mark_expired_time_slots
+from .models import ServiceType, SlotRule, TimeSlot, Reservation, ConsultationTopic
 
 
 # Helper Function
@@ -81,6 +82,59 @@ class JalaliDateFilter(admin.SimpleListFilter):
         if value:
             return queryset.filter(time_slot__date=value)
         return queryset
+
+
+@admin.register(ConsultationTopic)
+class ConsultationTopicAdmin(admin.ModelAdmin):
+    """Admin panel for consultation topics"""
+
+    list_display = [
+        'name',
+        'active_badge',
+        'order',
+        'reservations_count',
+        'get_created_at_jalali'
+    ]
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['name', 'slug', 'description']
+    prepopulated_fields = {'slug': ('name',)}
+    ordering = ['order', 'name']
+    list_editable = ['order']
+
+    fieldsets = (
+        ('اطلاعات پایه', {
+            'fields': ('name', 'slug', 'description')
+        }),
+        ('تنظیمات', {
+            'fields': ('is_active', 'order')
+        }),
+    )
+
+    def active_badge(self, obj):
+        """Display active status badge"""
+        if obj.is_active:
+            return format_html(
+                '<span style="background: #28a745; color: white; padding: 3px 10px; '
+                'border-radius: 12px; font-size: 11px;">✓ فعال</span>'
+            )
+        return format_html(
+            '<span style="background: #6c757d; color: white; padding: 3px 10px; '
+            'border-radius: 12px; font-size: 11px;">✗ غیرفعال</span>'
+        )
+
+    active_badge.short_description = 'وضعیت'
+
+    def get_created_at_jalali(self, obj):
+        return datetime2jalali(obj.created_at)
+
+    get_created_at_jalali.short_description = 'تاریخ ایجاد'
+
+    def reservations_count(self, obj):
+        """Count total reservations for this topic"""
+        count = obj.reservations.count()
+        return format_html('<strong>{}</strong>', count)
+
+    reservations_count.short_description = 'تعداد رزرو'
 
 
 @admin.register(ServiceType)
@@ -272,6 +326,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
         'get_weekday_fa',
         'get_jalali_date',
         'availability_badge',
+        'expired_badge',
         'source_badge',
         'get_payment_status',
         'get_reserver_name',
@@ -279,6 +334,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
     ]
     list_filter = [
         'is_available',
+        'is_expired',
         'service_type',
         TimeSlotJalaliDateFilter,
         'date',
@@ -287,9 +343,31 @@ class TimeSlotAdmin(admin.ModelAdmin):
     ]
     search_fields = ['date', 'service_type__name']
     date_hierarchy = 'date'
-    readonly_fields = ['created_by', 'created_at', 'created_from_rule', 'reservation_details']
-    actions = ['mark_as_unavailable', 'mark_as_available', 'mark_as_available_force', 'delete_selected_slots']
+    readonly_fields = ['created_by', 'created_at', 'created_from_rule', 'reservation_details', 'is_expired']
+    actions = [
+        'mark_as_unavailable',
+        'mark_as_available',
+        'mark_as_available_force',
+        'delete_selected_slots',
+        'mark_expired_slots'
+    ]
     change_list_template = 'admin/council/timeslot_changelist.html'
+
+    def changelist_view(self, request, extra_context=None):
+        """
+        Override changelist to auto-mark expired slots when admin visits the page
+        """
+
+        expired_count = mark_expired_time_slots()
+
+        if expired_count > 0:
+            self.message_user(
+                request,
+                f'🔄 {expired_count} نوبت منقضی شده خودکار به‌روزرسانی شد',
+                messages.SUCCESS
+            )
+
+        return super().changelist_view(request, extra_context)
 
     @admin.display(description="اطلاعات رزرو")
     def reservation_details(self, obj):
@@ -328,7 +406,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
             value = getattr(reservation, field.name)
 
             # تبدیل تاریخ‌ها به شمسی
-            if isinstance(value, (datetime.datetime, datetime.date)):
+            if isinstance(value, (datetime, date)):
                 try:
                     j_date = jdatetime.datetime.fromgregorian(
                         datetime=value
@@ -389,7 +467,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
             'fields': ('service_type', 'date', 'start_time', 'end_time')
         }),
         ('وضعیت', {
-            'fields': ('is_available',)
+            'fields': ('is_available', 'is_expired')
         }),
         ('اطلاعات سیستمی', {
             'fields': ('is_manual', 'created_from_rule', 'created_by', 'created_at'),
@@ -403,7 +481,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
     def get_jalali_date(self, obj):
         return date2jalali(obj.date)
 
-    get_jalali_date.short_description = 'تاریخ (شمسی)'
+    get_jalali_date.short_description = 'تاریخ'
     get_jalali_date.admin_order_field = 'date'
 
     def get_weekday_fa(self, obj):
@@ -469,7 +547,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
                             # Calculate end time for this slot
                             slot_end = (
                                     datetime.combine(current_date, current_time) +
-                                    datetime.timedelta(minutes=interval)
+                                    timedelta(minutes=interval)
                             ).time()
 
                             if slot_end > end_time:
@@ -494,7 +572,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
                             # Move to next slot
                             current_time = slot_end
 
-                    current_date += datetime.timedelta(days=1)
+                    current_date += timedelta(days=1)
 
                 messages.success(
                     request,
@@ -575,7 +653,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
                         while current_time < rule.end_time:
                             slot_end = (
                                     datetime.combine(current_date, current_time) +
-                                    datetime.timedelta(minutes=rule.slot_duration)
+                                    timedelta(minutes=rule.slot_duration)
                             ).time()
 
                             if slot_end > rule.end_time:
@@ -599,7 +677,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
 
                             current_time = slot_end
 
-                    current_date += datetime.timedelta(days=1)
+                    current_date += timedelta(days=1)
 
                 if created_count > 0:
                     messages.success(
@@ -649,6 +727,20 @@ class TimeSlotAdmin(admin.ModelAdmin):
         )
 
     availability_badge.short_description = 'وضعیت'
+
+    def expired_badge(self, obj):
+        """Display expiration status"""
+        if obj.is_expired:
+            return format_html(
+                '<span style="background: #dc3545; color: white; padding: 3px 10px; '
+                'border-radius: 12px; font-size: 11px;">⏰ منقضی شده</span>'
+            )
+        return format_html(
+            '<span style="background: #28a745; color: white; padding: 3px 10px; '
+            'border-radius: 12px; font-size: 11px;">✓ فعال</span>'
+        )
+
+    expired_badge.short_description = 'انقضا'
 
     def source_badge(self, obj):
         """Display how slot was created"""
@@ -734,6 +826,29 @@ class TimeSlotAdmin(admin.ModelAdmin):
 
     mark_as_available_force.short_description = '🔓 علامت‌گذاری اجباری به عنوان قابل دسترس (Force)'
 
+    def mark_expired_slots(self, request, queryset):
+        """Manually mark selected slots as expired"""
+        from django.utils import timezone
+        from datetime import datetime
+
+        now = timezone.now()
+        expired_count = 0
+
+        for slot in queryset:
+            slot_datetime = timezone.make_aware(
+                datetime.combine(slot.date, slot.start_time)
+            )
+
+            if slot_datetime < now:
+                slot.is_expired = True
+                slot.is_available = False
+                slot.save(update_fields=['is_expired', 'is_available'])
+                expired_count += 1
+
+        messages.success(request, f'✓ {expired_count} نوبت به عنوان منقضی شده علامت‌گذاری شد.')
+
+    mark_expired_slots.short_description = '⏰ علامت‌گذاری نوبت‌های گذشته به عنوان منقضی'
+
     def delete_selected_slots(self, request, queryset):
         """Soft delete selected slots"""
         # Only delete slots without reservations
@@ -792,22 +907,22 @@ class ReservationAdmin(admin.ModelAdmin):
     """Admin panel for reservations"""
 
     list_display = [
-        'row_number',  # 1. ردیف (لینک دار میشود)
+        'row_number',
         'tracking_code_copy',
-        # 'tracking_code',
         'full_name_display',
         'phone_number',
         'service_type',
+        'consultation_topic_display',
         'slot_info',
         'status_badge',
         'payment_badge',
         'get_jalali_reserve_date',
-        # 'created_at'
     ]
     list_filter = [
         'status',
         'payment_status',
         'service_type',
+        'consultation_topic',
         JalaliDateFilter,
         'phone_verified_at',
         ('time_slot__date', admin.DateFieldListFilter),
@@ -830,12 +945,11 @@ class ReservationAdmin(admin.ModelAdmin):
     ]
     list_display_links = ['row_number', 'full_name_display']
     date_hierarchy = 'time_slot__date'
-    # date_hierarchy = 'created_at'
     actions = ['mark_as_completed', 'mark_as_cancelled', 'export_to_pdf']
 
     fieldsets = (
         ('اطلاعات رزرو', {
-            'fields': ('tracking_code', 'service_type', 'time_slot')
+            'fields': ('tracking_code', 'service_type', 'time_slot', 'consultation_topic')
         }),
         ('اطلاعات تماس', {
             'fields': (
@@ -873,6 +987,18 @@ class ReservationAdmin(admin.ModelAdmin):
         )
 
     tracking_code_copy.short_description = 'کد پیگیری'
+
+    def consultation_topic_display(self, obj):
+        """Display consultation topic"""
+        if obj.consultation_topic:
+            return format_html(
+                '<span style="background: #17a2b8; color: white; padding: 3px 8px; '
+                'border-radius: 8px; font-size: 11px;">{}</span>',
+                obj.consultation_topic.name
+            )
+        return format_html('<span style="color: #999;">—</span>')
+
+    consultation_topic_display.short_description = 'عنوان مشاوره'
 
     def get_jalali_reserve_date(self, obj):
         weekday_map = {
@@ -925,7 +1051,7 @@ class ReservationAdmin(admin.ModelAdmin):
                 old_time_slot.save(update_fields=['is_available'])
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        """Filter time slots to show only available ones"""
+        """Filter time slots to show only available ones and consultation topics"""
         if db_field.name == "time_slot":
             obj_id = request.resolver_match.kwargs.get('object_id')
 
@@ -934,18 +1060,26 @@ class ReservationAdmin(admin.ModelAdmin):
                     current_reservation = Reservation.objects.get(pk=obj_id)
                     kwargs["queryset"] = TimeSlot.objects.filter(
                         models.Q(is_available=True) | models.Q(pk=current_reservation.time_slot.pk),
-                        deleted_at__isnull=True
+                        deleted_at__isnull=True,
+                        is_expired=False
                     ).order_by('date', 'start_time')
                 except Reservation.DoesNotExist:
                     kwargs["queryset"] = TimeSlot.objects.filter(
                         is_available=True,
-                        deleted_at__isnull=True
+                        deleted_at__isnull=True,
+                        is_expired=False
                     ).order_by('date', 'start_time')
             else:
                 kwargs["queryset"] = TimeSlot.objects.filter(
                     is_available=True,
-                    deleted_at__isnull=True
+                    deleted_at__isnull=True,
+                    is_expired=False
                 ).order_by('date', 'start_time')
+
+        elif db_field.name == "consultation_topic":
+            kwargs["queryset"] = ConsultationTopic.objects.filter(
+                is_active=True
+            ).order_by('order', 'name')
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 

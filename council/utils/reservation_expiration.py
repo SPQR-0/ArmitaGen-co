@@ -1,7 +1,10 @@
-from django.utils import timezone
 from datetime import timedelta
-from council.models import Reservation
 
+import pytz
+from django.db import models
+from django.utils import timezone
+
+from council.models import Reservation, TimeSlot
 
 EXPIRATION_MINUTES = 15
 
@@ -39,3 +42,63 @@ def release_expired_reservations():
         cancelled_count += 1
 
     return cancelled_count, released_slots
+
+
+def mark_expired_time_slots():
+    """
+    Mark all time slots that have passed their datetime as expired.
+    This prevents them from being shown in the booking interface.
+    Returns number of slots marked as expired.
+    """
+
+    # گرفتن زمان فعلی به timezone ایران
+    tehran_tz = pytz.timezone('Asia/Tehran')
+    now_tehran = timezone.now().astimezone(tehran_tz)
+    current_date = now_tehran.date()
+    current_time = now_tehran.time()
+
+    print(f"🕐 Current Tehran Time: {now_tehran}")
+    print(f"📅 Current Date: {current_date}")
+    print(f"⏰ Current Time: {current_time}")
+
+    # Get slots that are in the past but not marked as expired yet
+    expired_slots = TimeSlot.objects.filter(
+        is_expired=False,
+        deleted_at__isnull=True
+    ).filter(
+        # Either date is before today
+        models.Q(date__lt=current_date) |
+        # Or date is today but start time has passed
+        models.Q(date=current_date, start_time__lte=current_time)
+    )
+
+    count = expired_slots.count()
+
+    if count > 0:
+        print(f"⚠️ Found {count} expired slots to mark")
+
+    # Mark them as expired and unavailable
+    expired_slots.update(
+        is_expired=True,
+        is_available=False
+    )
+
+    return count
+
+
+def cleanup_expired_data():
+    """
+    Main cleanup function that should be called periodically.
+    Handles both reservation expiration and time slot expiration.
+    Returns tuple: (cancelled_reservations, released_slots, expired_slots)
+    """
+
+    # Release expired unpaid reservations
+    cancelled, released = release_expired_reservations()
+
+    # Mark expired time slots
+    expired = mark_expired_time_slots()
+
+    return cancelled, released, expired
+
+# Import at the end to avoid circular imports

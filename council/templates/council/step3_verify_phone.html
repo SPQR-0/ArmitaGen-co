@@ -1,95 +1,3 @@
-<!--<!doctype html>-->
-<!--<html lang="fa" dir="rtl">-->
-<!--<head>-->
-<!--    <meta charset="utf-8">-->
-<!--    <title>گام ۳ — تایید شماره تلفن</title>-->
-<!--</head>-->
-<!--<body>-->
-<!--<h1>گام ۳ — تایید شماره تلفن</h1>-->
-
-<!--{% if messages %}-->
-<!--<ul>-->
-<!--    {% for msg in messages %}-->
-<!--    <li>{{ msg }}</li>-->
-<!--    {% endfor %}-->
-<!--</ul>-->
-<!--{% endif %}-->
-
-<!--<p>کاربر: <strong>{{ reservation_data.full_name }}</strong></p>-->
-<!--<p>شماره تلفن: <strong>{{ reservation_data.phone_number }}</strong></p>-->
-
-<!--<p>زمان انتخابی: <strong>{{ time_slot.date }} — {{ time_slot.start_time }} تا {{ time_slot.end_time }}</strong></p>-->
-
-<!--<div>-->
-<!--    <button id="send-otp-btn">ارسال کد تایید (OTP)</button>-->
-<!--    <span id="otp-message"></span>-->
-<!--</div>-->
-
-<!--<form method="post" action="{% url 'council:step3_verify_phone' %}" id="verify-otp-form">-->
-<!--    {% csrf_token %}-->
-<!--    <input type="hidden" name="action" value="verify_otp">-->
-<!--    {{ form.non_field_errors }}-->
-
-<!--    <div>-->
-<!--        <label for="{{ form.otp_code.id_for_label }}">کد تایید ۶ رقمی</label><br>-->
-<!--        {{ form.otp_code }}-->
-<!--        {% if form.otp_code.errors %}-->
-<!--        <div>{{ form.otp_code.errors }}</div>-->
-<!--        {% endif %}-->
-<!--    </div>-->
-
-<!--    <div>-->
-<!--        <button type="submit">تایید کد و ثبت رزرو</button>-->
-<!--    </div>-->
-<!--</form>-->
-
-<!--<script>-->
-<!--    // ارسال OTP با AJAX-->
-<!--    document.getElementById('send-otp-btn').addEventListener('click', function () {-->
-<!--        var btn = this;-->
-<!--        btn.disabled = true;-->
-<!--        document.getElementById('otp-message').textContent = 'در حال ارسال...';-->
-
-<!--        var formData = new FormData();-->
-<!--        formData.append('action', 'send_otp');-->
-
-<!--        fetch("{% url 'council:step3_verify_phone' %}", {-->
-<!--            method: 'POST',-->
-<!--            body: formData,-->
-<!--            headers: {-->
-<!--                'X-Requested-With': 'XMLHttpRequest',-->
-<!--                'X-CSRFToken': '{{ csrf_token }}'-->
-<!--            }-->
-<!--        })-->
-<!--            .then(function (r) {-->
-<!--                return r.json();-->
-<!--            })-->
-<!--            .then(function (data) {-->
-<!--                if (data.success) {-->
-<!--                    document.getElementById('otp-message').textContent = data.message + ' (انقضا: ' + (data.expires_in || 120) + ' ثانیه)';-->
-<!--                    // فعال‌سازی دکمه پس از مدتی (برای نمونه 120s)-->
-<!--                    setTimeout(function () {-->
-<!--                        btn.disabled = false;-->
-<!--                    }, 120 * 1000);-->
-<!--                } else {-->
-<!--                    document.getElementById('otp-message').textContent = data.message || 'خطا در ارسال';-->
-<!--                    btn.disabled = false;-->
-<!--                }-->
-<!--            })-->
-<!--            .catch(function () {-->
-<!--                document.getElementById('otp-message').textContent = 'خطا در ارسال';-->
-<!--                btn.disabled = false;-->
-<!--            });-->
-<!--    });-->
-
-<!--    // ارسال فرم تایید OTP (می‌توانم AJAX هم بسازم، اما فرم پست معمولی هم پشتیبانی می‌شود)-->
-<!--    // اگر بخواهی می‌تونم این رو هم AJAX کنم؛ الان از فرم معمولی استفاده شده تا با view سازگار باشه.-->
-<!--</script>-->
-
-<!--<hr>-->
-<!--<p><a href="{% url 'council:step2_select_time' %}">بازگشت به انتخاب زمان</a></p>-->
-<!--</body>-->
-<!--</html>-->
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -338,135 +246,138 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <div class="step-header">
-                <div class="step-number">۳</div>
-                <h1>تایید شماره تلفن</h1>
-                <p class="subtitle">کد تایید را دریافت و وارد کنید</p>
+<div class="container">
+    <div class="card">
+        <div class="step-header">
+            <div class="step-number">۳</div>
+            <h1>تایید شماره تلفن</h1>
+            <p class="subtitle">کد تایید را دریافت و وارد کنید</p>
+        </div>
+
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="reservation-details">
+            <div class="detail-item">
+                <span class="detail-label">نام:</span>
+                <span class="detail-value">{{ reservation_data.full_name }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">شماره تلفن:</span>
+                <span class="detail-value">{{ reservation_data.phone_number }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">تاریخ و زمان:</span>
+                <span class="detail-value">
+        {{ time_slot_jalali_str }} — {{ time_slot.start_time|time:"H:i" }}
+    </span>
             </div>
 
-            {% if messages %}
-                <div class="messages">
-                    {% for message in messages %}
-                        <div class="alert">{{ message }}</div>
+        </div>
+
+        <div class="otp-section">
+            <button type="button" class="btn-send-otp" id="send-otp-btn">📱 ارسال کد تایید</button>
+            <div class="otp-status" id="otp-message"></div>
+            <div class="countdown" id="countdown"></div>
+        </div>
+
+        <form method="post" id="verify-otp-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="verify_otp">
+
+            <div class="form-group">
+                <label for="{{ form.otp_code.id_for_label }}">کد ۶ رقمی</label>
+                {{ form.otp_code }}
+                {% if form.otp_code.errors %}
+                    {% for error in form.otp_code.errors %}
+                        <span class="error-text">{{ error }}</span>
                     {% endfor %}
-                </div>
-            {% endif %}
-
-            <div class="reservation-details">
-                <div class="detail-item">
-                    <span class="detail-label">نام:</span>
-                    <span class="detail-value">{{ reservation_data.full_name }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">شماره تلفن:</span>
-                    <span class="detail-value">{{ reservation_data.phone_number }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">تاریخ و زمان:</span>
-                    <span class="detail-value">{{ time_slot.date }} — {{ time_slot.start_time|time:'H:i' }}</span>
-                </div>
+                {% endif %}
             </div>
 
-            <div class="otp-section">
-                <button type="button" class="btn-send-otp" id="send-otp-btn">📱 ارسال کد تایید</button>
-                <div class="otp-status" id="otp-message"></div>
-                <div class="countdown" id="countdown"></div>
+            <div class="button-group">
+                <button type="submit" class="btn-primary">تایید و ادامه</button>
             </div>
+        </form>
 
-            <form method="post" id="verify-otp-form">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="verify_otp">
-
-                <div class="form-group">
-                    <label for="{{ form.otp_code.id_for_label }}">کد ۶ رقمی</label>
-                    {{ form.otp_code }}
-                    {% if form.otp_code.errors %}
-                        {% for error in form.otp_code.errors %}
-                            <span class="error-text">{{ error }}</span>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="button-group">
-                    <button type="submit" class="btn-primary">تایید و ادامه</button>
-                </div>
-            </form>
-
-            <div class="footer-link">
-                <a href="{% url 'council:step2_select_time' %}">← بازگشت به انتخاب زمان</a>
-            </div>
+        <div class="footer-link">
+            <a href="{% url 'council:step2_select_time' %}">← بازگشت به انتخاب زمان</a>
         </div>
     </div>
+</div>
 
-    <script>
-        const sendOtpBtn = document.getElementById('send-otp-btn');
-        const otpMessage = document.getElementById('otp-message');
-        const countdownEl = document.getElementById('countdown');
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        let otpTimeout = null;
-        let countdownInterval = null;
+<script>
+    const sendOtpBtn = document.getElementById('send-otp-btn');
+    const otpMessage = document.getElementById('otp-message');
+    const countdownEl = document.getElementById('countdown');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    let otpTimeout = null;
+    let countdownInterval = null;
 
-        sendOtpBtn.addEventListener('click', async () => {
-            sendOtpBtn.disabled = true;
-            otpMessage.textContent = '✉️ در حال ارسال...';
+    sendOtpBtn.addEventListener('click', async () => {
+        sendOtpBtn.disabled = true;
+        otpMessage.textContent = '✉️ در حال ارسال...';
 
-            const formData = new FormData();
-            formData.append('action', 'send_otp');
+        const formData = new FormData();
+        formData.append('action', 'send_otp');
 
-            try {
-                const response = await fetch('{% url "council:step3_verify_phone" %}', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRFToken': csrfToken
-                    }
-                });
+        try {
+            const response = await fetch('{% url "council:step3_verify_phone" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
+                }
+            });
 
-                const data = await response.json();
+            const data = await response.json();
 
-                if (data.success) {
-                    otpMessage.textContent = '✓ کد تایید ارسال شد';
-                    let remaining = data.expires_in || 120;
+            if (data.success) {
+                otpMessage.textContent = '✓ کد تایید ارسال شد';
+                let remaining = data.expires_in || 120;
 
-                    clearInterval(countdownInterval);
-                    countdownInterval = setInterval(() => {
-                        remaining--;
-                        const mins = Math.floor(remaining / 60);
-                        const secs = remaining % 60;
-                        countdownEl.textContent = `انقضا: ${mins}:${secs.toString().padStart(2, '0')}`;
-                        if (remaining <= 0) {
-                            clearInterval(countdownInterval);
-                            sendOtpBtn.disabled = false;
-                            otpMessage.textContent = '';
-                            countdownEl.textContent = '';
-                        }
-                    }, 1000);
-
-                    otpTimeout = setTimeout(() => {
+                clearInterval(countdownInterval);
+                countdownInterval = setInterval(() => {
+                    remaining--;
+                    const mins = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+                    countdownEl.textContent = `انقضا: ${mins}:${secs.toString().padStart(2, '0')}`;
+                    if (remaining <= 0) {
+                        clearInterval(countdownInterval);
                         sendOtpBtn.disabled = false;
                         otpMessage.textContent = '';
-                    }, (data.expires_in || 120) * 1000);
-                } else {
-                    otpMessage.textContent = '❌ خطا: ' + (data.message || 'خطای نامشخص');
+                        countdownEl.textContent = '';
+                    }
+                }, 1000);
+
+                otpTimeout = setTimeout(() => {
                     sendOtpBtn.disabled = false;
-                }
-            } catch (error) {
-                otpMessage.textContent = '❌ خطا در ارتباط';
-                console.error('Error:', error);
+                    otpMessage.textContent = '';
+                }, (data.expires_in || 120) * 1000);
+            } else {
+                otpMessage.textContent = '❌ خطا: ' + (data.message || 'خطای نامشخص');
                 sendOtpBtn.disabled = false;
             }
-        });
+        } catch (error) {
+            otpMessage.textContent = '❌ خطا در ارتباط';
+            console.error('Error:', error);
+            sendOtpBtn.disabled = false;
+        }
+    });
 
-        document.getElementById('verify-otp-form').addEventListener('submit', (e) => {
-            const otpInput = document.querySelector('[name="otp_code"]');
-            if (!otpInput.value || otpInput.value.length !== 6) {
-                e.preventDefault();
-                alert('لطفاً کد ۶ رقمی را وارد کنید');
-            }
-        });
-    </script>
+    document.getElementById('verify-otp-form').addEventListener('submit', (e) => {
+        const otpInput = document.querySelector('[name="otp_code"]');
+        if (!otpInput.value || otpInput.value.length !== 6) {
+            e.preventDefault();
+            alert('لطفاً کد ۶ رقمی را وارد کنید');
+        }
+    });
+</script>
 </body>
 </html>

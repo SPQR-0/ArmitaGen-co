@@ -1,74 +1,3 @@
-<!--<!doctype html>-->
-<!--<html lang="fa" dir="rtl">-->
-<!--<head>-->
-<!--    <meta charset="utf-8">-->
-<!--    <title>گام ۱ — ثبت اطلاعات اولیه</title>-->
-<!--</head>-->
-<!--<body>-->
-<!--<h1>گام ۱ — اطلاعات اولیه</h1>-->
-
-<!--{% if messages %}-->
-<!--<ul>-->
-<!--    {% for msg in messages %}-->
-<!--    <li>{{ msg }}</li>-->
-<!--    {% endfor %}-->
-<!--</ul>-->
-<!--{% endif %}-->
-
-<!--<form method="post" enctype="multipart/form-data" action="{% url 'council:step1_initial' %}">-->
-<!--    {% csrf_token %}-->
-<!--    {{ form.non_field_errors }}-->
-
-<!--    <div>-->
-<!--        <label for="{{ form.full_name.id_for_label }}">نام و نام خانوادگی</label><br>-->
-<!--        {{ form.full_name }}-->
-<!--        {% if form.full_name.errors %}-->
-<!--        <div>{{ form.full_name.errors }}</div>-->
-<!--        {% endif %}-->
-<!--    </div>-->
-
-<!--    <div>-->
-<!--        <label for="{{ form.phone_number.id_for_label }}">شماره تلفن</label><br>-->
-<!--        {{ form.phone_number }}-->
-<!--        {% if form.phone_number.errors %}-->
-<!--        <div>{{ form.phone_number.errors }}</div>-->
-<!--        {% endif %}-->
-<!--    </div>-->
-
-<!--    <div>-->
-<!--        <label for="{{ form.service_type.id_for_label }}">نوع خدمت</label><br>-->
-<!--        {{ form.service_type }}-->
-<!--        {% if form.service_type.errors %}-->
-<!--        <div>{{ form.service_type.errors }}</div>-->
-<!--        {% endif %}-->
-<!--    </div>-->
-
-<!--    <div>-->
-<!--        <label for="{{ form.message.id_for_label }}">توضیحات (اختیاری)</label><br>-->
-<!--        {{ form.message }}-->
-<!--        {% if form.message.errors %}-->
-<!--        <div>{{ form.message.errors }}</div>-->
-<!--        {% endif %}-->
-<!--    </div>-->
-
-<!--    <div>-->
-<!--        <label for="{{ form.prescription.id_for_label }}">آپلود نسخه (اختیاری)</label><br>-->
-<!--        {{ form.prescription }}-->
-<!--        {% if form.prescription.errors %}-->
-<!--        <div>{{ form.prescription.errors }}</div>-->
-<!--        {% endif %}-->
-<!--    </div>-->
-
-<!--    <div>-->
-<!--        <button type="submit">ثبت و انتخاب زمان</button>-->
-<!--    </div>-->
-<!--</form>-->
-
-<!--<hr>-->
-<!--<p>اگر قبلاً داده‌ای پر شده است، به گام بعدی بروید: <a href="{% url 'council:step2_select_time' %}">انتخاب زمان</a></p>-->
-<!--</body>-->
-<!--</html>-->
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -289,86 +218,96 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <div class="step-header">
-                <div class="step-number">۱</div>
-                <h1>ثبت اطلاعات</h1>
-                <p class="subtitle">اطلاعات پایه خود را وارد کنید</p>
-            </div>
+<div class="container">
+    <div class="card">
+        <div class="step-header">
+            <div class="step-number">۱</div>
+            <h1>ثبت اطلاعات</h1>
+            <p class="subtitle">اطلاعات پایه خود را وارد کنید</p>
+        </div>
 
-            {% if messages %}
-                <div class="messages">
-                    {% for message in messages %}
-                        <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}success{% endif %}">
-                            {{ message }}
-                        </div>
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}success{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ form.full_name.id_for_label }}">نام و نام خانوادگی</label>
+                {{ form.full_name }}
+                {% if form.full_name.errors %}
+                    {% for error in form.full_name.errors %}
+                        <span class="error-text">{{ error }}</span>
                     {% endfor %}
-                </div>
-            {% endif %}
-
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-
-                <div class="form-group">
-                    <label for="{{ form.full_name.id_for_label }}">نام و نام خانوادگی</label>
-                    {{ form.full_name }}
-                    {% if form.full_name.errors %}
-                        {% for error in form.full_name.errors %}
-                            <span class="error-text">{{ error }}</span>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label for="{{ form.phone_number.id_for_label }}">شماره تلفن</label>
-                    {{ form.phone_number }}
-                    {% if form.phone_number.errors %}
-                        {% for error in form.phone_number.errors %}
-                            <span class="error-text">{{ error }}</span>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label for="{{ form.service_type.id_for_label }}">نوع خدمت</label>
-                    {{ form.service_type }}
-                    {% if form.service_type.errors %}
-                        {% for error in form.service_type.errors %}
-                            <span class="error-text">{{ error }}</span>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label for="{{ form.message.id_for_label }}">توضیحات (اختیاری)</label>
-                    {{ form.message }}
-                    {% if form.message.errors %}
-                        {% for error in form.message.errors %}
-                            <span class="error-text">{{ error }}</span>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label for="{{ form.prescription.id_for_label }}">آپلود نسخه (اختیاری)</label>
-                    {{ form.prescription }}
-                    {% if form.prescription.errors %}
-                        {% for error in form.prescription.errors %}
-                            <span class="error-text">{{ error }}</span>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <div class="button-group">
-                    <button type="submit" class="btn-primary">ادامه</button>
-                </div>
-            </form>
-
-            <div class="footer-link">
-                <p>اگر قبلاً ثبت نام کردید: <a href="{% url 'council:step2_select_time' %}">به مرحله بعد بروید</a></p>
+                {% endif %}
             </div>
+
+            <div class="form-group">
+                <label for="{{ form.phone_number.id_for_label }}">شماره تلفن</label>
+                {{ form.phone_number }}
+                {% if form.phone_number.errors %}
+                    {% for error in form.phone_number.errors %}
+                        <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.service_type.id_for_label }}">نوع خدمت</label>
+                {{ form.service_type }}
+                {% if form.service_type.errors %}
+                    {% for error in form.service_type.errors %}
+                        <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.consultation_topic.id_for_label }}">عنوان مشاوره (اختیاری)</label>
+                {{ form.consultation_topic }}
+                {% if form.consultation_topic.errors %}
+                    {% for error in form.consultation_topic.errors %}
+                        <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.message.id_for_label }}">توضیحات (اختیاری)</label>
+                {{ form.message }}
+                {% if form.message.errors %}
+                    {% for error in form.message.errors %}
+                        <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.prescription.id_for_label }}">آپلود نسخه (اختیاری)</label>
+                {{ form.prescription }}
+                {% if form.prescription.errors %}
+                    {% for error in form.prescription.errors %}
+                        <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-primary">ادامه</button>
+            </div>
+        </form>
+
+        <div class="footer-link">
+            <p>اگر قبلاً ثبت نام کردید: <a href="{% url 'council:step2_select_time' %}">به مرحله بعد بروید</a></p>
         </div>
     </div>
+</div>
 </body>
 </html>

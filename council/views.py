@@ -1,6 +1,7 @@
 import secrets
 from datetime import datetime, timedelta
 
+import pytz
 from django.contrib import messages
 from django.db import transaction
 from django.http import JsonResponse
@@ -8,12 +9,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views import View
 from django.views.decorators.http import require_http_methods
+from jdatetime import datetime as jdatetime
 
 from accounts.models import OTP, User
 from payments.models import Payment
 from .forms import ReservationStepOneForm, OTPVerificationForm
-from .models import Reservation, ServiceType, TimeSlot
-from .utils.reservation_expiration import release_expired_reservations
+from .models import Reservation, ServiceType, TimeSlot, ConsultationTopic
+from .utils.reservation_expiration import release_expired_reservations, mark_expired_time_slots
 
 
 class ReservationStep1View(View):
@@ -29,9 +31,14 @@ class ReservationStep1View(View):
             deleted_at__isnull=True
         ).order_by('order', 'name')
 
+        consultation_topics = ConsultationTopic.objects.filter(
+            is_active=True
+        ).order_by('order', 'name')
+
         context = {
             'form': form,
             'service_types': service_types,
+            'consultation_topics': consultation_topics,
             'step': 1
         }
         return render(request, self.template_name, context)
@@ -45,6 +52,8 @@ class ReservationStep1View(View):
                 'full_name': form.cleaned_data['full_name'],
                 'phone_number': form.cleaned_data['phone_number'],
                 'service_type_id': form.cleaned_data['service_type'].id,
+                'consultation_topic_id': form.cleaned_data.get('consultation_topic').id if form.cleaned_data.get(
+                    'consultation_topic') else None,
                 'message': form.cleaned_data.get('message', ''),
             }
 
@@ -60,9 +69,14 @@ class ReservationStep1View(View):
             deleted_at__isnull=True
         ).order_by('order', 'name')
 
+        consultation_topics = ConsultationTopic.objects.filter(
+            is_active=True
+        ).order_by('order', 'name')
+
         context = {
             'form': form,
             'service_types': service_types,
+            'consultation_topics': consultation_topics,
             'step': 1
         }
         return render(request, self.template_name, context)
@@ -72,6 +86,7 @@ class ReservationStep2View(View):
     """
     Step 2: Select date and time slot
     Shows all slots but disables reserved/unavailable ones
+    Filters out expired slots (past date/time)
     """
     template_name = 'council/step2_select_time.html'
 
@@ -81,8 +96,9 @@ class ReservationStep2View(View):
             messages.error(request, '⚠️ لطفاً ابتدا اطلاعات پایه را وارد کنید')
             return redirect('council:step1_initial')
 
-        # Clean expired reservations
+        # Clean expired reservations and mark expired slots
         release_expired_reservations()
+        mark_expired_time_slots()
 
         reservation_data = request.session['reservation_data']
         service_type = get_object_or_404(
@@ -91,22 +107,34 @@ class ReservationStep2View(View):
             is_active=True
         )
 
-        # Get all time slots for next 30 days (including unavailable ones)
-        from jdatetime import datetime as jdatetime
-        today = datetime.now().date()
+        # Get current datetime با timezone ایران
+        tehran_tz = pytz.timezone('Asia/Tehran')
+        now = timezone.now().astimezone(tehran_tz)
+        today = now.date()
+        current_time = now.time()
         end_date = today + timedelta(days=30)
 
-        # Get ALL slots (available and unavailable) to show to user
-        all_slots = TimeSlot.objects.filter(
+        print(f"🕐 Tehran Time: {now}")
+        print(f"📅 Today: {today}")
+        print(f"⏰ Current Time: {current_time}")
+
+        # Get time slots, excluding expired ones
+        available_slots = TimeSlot.objects.filter(
             service_type=service_type,
             date__gte=today,
             date__lte=end_date,
-            deleted_at__isnull=True
+            deleted_at__isnull=True,
+            is_expired=False
+        ).exclude(
+            # Exclude slots that are today but time has passed
+            date=today,
+            start_time__lte=current_time
         ).select_related('service_type').order_by('date', 'start_time')
 
         # Group slots by date
+        from jdatetime import datetime as jdatetime
         slots_by_date = {}
-        for slot in all_slots:
+        for slot in available_slots:
             date_key = slot.date.strftime('%Y-%m-%d')
             if date_key not in slots_by_date:
                 jalali = jdatetime.fromgregorian(date=slot.date)
@@ -141,53 +169,37 @@ class ReservationStep2View(View):
             messages.error(request, '⚠️ لطفاً یک زمان را انتخاب کنید')
             return redirect('council:step2_select_time')
 
-        # Clean expired reservations before locking slot
+        # Clean expired reservations and slots before locking
         release_expired_reservations()
+        mark_expired_time_slots()
 
         try:
             with transaction.atomic():
                 time_slot = TimeSlot.objects.select_for_update().get(
                     id=slot_id,
                     is_available=True,
+                    is_expired=False,
                     deleted_at__isnull=True
                 )
+
+                # Double-check the slot hasn't passed
+                now = datetime.now()
+                slot_datetime = datetime.combine(time_slot.date, time_slot.start_time)
+
+                if slot_datetime < now:
+                    messages.error(request, '❌ این نوبت منقضی شده است')
+                    return redirect('council:step2_select_time')
 
                 # Save slot to session inside the transaction
                 request.session['selected_time_slot_id'] = time_slot.id
                 request.session.modified = True
 
         except TimeSlot.DoesNotExist:
-
             messages.error(request, '❌ این نوبت دیگر در دسترس نیست')
             return redirect('council:step2_select_time')
 
-        # Save slot to session
-        request.session['selected_time_slot_id'] = time_slot.id
-        request.session.modified = True
-
         messages.success(request, '✓ زمان مشاوره انتخاب شد. لطفاً شماره تلفن خود را تایید کنید.')
         return redirect('council:step3_verify_phone')
-
-    # @staticmethod
-    # def release_expired_reservations():
-    #     """Release time slots from expired reservations (older than 15 minutes)"""
-    #     cutoff_time = timezone.now() - timedelta(minutes=15)
-    #
-    #     expired_reservations = Reservation.objects.filter(
-    #         status='phone_verified',
-    #         payment_status='unpaid',
-    #         phone_verified_at__lt=cutoff_time
-    #     ).select_related('time_slot')
-    #
-    #     for reservation in expired_reservations:
-    #         # Mark reservation as cancelled
-    #         reservation.status = 'cancelled'
-    #         reservation.save(update_fields=['status'])
-    #
-    #         # Release the time slot
-    #         if reservation.time_slot:
-    #             reservation.time_slot.is_available = True
-    #             reservation.time_slot.save(update_fields=['is_available'])
 
 
 class ReservationStep3View(View):
@@ -205,12 +217,17 @@ class ReservationStep3View(View):
         reservation_data = request.session['reservation_data']
         time_slot = get_object_or_404(TimeSlot, id=request.session['selected_time_slot_id'])
 
+        time_slot_jalali = jdatetime.fromgregorian(date=time_slot.date)
+        weekday_names = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه']
+        time_slot_jalali_str = f"{weekday_names[time_slot_jalali.weekday()]} — {time_slot_jalali.strftime('%Y/%m/%d')}"
+
         form = OTPVerificationForm()
 
         context = {
             'form': form,
             'reservation_data': reservation_data,
             'time_slot': time_slot,
+            'time_slot_jalali_str': time_slot_jalali_str,
             'step': 3
         }
         return render(request, self.template_name, context)
@@ -313,14 +330,23 @@ class ReservationStep3View(View):
             with transaction.atomic():
                 time_slot = TimeSlot.objects.select_for_update().get(
                     id=request.session['selected_time_slot_id'],
-                    is_available=True
+                    is_available=True,
+                    is_expired=False
                 )
+
+                # Get consultation topic if provided
+                consultation_topic = None
+                if reservation_data.get('consultation_topic_id'):
+                    consultation_topic = ConsultationTopic.objects.get(
+                        id=reservation_data['consultation_topic_id']
+                    )
 
                 # Create reservation
                 reservation = Reservation.objects.create(
                     user=user,
                     service_type_id=reservation_data['service_type_id'],
                     time_slot=time_slot,
+                    consultation_topic=consultation_topic,
                     full_name=reservation_data['full_name'],
                     phone_number=phone_number,
                     message=reservation_data.get('message', ''),
@@ -397,6 +423,11 @@ class ReservationStep4View(View):
                 messages.error(request, '❌ شما دسترسی به این رزرو را ندارید')
                 return redirect('council:step1_initial')
 
+        # Convert date to Jalali
+        jalali_date = jdatetime.fromgregorian(date=reservation.time_slot.date)
+        weekday_names = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه']
+        jalali_date_str = f"{weekday_names[jalali_date.weekday()]} — {jalali_date.strftime('%Y/%m/%d')}"
+
         # Calculate remaining time to show on countdown timer
         remaining_time = None
         if reservation.phone_verified_at:
@@ -407,6 +438,7 @@ class ReservationStep4View(View):
 
         context = {
             'reservation': reservation,
+            'jalali_date_str': jalali_date_str,
             'remaining_time': remaining_time,
             'step': 4
         }
@@ -459,7 +491,6 @@ class ReservationReceiptView(View):
             deleted_at__isnull=True
         )
 
-        from jdatetime import datetime as jdatetime
         jalali_date = jdatetime.fromgregorian(date=reservation.time_slot.date)
 
         context = {
@@ -473,11 +504,19 @@ class ReservationReceiptView(View):
 # AJAX endpoint for checking slot availability
 @require_http_methods(["GET"])
 def check_slot_availability(request, slot_id):
-    """Check if a time slot is still available"""
+    """Check if a time slot is still available and not expired"""
     try:
         slot = TimeSlot.objects.get(id=slot_id, deleted_at__isnull=True)
+
+        tehran_tz = pytz.timezone('Asia/Tehran')
+        now = timezone.now().astimezone(tehran_tz)
+        slot_datetime = tehran_tz.localize(datetime.combine(slot.date, slot.start_time))
+
+        is_expired = slot_datetime <= now
+
         return JsonResponse({
-            'available': slot.is_available,
+            'available': slot.is_available and not is_expired,
+            'is_expired': is_expired,
             'date': str(slot.date),
             'start_time': slot.start_time.strftime('%H:%M'),
             'end_time': slot.end_time.strftime('%H:%M')
