@@ -1,42 +1,373 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>گام ۴ — بازبینی و پرداخت</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'IRANSans', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* Minimal white card design */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .step-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #222;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .messages {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+
+        .timer-section {
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .timer-label {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .timer {
+            font-size: 24px;
+            font-weight: 600;
+            color: #f57f17;
+            font-family: monospace;
+        }
+
+        .details-section {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            color: #555;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #888;
+        }
+
+        .detail-value {
+            color: #222;
+            font-weight: 500;
+        }
+
+        .tracking-code {
+            background: #fafafa;
+            border: 1px dashed #e0e0e0;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 12px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+            word-break: break-all;
+        }
+
+        .price-section {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .price-label {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .price {
+            font-size: 32px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 4px;
+        }
+
+        .price-currency {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: #222;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #000;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            background: #efefef;
+            border-color: #ccc;
+        }
+
+        .footer-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+
+        .footer-link a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 24px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .price {
+                font-size: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn-secondary {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
-<h1>گام ۴ — بازبینی رزرو</h1>
+<div class="container">
+    <div class="card">
+        <div class="step-header">
+            <div class="step-number">۴</div>
+            <h1>بازبینی و پرداخت</h1>
+            <p class="subtitle">لطفاً جزئیات را بررسی کنید</p>
+        </div>
 
-{% if messages %}
-<ul>
-    {% for msg in messages %}
-    <li>{{ msg }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
 
-<h2>جزئیات رزرو</h2>
-<ul>
-    <li>کد پیگیری: <strong>{{ reservation.tracking_code }}</strong></li>
-    <li>نام: <strong>{{ reservation.full_name }}</strong></li>
-    <li>شماره تلفن: <strong>{{ reservation.phone_number }}</strong></li>
-    <li>خدمت: <strong>{{ reservation.service_type.name }}</strong></li>
-    <li>تاریخ و زمان: <strong>{{ reservation.time_slot.date }} — {{ reservation.time_slot.start_time }} تا {{
-        reservation.time_slot.end_time }}</strong></li>
-    <li>پیام:
-        <pre>{{ reservation.message }}</pre>
-    </li>
-    <li>قیمت: <strong>{{ reservation.service_type.price }} تومان</strong></li>
-    <li>وضعیت پرداخت: <strong>{{ reservation.payment_status }}</strong></li>
-</ul>
+        {% if remaining_time %}
+            <div class="timer-section">
+                <div class="timer-label">⏱️ زمان باقی‌مانده برای پرداخت</div>
+                <div class="timer" id="countdown">{{ remaining_time|floatformat:0 }}</div>
+            </div>
+        {% endif %}
 
-<form method="post" action="{% url 'council:step4_review' reservation.tracking_code %}">
-    {% csrf_token %}
-    <button type="submit">پرداخت و تکمیل رزرو (شبیه‌سازی شده)</button>
-</form>
+        <div class="details-section">
+            <div class="section-title">
+                <span class="icon">👤</span>
+                اطلاعات شخصی
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">نام:</span>
+                <span class="detail-value">{{ reservation.full_name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">شماره تلفن:</span>
+                <span class="detail-value">{{ reservation.phone_number }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">کد پیگیری:</span>
+                <span class="detail-value">{{ reservation.tracking_code }}</span>
+            </div>
+            <div class="tracking-code">{{ reservation.tracking_code }}</div>
+        </div>
 
-<hr>
-<p>پس از پرداخت، رسید برای شما نمایش داده می‌شود: <a href="{% url 'council:final_receipt' reservation.tracking_code %}">مشاهده
-    رسید</a></p>
+        <div class="details-section">
+            <div class="section-title">
+                <span class="icon">📅</span>
+                جزئیات مشاوره
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">خدمت:</span>
+                <span class="detail-value">{{ reservation.service_type.name }}</span>
+            </div>
+            {% if reservation.consultation_topic %}
+                <div class="detail-row">
+                    <span class="detail-label">عنوان مشاوره:</span>
+                    <span class="detail-value">{{ reservation.consultation_topic.name }}</span>
+                </div>
+            {% endif %}
+            <div class="detail-row">
+                <span class="detail-label">تاریخ:</span>
+                <span class="detail-value">{{ jalali_date_str }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">زمان:</span>
+                <span class="detail-value">
+        {{ reservation.time_slot.start_time|time:"H:i" }} — {{ reservation.time_slot.end_time|time:"H:i" }}
+    </span>
+            </div>
+
+            {% if reservation.message %}
+                <div class="detail-row">
+                    <span class="detail-label">توضیحات:</span>
+                    <span class="detail-value">{{ reservation.message|truncatewords:10 }}</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="price-section">
+            <div class="price-label">قیمت کل</div>
+            <div class="price">{{ reservation.service_type.price }}<span class="price-currency"> تومان</span></div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="button-group">
+                <button type="submit" class="btn-primary">💳 انجام پرداخت</button>
+                <a href="{% url 'council:step2_select_time' %}" class="btn-secondary"
+                   style="display: flex; align-items: center; justify-content: center; text-decoration: none;">←
+                    بازگشت</a>
+            </div>
+        </form>
+
+        <div class="footer-link">
+            <p style="margin-top: 16px; color: rgba(255,255,255,0.6); font-size: 11px;">
+                پس از پرداخت موفق، رسید برای شما ارسال خواهد شد
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const countdownElement = document.getElementById('countdown');
+    {% if remaining_time %}
+        let timeRemaining = {{ remaining_time|floatformat:0 }};
+
+        const interval = setInterval(() => {
+            timeRemaining--;
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            countdownElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            if (timeRemaining <= 0) {
+                clearInterval(interval);
+                window.location.href = '{% url "council:step1_initial" %}';
+            }
+        }, 1000);
+    {% endif %}
+</script>
 </body>
 </html>

@@ -21,6 +21,56 @@ def prescription_upload_path(instance, filename):
     return f"prescriptions/{year}/{month}/{user_name}/{filename}"
 
 
+class ConsultationTopic(models.Model):
+    """
+    موضوعات مشاوره - Topics for consultation
+    """
+    name = models.CharField(
+        max_length=200,
+        unique=True,
+        verbose_name='عنوان موضوع',
+        help_text='مثال: مشاوره تغذیه، مشاوره ورزشی'
+    )
+    slug = models.SlugField(
+        max_length=200,
+        unique=True,
+        db_index=True,
+        verbose_name='شناسه URL'
+    )
+    description = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name='توضیحات'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name='فعال'
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name='ترتیب نمایش'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد'
+    )
+
+    class Meta:
+        db_table = 'consultation_topics'
+        verbose_name = 'موضوع مشاوره'
+        verbose_name_plural = 'موضوعات مشاوره'
+        ordering = ['order', 'name']
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
+
+
 class ServiceType(models.Model):
     """
     Types of consultation services offered
@@ -208,6 +258,12 @@ class TimeSlot(models.Model):
         verbose_name='در دسترس',
         help_text='آیا این نوبت قابل رزرو است؟'
     )
+    is_expired = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name='منقضی شده',
+        help_text='آیا زمان این نوبت گذشته است؟'
+    )
     created_from_rule = models.ForeignKey(
         'SlotRule',
         on_delete=models.SET_NULL,
@@ -249,6 +305,7 @@ class TimeSlot(models.Model):
             models.Index(fields=['date', 'start_time'], name='idx_time_lookup'),
             models.Index(fields=['date', 'is_available'], name='idx_available_slots'),
             models.Index(fields=['service_type'], name='idx_slot_service'),
+            models.Index(fields=['is_expired'], name='idx_slot_expired'),
         ]
         constraints = [
             # Prevent duplicate slots for same service at same time
@@ -261,6 +318,26 @@ class TimeSlot(models.Model):
     def __str__(self):
         return f"{self.service_type.name} - {self.date} | {self.start_time} - {self.end_time}"
 
+    def check_and_mark_expired(self):
+        """
+        Check if this slot has passed and mark as expired
+        Returns True if marked as expired, False otherwise
+        """
+        from django.utils import timezone
+        from datetime import datetime
+        import pytz
+
+        # استفاده از timezone ایران
+        tehran_tz = pytz.timezone('Asia/Tehran')
+        now = timezone.now().astimezone(tehran_tz)
+        slot_datetime = tehran_tz.localize(datetime.combine(self.date, self.start_time))
+
+        if slot_datetime <= now and not self.is_expired:
+            self.is_expired = True
+            self.is_available = False
+            self.save(update_fields=['is_expired', 'is_available'])
+            return True
+        return False
 
 class Reservation(models.Model):
     """
@@ -312,6 +389,15 @@ class Reservation(models.Model):
         on_delete=models.PROTECT,
         related_name='reservations',
         verbose_name='بازه زمانی'
+    )
+    consultation_topic = models.ForeignKey(
+        'ConsultationTopic',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reservations',
+        verbose_name='عنوان مشاوره',
+        help_text='موضوع اصلی مشاوره'
     )
 
     # Contact Information (collected before OTP verification)

@@ -1,13 +1,140 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
+import jdatetime
 from django.contrib import admin
 from django.contrib import messages
 from django.db import models
 from django.shortcuts import render, redirect
 from django.urls import path
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
+from django.utils.safestring import mark_safe
 
-from .models import ServiceType, SlotRule, TimeSlot, Reservation
+from council.utils.reservation_expiration import mark_expired_time_slots
+from .models import ServiceType, SlotRule, TimeSlot, Reservation, ConsultationTopic
+
+
+# Helper Function
+def datetime2jalali(date_time):
+    if not date_time:
+        return '-'
+    if isinstance(date_time, type(jdatetime.date.today())):
+        jdate = jdatetime.date.fromgregorian(date=date_time)
+        return jdate.strftime('%Y/%m/%d')
+
+    jdate = jdatetime.datetime.fromgregorian(datetime=date_time)
+    return jdate.strftime('%Y/%m/%d - %H:%M')
+
+
+def date2jalali(date_obj):
+    if not date_obj:
+        return '-'
+    jdate = jdatetime.date.fromgregorian(date=date_obj)
+    return jdate.strftime('%Y/%m/%d')
+
+
+class TimeSlotJalaliDateFilter(admin.SimpleListFilter):
+    title = 'تاریخ (شمسی)'
+    parameter_name = 'jalali_date'
+
+    def lookups(self, request, model_admin):
+        dates = (
+            TimeSlot.objects
+            .values_list('date', flat=True)
+            .distinct()
+            .order_by('date')
+        )
+
+        jalali_dates = []
+        for d in dates:
+            if d:
+                j = jdatetime.date.fromgregorian(date=d)
+                jalali_dates.append((d, j.strftime('%Y/%m/%d')))
+        return jalali_dates
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(date=value)
+        return queryset
+
+
+class JalaliDateFilter(admin.SimpleListFilter):
+    title = 'تاریخ نوبت (شمسی)'
+    parameter_name = 'jalali_date'
+
+    def lookups(self, request, model_admin):
+        dates = (
+            Reservation.objects
+            .values_list('time_slot__date', flat=True)
+            .distinct()
+            .order_by('time_slot__date')
+        )
+
+        jalali_dates = []
+        for d in dates:
+            if d:
+                j = jdatetime.date.fromgregorian(date=d)
+                jalali_dates.append((d, j.strftime('%Y/%m/%d')))
+        return jalali_dates
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            return queryset.filter(time_slot__date=value)
+        return queryset
+
+
+@admin.register(ConsultationTopic)
+class ConsultationTopicAdmin(admin.ModelAdmin):
+    """Admin panel for consultation topics"""
+
+    list_display = [
+        'name',
+        'active_badge',
+        'order',
+        'reservations_count',
+        'get_created_at_jalali'
+    ]
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['name', 'slug', 'description']
+    prepopulated_fields = {'slug': ('name',)}
+    ordering = ['order', 'name']
+    list_editable = ['order']
+
+    fieldsets = (
+        ('اطلاعات پایه', {
+            'fields': ('name', 'slug', 'description')
+        }),
+        ('تنظیمات', {
+            'fields': ('is_active', 'order')
+        }),
+    )
+
+    def active_badge(self, obj):
+        """Display active status badge"""
+        if obj.is_active:
+            return format_html(
+                '<span style="background: #28a745; color: white; padding: 3px 10px; '
+                'border-radius: 12px; font-size: 11px;">✓ فعال</span>'
+            )
+        return format_html(
+            '<span style="background: #6c757d; color: white; padding: 3px 10px; '
+            'border-radius: 12px; font-size: 11px;">✗ غیرفعال</span>'
+        )
+
+    active_badge.short_description = 'وضعیت'
+
+    def get_created_at_jalali(self, obj):
+        return datetime2jalali(obj.created_at)
+
+    get_created_at_jalali.short_description = 'تاریخ ایجاد'
+
+    def reservations_count(self, obj):
+        """Count total reservations for this topic"""
+        count = obj.reservations.count()
+        return format_html('<strong>{}</strong>', count)
+
+    reservations_count.short_description = 'تعداد رزرو'
 
 
 @admin.register(ServiceType)
@@ -21,7 +148,8 @@ class ServiceTypeAdmin(admin.ModelAdmin):
         'service_type_badge',
         'active_badge',
         'order',
-        'reservations_count'
+        'reservations_count',
+        'get_created_at_jalali'
     ]
     list_filter = ['is_active', 'is_online', 'created_at']
     search_fields = ['name', 'slug', 'description']
@@ -85,6 +213,11 @@ class ServiceTypeAdmin(admin.ModelAdmin):
 
     active_badge.short_description = 'وضعیت'
 
+    def get_created_at_jalali(self, obj):
+        return datetime2jalali(obj.created_at)
+
+    get_created_at_jalali.short_description = 'تاریخ ایجاد'
+
     def reservations_count(self, obj):
         """Count total reservations for this service"""
         count = obj.reservations.count()
@@ -104,6 +237,7 @@ class SlotRuleAdmin(admin.ModelAdmin):
         'duration_display',
         'weekdays_display',
         'date_range',
+        'get_date_range_jalali',
         'active_badge'
     ]
     list_filter = ['is_active', 'service_type', 'created_at']
@@ -126,6 +260,13 @@ class SlotRuleAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    def get_date_range_jalali(self, obj):
+        start = date2jalali(obj.apply_from_date) if obj.apply_from_date else "نامحدود"
+        end = date2jalali(obj.apply_to_date) if obj.apply_to_date else "نامحدود"
+        return f"{start} تا {end}"
+
+    get_date_range_jalali.short_description = 'محدوده تاریخی'
 
     def time_range(self, obj):
         """Display time range"""
@@ -180,39 +321,185 @@ class TimeSlotAdmin(admin.ModelAdmin):
     """Admin panel for individual time slots"""
 
     list_display = [
-        'date',
         'service_type',
         'time_range',
+        'get_weekday_fa',
+        'get_jalali_date',
         'availability_badge',
+        'expired_badge',
         'source_badge',
-        'created_by',
-        'created_at'
+        'get_payment_status',
+        'get_reserver_name',
+        'get_reserver_phone',
     ]
     list_filter = [
         'is_available',
+        'is_expired',
         'service_type',
+        TimeSlotJalaliDateFilter,
         'date',
         'is_manual',
         'created_at'
     ]
     search_fields = ['date', 'service_type__name']
     date_hierarchy = 'date'
-    readonly_fields = ['created_by', 'created_at', 'created_from_rule']
-    actions = ['mark_as_unavailable', 'mark_as_available', 'mark_as_available_force', 'delete_selected_slots']
+    readonly_fields = ['created_by', 'created_at', 'created_from_rule', 'reservation_details', 'is_expired']
+    actions = [
+        'mark_as_unavailable',
+        'mark_as_available',
+        'mark_as_available_force',
+        'delete_selected_slots',
+        'mark_expired_slots'
+    ]
     change_list_template = 'admin/council/timeslot_changelist.html'
 
+    def changelist_view(self, request, extra_context=None):
+        """
+        Override changelist to auto-mark expired slots when admin visits the page
+        """
+
+        expired_count = mark_expired_time_slots()
+
+        if expired_count > 0:
+            self.message_user(
+                request,
+                f'🔄 {expired_count} نوبت منقضی شده خودکار به‌روزرسانی شد',
+                messages.SUCCESS
+            )
+
+        return super().changelist_view(request, extra_context)
+
+    @admin.display(description="اطلاعات رزرو")
+    def reservation_details(self, obj):
+        reservation = obj.reservations.first()
+        if not reservation:
+            return format_html(
+                "<span style='color:#888;'>هیچ رزروی برای این بازه ثبت نشده است.</span>"
+            )
+
+        excluded_fields = {
+            'id', 'created_at', 'updated_at', 'deleted_at',
+            'user', 'time_slot'
+        }
+
+        status_display = {
+            'pending': ('در انتظار تایید شماره', '#fd7e14'),
+            'phone_verified': ('شماره تایید شده - در انتظار پرداخت', '#17a2b8'),
+            'paid': ('پرداخت شده', '#007bff'),
+            'completed': ('انجام شده', '#28a745'),
+            'cancelled': ('لغو شده', '#dc3545'),
+        }
+
+        payment_display = {
+            'paid': ('پرداخت شده', '#28a745'),
+            'unpaid': ('پرداخت نشده', '#fd7e14'),
+            'refunded': ('بازگشت داده شده', '#6c757d'),
+        }
+
+        rows = []
+
+        for field in reservation._meta.fields:
+            if field.name in excluded_fields:
+                continue
+
+            label = field.verbose_name
+            value = getattr(reservation, field.name)
+
+            # تبدیل تاریخ‌ها به شمسی
+            if isinstance(value, (datetime, date)):
+                try:
+                    j_date = jdatetime.datetime.fromgregorian(
+                        datetime=value
+                    ).strftime("%Y/%m/%d %H:%M:%S")
+                    value = j_date
+                except:
+                    pass
+
+            # وضعیت رزرو
+            if field.name == 'status':
+                fa, color = status_display.get(value, (value, "#6c757d"))
+                value = mark_safe(
+                    f"<span style='background:{color}; color:white; padding:3px 8px; border-radius:6px;'>{fa}</span>"
+                )
+
+            # وضعیت پرداخت
+            if field.name == 'payment_status':
+                fa, color = payment_display.get(value, (value, "#6c757d"))
+                value = mark_safe(
+                    f"<span style='background:{color}; color:white; padding:3px 8px; border-radius:6px;'>{fa}</span>"
+                )
+
+            # مقدارهای خالی
+            if value in ['', None]:
+                value = mark_safe("<span style='color:#999;'>—</span>")
+
+            rows.append((label, value))
+
+        return format_html(
+            """
+            <div style="
+                border:1px solid #ddd;
+                border-radius:10px;
+                padding:15px;
+                background:#fafafa;
+                line-height:2;
+            ">
+                <h3 style="margin-top:0; font-size:16px; font-weight:bold;">جزئیات رزرو</h3>
+                <table style="width:100%; border-collapse:collapse;">
+                    {}
+                </table>
+            </div>
+            """,
+            format_html_join(
+                "",
+                """
+                <tr>
+                    <td style="padding:6px; width:200px; font-weight:bold; color:#333;">{}</td>
+                    <td style="padding:6px;">{}</td>
+                </tr>
+                """,
+                rows
+            )
+        )
+
     fieldsets = (
-        ('اطلاعات نوبت', {
+        ('اطلاعات بازه زمانی', {
             'fields': ('service_type', 'date', 'start_time', 'end_time')
         }),
         ('وضعیت', {
-            'fields': ('is_available',)
+            'fields': ('is_available', 'is_expired')
         }),
         ('اطلاعات سیستمی', {
             'fields': ('is_manual', 'created_from_rule', 'created_by', 'created_at'),
             'classes': ('collapse',)
         }),
+        ('اطلاعات رزرو', {
+            'fields': ('reservation_details',),
+        }),
     )
+
+    def get_jalali_date(self, obj):
+        return date2jalali(obj.date)
+
+    get_jalali_date.short_description = 'تاریخ'
+    get_jalali_date.admin_order_field = 'date'
+
+    def get_weekday_fa(self, obj):
+        weekday_map = {
+            "Saturday": "شنبه",
+            "Sunday": "یکشنبه",
+            "Monday": "دوشنبه",
+            "Tuesday": "سه‌شنبه",
+            "Wednesday": "چهارشنبه",
+            "Thursday": "پنجشنبه",
+            "Friday": "جمعه",
+        }
+
+        week_day_en = jdatetime.date.fromgregorian(date=obj.date).strftime('%A')
+        return weekday_map.get(week_day_en, "-")
+
+    get_weekday_fa.short_description = 'روز هفته'
+    get_weekday_fa.admin_order_field = 'date'
 
     def get_urls(self):
         """Add custom URLs for bulk generation"""
@@ -431,26 +718,40 @@ class TimeSlotAdmin(admin.ModelAdmin):
         """Display availability status"""
         if obj.is_available:
             return format_html(
-                '<span style="background: #28a745; color: white; padding: 3px 10px; '
-                'border-radius: 12px; font-size: 11px;">✓ در دسترس</span>'
+                '<span style="background: #BADFDB; color: dark; padding: 3px 10px; '
+                'border-radius: 12px; font-size: 11px;">در دسترس</span>'
             )
         return format_html(
-            '<span style="background: #dc3545; color: white; padding: 3px 10px; '
-            'border-radius: 12px; font-size: 11px;">✗ رزرو شده</span>'
+            '<span style="background: #EDA35A; color: dark; padding: 3px 10px; '
+            'border-radius: 12px; font-size: 11px;">رزرو شده</span>'
         )
 
     availability_badge.short_description = 'وضعیت'
+
+    def expired_badge(self, obj):
+        """Display expiration status"""
+        if obj.is_expired:
+            return format_html(
+                '<span style="background: #dc3545; color: white; padding: 3px 10px; '
+                'border-radius: 12px; font-size: 11px;">⏰ منقضی شده</span>'
+            )
+        return format_html(
+            '<span style="background: #28a745; color: white; padding: 3px 10px; '
+            'border-radius: 12px; font-size: 11px;">✓ فعال</span>'
+        )
+
+    expired_badge.short_description = 'انقضا'
 
     def source_badge(self, obj):
         """Display how slot was created"""
         if obj.is_manual:
             return format_html(
-                '<span style="background: #6f42c1; color: white; padding: 2px 8px; '
+                '<span style="background: #7F55B1; color: white; padding: 2px 8px; '
                 'border-radius: 8px; font-size: 10px;">دستی</span>'
             )
         elif obj.created_from_rule:
             return format_html(
-                '<span style="background: #17a2b8; color: white; padding: 2px 8px; '
+                '<span style="background: #AEC8A4; color: white; padding: 2px 8px; '
                 'border-radius: 8px; font-size: 10px;" title="{}">از الگو</span>',
                 obj.created_from_rule.name
             )
@@ -525,6 +826,29 @@ class TimeSlotAdmin(admin.ModelAdmin):
 
     mark_as_available_force.short_description = '🔓 علامت‌گذاری اجباری به عنوان قابل دسترس (Force)'
 
+    def mark_expired_slots(self, request, queryset):
+        """Manually mark selected slots as expired"""
+        from django.utils import timezone
+        from datetime import datetime
+
+        now = timezone.now()
+        expired_count = 0
+
+        for slot in queryset:
+            slot_datetime = timezone.make_aware(
+                datetime.combine(slot.date, slot.start_time)
+            )
+
+            if slot_datetime < now:
+                slot.is_expired = True
+                slot.is_available = False
+                slot.save(update_fields=['is_expired', 'is_available'])
+                expired_count += 1
+
+        messages.success(request, f'✓ {expired_count} نوبت به عنوان منقضی شده علامت‌گذاری شد.')
+
+    mark_expired_slots.short_description = '⏰ علامت‌گذاری نوبت‌های گذشته به عنوان منقضی'
+
     def delete_selected_slots(self, request, queryset):
         """Soft delete selected slots"""
         # Only delete slots without reservations
@@ -543,27 +867,66 @@ class TimeSlotAdmin(admin.ModelAdmin):
 
     delete_selected_slots.short_description = 'حذف نوبت‌های انتخاب شده'
 
+    def get_reserver_name(self, obj):
+        reservation = obj.reservations.first()
+        return reservation.full_name if reservation else "-"
+
+    get_reserver_name.short_description = "رزرو کننده"
+    get_reserver_name.admin_order_field = "reservations__full_name"
+
+    def get_reserver_phone(self, obj):
+        reservation = obj.reservations.first()
+        return reservation.phone_number if reservation else "-"
+
+    get_reserver_phone.short_description = "شماره تماس"
+    get_reserver_phone.admin_order_field = "reservations__phone_number"
+
+    def get_payment_status(self, obj):
+        reservation = obj.reservations.first()
+        if not reservation:
+            return format_html('<span style="color: gray;">رزرو نشده</span>')
+
+        colors = {
+            'unpaid': '#E55050',
+            'paid': '#59AC77',
+            'refunded': '#6c757d',
+        }
+        color = colors.get(reservation.payment_status, "#6c757d")
+
+        return format_html(
+            '<span style="background:{}; color:whitesmoke; padding:3px 8px; border-radius:8px; font-size:11px;">{}</span>',
+            color,
+            reservation.get_payment_status_display()
+        )
+
+    get_payment_status.short_description = "پرداخت"
+
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
     """Admin panel for reservations"""
 
     list_display = [
-        'tracking_code',
+        'row_number',
+        'tracking_code_copy',
         'full_name_display',
         'phone_number',
         'service_type',
+        'consultation_topic_display',
         'slot_info',
         'status_badge',
         'payment_badge',
-        'created_at'
+        'get_jalali_reserve_date',
     ]
     list_filter = [
         'status',
         'payment_status',
         'service_type',
+        'consultation_topic',
+        JalaliDateFilter,
+        'phone_verified_at',
+        ('time_slot__date', admin.DateFieldListFilter),
         'created_at',
-        'phone_verified_at'
     ]
     search_fields = [
         'tracking_code',
@@ -580,12 +943,13 @@ class ReservationAdmin(admin.ModelAdmin):
         'created_at',
         'updated_at'
     ]
-    date_hierarchy = 'created_at'
+    list_display_links = ['row_number', 'full_name_display']
+    date_hierarchy = 'time_slot__date'
     actions = ['mark_as_completed', 'mark_as_cancelled', 'export_to_pdf']
 
     fieldsets = (
         ('اطلاعات رزرو', {
-            'fields': ('tracking_code', 'service_type', 'time_slot')
+            'fields': ('tracking_code', 'service_type', 'time_slot', 'consultation_topic')
         }),
         ('اطلاعات تماس', {
             'fields': (
@@ -611,6 +975,60 @@ class ReservationAdmin(admin.ModelAdmin):
         }),
     )
 
+    def row_number(self, obj):
+        return f"#{obj.id}"
+
+    row_number.short_description = 'شناسه'
+
+    def tracking_code_copy(self, obj):
+        return format_html(
+            '<code style="font-size: 14px; color: #d63384; user-select: all;">{}</code>',
+            obj.tracking_code
+        )
+
+    tracking_code_copy.short_description = 'کد پیگیری'
+
+    def consultation_topic_display(self, obj):
+        """Display consultation topic"""
+        if obj.consultation_topic:
+            return format_html(
+                '<span style="background: #17a2b8; color: white; padding: 3px 8px; '
+                'border-radius: 8px; font-size: 11px;">{}</span>',
+                obj.consultation_topic.name
+            )
+        return format_html('<span style="color: #999;">—</span>')
+
+    consultation_topic_display.short_description = 'عنوان مشاوره'
+
+    def get_jalali_reserve_date(self, obj):
+        weekday_map = {
+            "Saturday": "شنبه",
+            "Sunday": "یکشنبه",
+            "Monday": "دوشنبه",
+            "Tuesday": "سه‌شنبه",
+            "Wednesday": "چهارشنبه",
+            "Thursday": "پنجشنبه",
+            "Friday": "جمعه",
+        }
+
+        if obj.time_slot:
+            week_day_en = obj.time_slot.date.strftime('%A')
+            week_day_fa = weekday_map.get(week_day_en, week_day_en)
+
+            g_date = obj.time_slot.date.strftime('%Y-%m-%d')
+
+            return format_html(
+                '<strong style="font-size:13px;">{}</strong><br>'
+                '<small style="color:#6c757d;">{}</small>',
+                week_day_fa,
+                g_date
+            )
+
+        return "-"
+
+    get_jalali_reserve_date.short_description = 'تاریخ نوبت'
+    get_jalali_reserve_date.admin_order_field = 'time_slot__date'
+
     def save_model(self, request, obj, form, change):
         """Auto-mark time slot as unavailable when reservation is created/updated"""
         old_time_slot = None
@@ -633,7 +1051,7 @@ class ReservationAdmin(admin.ModelAdmin):
                 old_time_slot.save(update_fields=['is_available'])
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        """Filter time slots to show only available ones"""
+        """Filter time slots to show only available ones and consultation topics"""
         if db_field.name == "time_slot":
             obj_id = request.resolver_match.kwargs.get('object_id')
 
@@ -642,18 +1060,26 @@ class ReservationAdmin(admin.ModelAdmin):
                     current_reservation = Reservation.objects.get(pk=obj_id)
                     kwargs["queryset"] = TimeSlot.objects.filter(
                         models.Q(is_available=True) | models.Q(pk=current_reservation.time_slot.pk),
-                        deleted_at__isnull=True
+                        deleted_at__isnull=True,
+                        is_expired=False
                     ).order_by('date', 'start_time')
                 except Reservation.DoesNotExist:
                     kwargs["queryset"] = TimeSlot.objects.filter(
                         is_available=True,
-                        deleted_at__isnull=True
+                        deleted_at__isnull=True,
+                        is_expired=False
                     ).order_by('date', 'start_time')
             else:
                 kwargs["queryset"] = TimeSlot.objects.filter(
                     is_available=True,
-                    deleted_at__isnull=True
+                    deleted_at__isnull=True,
+                    is_expired=False
                 ).order_by('date', 'start_time')
+
+        elif db_field.name == "consultation_topic":
+            kwargs["queryset"] = ConsultationTopic.objects.filter(
+                is_active=True
+            ).order_by('order', 'name')
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -698,10 +1124,16 @@ class ReservationAdmin(admin.ModelAdmin):
     full_name_display.short_description = 'نام و نام خانوادگی'
 
     def slot_info(self, obj):
-        """Display slot date and time"""
+        """Display Jalali date + time range (no weekday)"""
+        if not obj.time_slot:
+            return "-"
+
+        j_date = date2jalali(obj.time_slot.date)
+
         return format_html(
-            '<strong>{}</strong><br/><small style="color: #6c757d;">{} - {}</small>',
-            obj.time_slot.date,
+            '<strong>{}</strong><br/>'
+            '<small style="color: #6c757d;">{} - {}</small>',
+            j_date,
             obj.time_slot.start_time.strftime('%H:%M'),
             obj.time_slot.end_time.strftime('%H:%M')
         )
@@ -711,11 +1143,11 @@ class ReservationAdmin(admin.ModelAdmin):
     def status_badge(self, obj):
         """Display status with colored badge"""
         colors = {
-            'pending': '#ffc107',
-            'phone_verified': '#17a2b8',
-            'paid': '#28a745',
-            'completed': '#6f42c1',
-            'cancelled': '#dc3545',
+            'pending': '#FF9130',
+            'phone_verified': '#87A2FF',
+            'paid': '#59AC77',
+            'completed': '#8E7AB5',
+            'cancelled': '#E55050',
         }
         color = colors.get(obj.status, '#6c757d')
         return format_html(
@@ -730,9 +1162,9 @@ class ReservationAdmin(admin.ModelAdmin):
     def payment_badge(self, obj):
         """Display payment status"""
         colors = {
-            'unpaid': '#dc3545',
-            'paid': '#28a745',
-            'refunded': '#6c757d',
+            'unpaid': '#E55050',
+            'paid': '#59AC77',
+            'refunded': '#44444E',
         }
         icons = {
             'unpaid': '✗',

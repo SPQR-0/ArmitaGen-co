@@ -1,748 +1,383 @@
-<!--<!doctype html>-->
-<!--<html lang="fa" dir="rtl">-->
-<!--<head>-->
-<!--    <meta charset="utf-8">-->
-<!--    <title>گام ۳ — تایید شماره تلفن</title>-->
-<!--</head>-->
-<!--<body>-->
-<!--<h1>گام ۳ — تایید شماره تلفن</h1>-->
-
-<!--{% if messages %}-->
-<!--<ul>-->
-<!--    {% for msg in messages %}-->
-<!--    <li>{{ msg }}</li>-->
-<!--    {% endfor %}-->
-<!--</ul>-->
-<!--{% endif %}-->
-
-<!--<p>کاربر: <strong>{{ reservation_data.full_name }}</strong></p>-->
-<!--<p>شماره تلفن: <strong>{{ reservation_data.phone_number }}</strong></p>-->
-
-<!--<p>زمان انتخابی: <strong>{{ time_slot.date }} — {{ time_slot.start_time }} تا {{ time_slot.end_time }}</strong></p>-->
-
-<!--<div>-->
-<!--    <button id="send-otp-btn">ارسال کد تایید (OTP)</button>-->
-<!--    <span id="otp-message"></span>-->
-<!--</div>-->
-
-<!--<form method="post" action="{% url 'council:step3_verify_phone' %}" id="verify-otp-form">-->
-<!--    {% csrf_token %}-->
-<!--    <input type="hidden" name="action" value="verify_otp">-->
-<!--    {{ form.non_field_errors }}-->
-
-<!--    <div>-->
-<!--        <label for="{{ form.otp_code.id_for_label }}">کد تایید ۶ رقمی</label><br>-->
-<!--        {{ form.otp_code }}-->
-<!--        {% if form.otp_code.errors %}-->
-<!--        <div>{{ form.otp_code.errors }}</div>-->
-<!--        {% endif %}-->
-<!--    </div>-->
-
-<!--    <div>-->
-<!--        <button type="submit">تایید کد و ثبت رزرو</button>-->
-<!--    </div>-->
-<!--</form>-->
-
-<!--<script>-->
-<!--    // ارسال OTP با AJAX-->
-<!--    document.getElementById('send-otp-btn').addEventListener('click', function () {-->
-<!--        var btn = this;-->
-<!--        btn.disabled = true;-->
-<!--        document.getElementById('otp-message').textContent = 'در حال ارسال...';-->
-
-<!--        var formData = new FormData();-->
-<!--        formData.append('action', 'send_otp');-->
-
-<!--        fetch("{% url 'council:step3_verify_phone' %}", {-->
-<!--            method: 'POST',-->
-<!--            body: formData,-->
-<!--            headers: {-->
-<!--                'X-Requested-With': 'XMLHttpRequest',-->
-<!--                'X-CSRFToken': '{{ csrf_token }}'-->
-<!--            }-->
-<!--        })-->
-<!--            .then(function (r) {-->
-<!--                return r.json();-->
-<!--            })-->
-<!--            .then(function (data) {-->
-<!--                if (data.success) {-->
-<!--                    document.getElementById('otp-message').textContent = data.message + ' (انقضا: ' + (data.expires_in || 120) + ' ثانیه)';-->
-<!--                    // فعال‌سازی دکمه پس از مدتی (برای نمونه 120s)-->
-<!--                    setTimeout(function () {-->
-<!--                        btn.disabled = false;-->
-<!--                    }, 120 * 1000);-->
-<!--                } else {-->
-<!--                    document.getElementById('otp-message').textContent = data.message || 'خطا در ارسال';-->
-<!--                    btn.disabled = false;-->
-<!--                }-->
-<!--            })-->
-<!--            .catch(function () {-->
-<!--                document.getElementById('otp-message').textContent = 'خطا در ارسال';-->
-<!--                btn.disabled = false;-->
-<!--            });-->
-<!--    });-->
-
-<!--    // ارسال فرم تایید OTP (می‌توانم AJAX هم بسازم، اما فرم پست معمولی هم پشتیبانی می‌شود)-->
-<!--    // اگر بخواهی می‌تونم این رو هم AJAX کنم؛ الان از فرم معمولی استفاده شده تا با view سازگار باشه.-->
-<!--</script>-->
-
-<!--<hr>-->
-<!--<p><a href="{% url 'council:step2_select_time' %}">بازگشت به انتخاب زمان</a></p>-->
-<!--</body>-->
-<!--</html>-->
-
-{% load static %}
-
-{% block title %}تایید شماره تلفن{% endblock %}
-
-{% block extra_css %}
-<style>
-    .verification-wrapper {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 60px 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .verification-container {
-        max-width: 600px;
-        width: 100%;
-        margin: 0 auto;
-        padding: 0 20px;
-    }
-
-    .verification-card {
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        overflow: hidden;
-        animation: scaleIn 0.5s ease-out;
-    }
-
-    @keyframes scaleIn {
-        from {
-            opacity: 0;
-            transform: scale(0.9);
-        }
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
-    }
-
-    .verification-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 40px;
-        text-align: center;
-        color: white;
-    }
-
-    .verification-icon {
-        width: 80px;
-        height: 80px;
-        background: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 20px;
-        font-size: 2.5rem;
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% {
-            transform: scale(1);
-            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
-        }
-        50% {
-            transform: scale(1.05);
-            box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
-        }
-    }
-
-    .verification-header h1 {
-        font-size: 1.8rem;
-        font-weight: 700;
-        margin-bottom: 10px;
-    }
-
-    .verification-body {
-        padding: 50px 40px;
-    }
-
-    .info-box {
-        background: #f0f9ff;
-        border-right: 4px solid #3b82f6;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 30px;
-    }
-
-    .info-box p {
-        margin: 0;
-        color: #1e40af;
-        line-height: 1.6;
-    }
-
-    .phone-display {
-        text-align: center;
-        margin: 30px 0;
-    }
-
-    .phone-number {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #1f2937;
-        direction: ltr;
-        display: inline-block;
-        padding: 15px 30px;
-        background: #f3f4f6;
-        border-radius: 15px;
-        margin: 10px 0;
-    }
-
-    .btn-send-otp {
-        width: 100%;
-        padding: 16px;
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-        margin-bottom: 30px;
-    }
-
-    .btn-send-otp:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
-    }
-
-    .btn-send-otp:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-    .otp-section {
-        display: none;
-        animation: fadeIn 0.5s ease-out;
-    }
-
-    .otp-section.active {
-        display: block;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .otp-input-container {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin: 30px 0;
-        direction: ltr;
-    }
-
-    .otp-digit {
-        width: 60px;
-        height: 70px;
-        font-size: 2rem;
-        font-weight: 700;
-        text-align: center;
-        border: 2px solid #e5e7eb;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-        outline: none;
-    }
-
-    .otp-digit:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .otp-digit.filled {
-        border-color: #10b981;
-        background: rgba(16, 185, 129, 0.05);
-    }
-
-    .timer-display {
-        text-align: center;
-        margin: 20px 0;
-        font-size: 1.1rem;
-        color: #6b7280;
-    }
-
-    .timer-display.urgent {
-        color: #ef4444;
-        font-weight: 600;
-    }
-
-    .resend-section {
-        text-align: center;
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 1px solid #e5e7eb;
-    }
-
-    .btn-resend {
-        background: none;
-        border: none;
-        color: #667eea;
-        font-weight: 600;
-        cursor: pointer;
-        text-decoration: underline;
-        padding: 5px 10px;
-    }
-
-    .btn-resend:disabled {
-        color: #9ca3af;
-        text-decoration: none;
-        cursor: not-allowed;
-    }
-
-    .btn-verify {
-        width: 100%;
-        padding: 16px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        margin-top: 20px;
-    }
-
-    .btn-verify:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
-    }
-
-    .btn-verify:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .loading-spinner {
-        display: none;
-        width: 24px;
-        height: 24px;
-        border: 3px solid rgba(255, 255, 255, 0.3);
-        border-top-color: white;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-        margin: 0 auto;
-    }
-
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-
-    .alert {
-        padding: 15px 20px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-        display: none;
-    }
-
-    .alert.show {
-        display: block;
-        animation: slideDown 0.3s ease-out;
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .alert-success {
-        background: #d1fae5;
-        color: #065f46;
-        border-right: 4px solid #10b981;
-    }
-
-    .alert-error {
-        background: #fee2e2;
-        color: #991b1b;
-        border-right: 4px solid #ef4444;
-    }
-
-    @media (max-width: 768px) {
-        .verification-body {
-            padding: 30px 20px;
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>گام ۳ — تایید شماره تلفن</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .otp-digit {
-            width: 45px;
-            height: 55px;
-            font-size: 1.5rem;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'IRANSans', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
-        .phone-number {
-            font-size: 1.2rem;
-            padding: 10px 20px;
+        .container {
+            width: 100%;
+            max-width: 500px;
         }
-    }
-</style>
-{% endblock %}
 
-{% block content %}
-<div class="verification-wrapper">
-    <div class="verification-container">
-        <div class="verification-card">
-            <!-- Header -->
-            <div class="verification-header">
-                <div class="verification-icon">
-                    📱
-                </div>
-                <h1>تایید شماره تلفن</h1>
-                <p>کد تایید به شماره شما ارسال خواهد شد</p>
+        /* Minimal white card design */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .step-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #222;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .reservation-details {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            opacity: 0.7;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #222;
+        }
+
+        .messages {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .otp-section {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .otp-status {
+            color: #555;
+            font-size: 13px;
+            margin-bottom: 12px;
+            min-height: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            color: #222;
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-align: center;
+            font-family: monospace;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]::placeholder {
+            color: #bbb;
+            letter-spacing: normal;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            background: white;
+            border-color: #999;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .error-text {
+            color: #d32f2f;
+            font-size: 12px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-send-otp {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #e0e0e0;
+        }
+
+        .btn-send-otp:hover:not(:disabled) {
+            background: #efefef;
+            border-color: #ccc;
+        }
+
+        .btn-send-otp:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #222;
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: #000;
+        }
+
+        .countdown {
+            font-size: 12px;
+            color: #888;
+            margin-top: 8px;
+        }
+
+        .footer-link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 12px;
+        }
+
+        .footer-link a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 24px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div class="step-header">
+            <div class="step-number">۳</div>
+            <h1>تایید شماره تلفن</h1>
+            <p class="subtitle">کد تایید را دریافت و وارد کنید</p>
+        </div>
+
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="reservation-details">
+            <div class="detail-item">
+                <span class="detail-label">نام:</span>
+                <span class="detail-value">{{ reservation_data.full_name }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">شماره تلفن:</span>
+                <span class="detail-value">{{ reservation_data.phone_number }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">تاریخ و زمان:</span>
+                <span class="detail-value">
+        {{ time_slot_jalali_str }} — {{ time_slot.start_time|time:"H:i" }}
+    </span>
             </div>
 
-            <!-- Body -->
-            <div class="verification-body">
-                <!-- Alert Messages -->
-                <div id="alertSuccess" class="alert alert-success">
-                    <i class="fas fa-check-circle"></i>
-                    <span id="successMessage"></span>
-                </div>
-                <div id="alertError" class="alert alert-error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span id="errorMessage"></span>
-                </div>
+        </div>
 
-                <!-- Info Box -->
-                <div class="info-box">
-                    <p>
-                        <i class="fas fa-info-circle"></i>
-                        برای تایید رزرو شما، یک کد 6 رقمی به شماره تلفن زیر ارسال می‌شود.
-                        لطفاً کد دریافتی را وارد کنید.
-                    </p>
-                </div>
+        <div class="otp-section">
+            <button type="button" class="btn-send-otp" id="send-otp-btn">📱 ارسال کد تایید</button>
+            <div class="otp-status" id="otp-message"></div>
+            <div class="countdown" id="countdown"></div>
+        </div>
 
-                <!-- Phone Display -->
-                <div class="phone-display">
-                    <p style="color: #6b7280; margin-bottom: 10px;">شماره تلفن شما:</p>
-                    <div class="phone-number">
-                        {{ reservation_data.phone_number }}
-                    </div>
-                </div>
+        <form method="post" id="verify-otp-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="verify_otp">
 
-                <!-- Send OTP Button -->
-                <button type="button" class="btn-send-otp" id="btnSendOtp">
-                    <span id="sendOtpText">
-                        <i class="fas fa-paper-plane"></i>
-                        ارسال کد تایید
-                    </span>
-                    <div class="loading-spinner" id="sendOtpSpinner"></div>
-                </button>
-
-                <!-- OTP Input Section -->
-                <div class="otp-section" id="otpSection">
-                    <p style="text-align: center; color: #6b7280; margin-bottom: 20px;">
-                        کد 6 رقمی ارسال شده را وارد کنید:
-                    </p>
-
-                    <form method="post" id="otpForm">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="verify_otp">
-
-                        <!-- OTP Input -->
-                        <div class="otp-input-container">
-                            <input type="text" maxlength="1" class="otp-digit" id="otp1" autocomplete="off">
-                            <input type="text" maxlength="1" class="otp-digit" id="otp2" autocomplete="off">
-                            <input type="text" maxlength="1" class="otp-digit" id="otp3" autocomplete="off">
-                            <input type="text" maxlength="1" class="otp-digit" id="otp4" autocomplete="off">
-                            <input type="text" maxlength="1" class="otp-digit" id="otp5" autocomplete="off">
-                            <input type="text" maxlength="1" class="otp-digit" id="otp6" autocomplete="off">
-                        </div>
-
-                        <input type="hidden" name="otp_code" id="otpCodeInput">
-
-                        <!-- Timer -->
-                        <div class="timer-display" id="timerDisplay">
-                            <i class="far fa-clock"></i>
-                            زمان باقی‌مانده: <span id="timer">02:00</span>
-                        </div>
-
-                        <!-- Verify Button -->
-                        <button type="submit" class="btn-verify" id="btnVerify" disabled>
-                            <span id="verifyText">
-                                <i class="fas fa-check"></i>
-                                تایید کد
-                            </span>
-                            <div class="loading-spinner" id="verifySpinner"></div>
-                        </button>
-
-                        <!-- Resend Section -->
-                        <div class="resend-section">
-                            <p style="color: #6b7280; margin-bottom: 10px;">کد را دریافت نکردید؟</p>
-                            <button type="button" class="btn-resend" id="btnResend" disabled>
-                                ارسال مجدد کد
-                            </button>
-                        </div>
-                    </form>
-                </div>
+            <div class="form-group">
+                <label for="{{ form.otp_code.id_for_label }}">کد ۶ رقمی</label>
+                {{ form.otp_code }}
+                {% if form.otp_code.errors %}
+                    {% for error in form.otp_code.errors %}
+                        <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
             </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-primary">تایید و ادامه</button>
+            </div>
+        </form>
+
+        <div class="footer-link">
+            <a href="{% url 'council:step2_select_time' %}">← بازگشت به انتخاب زمان</a>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
-    let timerInterval;
-    let remainingTime = 120; // 2 minutes
+    const sendOtpBtn = document.getElementById('send-otp-btn');
+    const otpMessage = document.getElementById('otp-message');
+    const countdownEl = document.getElementById('countdown');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    let otpTimeout = null;
+    let countdownInterval = null;
 
-    // Send OTP
-    document.getElementById('btnSendOtp').addEventListener('click', function() {
-        sendOtp();
-    });
+    sendOtpBtn.addEventListener('click', async () => {
+        sendOtpBtn.disabled = true;
+        otpMessage.textContent = '✉️ در حال ارسال...';
 
-    function sendOtp() {
-        const btn = document.getElementById('btnSendOtp');
-        const text = document.getElementById('sendOtpText');
-        const spinner = document.getElementById('sendOtpSpinner');
+        const formData = new FormData();
+        formData.append('action', 'send_otp');
 
-        // Show loading
-        btn.disabled = true;
-        text.style.display = 'none';
-        spinner.style.display = 'block';
-
-        // Send AJAX request
-        fetch('{% url "council:step3_verify_phone" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: 'action=send_otp'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert('success', data.message);
-
-                // Show OTP section
-                document.getElementById('otpSection').classList.add('active');
-
-                // Hide send button
-                btn.style.display = 'none';
-
-                // Start timer
-                startTimer();
-
-                // Focus first input
-                document.getElementById('otp1').focus();
-            } else {
-                showAlert('error', data.message);
-                text.style.display = 'block';
-                spinner.style.display = 'none';
-                btn.disabled = false;
-            }
-        })
-        .catch(error => {
-            showAlert('error', 'خطا در ارسال کد. لطفاً دوباره تلاش کنید.');
-            text.style.display = 'block';
-            spinner.style.display = 'none';
-            btn.disabled = false;
-        });
-    }
-
-    // Timer
-    function startTimer() {
-        remainingTime = 120;
-        const timerElement = document.getElementById('timer');
-        const timerDisplay = document.getElementById('timerDisplay');
-        const resendBtn = document.getElementById('btnResend');
-
-        resendBtn.disabled = true;
-
-        timerInterval = setInterval(() => {
-            remainingTime--;
-
-            const minutes = Math.floor(remainingTime / 60);
-            const seconds = remainingTime % 60;
-            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-            if (remainingTime <= 30) {
-                timerDisplay.classList.add('urgent');
-            }
-
-            if (remainingTime <= 0) {
-                clearInterval(timerInterval);
-                timerElement.textContent = 'منقضی شده';
-                resendBtn.disabled = false;
-            }
-        }, 1000);
-    }
-
-    // OTP Input Handling
-    const otpInputs = document.querySelectorAll('.otp-digit');
-
-    otpInputs.forEach((input, index) => {
-        input.addEventListener('input', function(e) {
-            const value = this.value;
-
-            // Only allow numbers
-            if (!/^\d*$/.test(value)) {
-                this.value = '';
-                return;
-            }
-
-            if (value) {
-                this.classList.add('filled');
-
-                // Move to next input
-                if (index < otpInputs.length - 1) {
-                    otpInputs[index + 1].focus();
+        try {
+            const response = await fetch('{% url "council:step3_verify_phone" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
                 }
-            } else {
-                this.classList.remove('filled');
-            }
-
-            // Check if all inputs are filled
-            checkOtpComplete();
-        });
-
-        input.addEventListener('keydown', function(e) {
-            // Handle backspace
-            if (e.key === 'Backspace' && !this.value && index > 0) {
-                otpInputs[index - 1].focus();
-            }
-        });
-
-        // Handle paste
-        input.addEventListener('paste', function(e) {
-            e.preventDefault();
-            const pasteData = e.clipboardData.getData('text');
-            const digits = pasteData.match(/\d/g);
-
-            if (digits) {
-                digits.slice(0, 6).forEach((digit, i) => {
-                    if (otpInputs[i]) {
-                        otpInputs[i].value = digit;
-                        otpInputs[i].classList.add('filled');
-                    }
-                });
-                checkOtpComplete();
-            }
-        });
-    });
-
-    function checkOtpComplete() {
-        const code = Array.from(otpInputs).map(input => input.value).join('');
-
-        if (code.length === 6) {
-            document.getElementById('otpCodeInput').value = code;
-            document.getElementById('btnVerify').disabled = false;
-        } else {
-            document.getElementById('btnVerify').disabled = true;
-        }
-    }
-
-    // Verify OTP
-    document.getElementById('otpForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const btn = document.getElementById('btnVerify');
-        const text = document.getElementById('verifyText');
-        const spinner = document.getElementById('verifySpinner');
-
-        // Show loading
-        btn.disabled = true;
-        text.style.display = 'none';
-        spinner.style.display = 'block';
-
-        // Submit form via AJAX
-        const formData = new FormData(this);
-
-        fetch('{% url "council:step3_verify_phone" %}', {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert('success', data.message);
-
-                // Redirect after 1 second
-                setTimeout(() => {
-                    window.location.href = data.redirect_url;
-                }, 1000);
-            } else {
-                showAlert('error', data.message);
-                text.style.display = 'block';
-                spinner.style.display = 'none';
-                btn.disabled = false;
-
-                // Clear inputs
-                otpInputs.forEach(input => {
-                    input.value = '';
-                    input.classList.remove('filled');
-                });
-                otpInputs[0].focus();
-            }
-        })
-        .catch(error => {
-            showAlert('error', 'خطا در تایید کد. لطفاً دوباره تلاش کنید.');
-            text.style.display = 'block';
-            spinner.style.display = 'none';
-            btn.disabled = false;
-        });
-    });
-
-    // Resend OTP
-    document.getElementById('btnResend').addEventListener('click', function() {
-        if (!this.disabled) {
-            // Clear inputs
-            otpInputs.forEach(input => {
-                input.value = '';
-                input.classList.remove('filled');
             });
 
-            // Send new OTP
-            sendOtp();
+            const data = await response.json();
+
+            if (data.success) {
+                otpMessage.textContent = '✓ کد تایید ارسال شد';
+                let remaining = data.expires_in || 120;
+
+                clearInterval(countdownInterval);
+                countdownInterval = setInterval(() => {
+                    remaining--;
+                    const mins = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+                    countdownEl.textContent = `انقضا: ${mins}:${secs.toString().padStart(2, '0')}`;
+                    if (remaining <= 0) {
+                        clearInterval(countdownInterval);
+                        sendOtpBtn.disabled = false;
+                        otpMessage.textContent = '';
+                        countdownEl.textContent = '';
+                    }
+                }, 1000);
+
+                otpTimeout = setTimeout(() => {
+                    sendOtpBtn.disabled = false;
+                    otpMessage.textContent = '';
+                }, (data.expires_in || 120) * 1000);
+            } else {
+                otpMessage.textContent = '❌ خطا: ' + (data.message || 'خطای نامشخص');
+                sendOtpBtn.disabled = false;
+            }
+        } catch (error) {
+            otpMessage.textContent = '❌ خطا در ارتباط';
+            console.error('Error:', error);
+            sendOtpBtn.disabled = false;
         }
     });
 
-    // Alert functions
-    function showAlert(type, message) {
-        const alertId = type === 'success' ? 'alertSuccess' : 'alertError';
-        const messageId = type === 'success' ? 'successMessage' : 'errorMessage';
-
-        document.getElementById(messageId).textContent = message;
-        document.getElementById(alertId).classList.add('show');
-
-        setTimeout(() => {
-            document.getElementById(alertId).classList.remove('show');
-        }, 5000);
-    }
+    document.getElementById('verify-otp-form').addEventListener('submit', (e) => {
+        const otpInput = document.querySelector('[name="otp_code"]');
+        if (!otpInput.value || otpInput.value.length !== 6) {
+            e.preventDefault();
+            alert('لطفاً کد ۶ رقمی را وارد کنید');
+        }
+    });
 </script>
-{% endblock %}
+</body>
+</html>

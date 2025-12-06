@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from .models import Reservation, ServiceType
+from .models import Reservation, ServiceType, ConsultationTopic
 
 
 class ReservationStepOneForm(forms.ModelForm):
@@ -12,7 +12,7 @@ class ReservationStepOneForm(forms.ModelForm):
 
     class Meta:
         model = Reservation
-        fields = ['full_name', 'phone_number', 'service_type', 'message', 'prescription']
+        fields = ['full_name', 'phone_number', 'service_type', 'consultation_topic', 'message', 'prescription']
         widgets = {
             'full_name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -31,6 +31,12 @@ class ReservationStepOneForm(forms.ModelForm):
                 'title': 'انتخاب نوع مشاوره',
                 'id': 'inputServiceType'
             }),
+            'consultation_topic': forms.Select(attrs={
+                'class': 'form-control bs-select',
+                'data-style': 'form-control',
+                'title': 'انتخاب عنوان مشاوره (اختیاری)',
+                'id': 'inputConsultationTopic'
+            }),
             'message': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 6,
@@ -46,15 +52,22 @@ class ReservationStepOneForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Filter only active service types and add price to display
+
+        # Filter only active service types
         self.fields['service_type'].queryset = ServiceType.objects.filter(
             is_active=True,
             deleted_at__isnull=True
         ).order_by('order', 'name')
 
-        # Make prescription optional
+        # Filter only active consultation topics
+        self.fields['consultation_topic'].queryset = ConsultationTopic.objects.filter(
+            is_active=True
+        ).order_by('order', 'name')
+
+        # Make optional fields
         self.fields['prescription'].required = False
         self.fields['message'].required = False
+        self.fields['consultation_topic'].required = False
 
     def clean_phone_number(self):
         """Validate Iranian phone number format"""
