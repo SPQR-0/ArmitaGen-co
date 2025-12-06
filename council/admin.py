@@ -405,7 +405,6 @@ class TimeSlotAdmin(admin.ModelAdmin):
             label = field.verbose_name
             value = getattr(reservation, field.name)
 
-            # تبدیل تاریخ‌ها به شمسی
             if isinstance(value, (datetime, date)):
                 try:
                     j_date = jdatetime.datetime.fromgregorian(
