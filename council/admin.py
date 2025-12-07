@@ -584,7 +584,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
 
         # GET request - show form
         context = {
-            'title': 'تولید گروهی نوبت‌ها (دستی)',
+            'title': 'تولید گروهی نوبت‌ها (گروهی)',
             'service_types': ServiceType.objects.filter(is_active=True),
             'opts': self.model._meta,
             'has_view_permission': self.has_view_permission(request),
@@ -732,7 +732,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
         if obj.is_expired:
             return format_html(
                 '<span style="background: #dc3545; color: white; padding: 3px 10px; '
-                'border-radius: 12px; font-size: 11px;">⏰ منقضی شده</span>'
+                'border-radius: 12px; font-size: 11px;">منقضی شده</span>'
             )
         return format_html(
             '<span style="background: #28a745; color: white; padding: 3px 10px; '
@@ -746,7 +746,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
         if obj.is_manual:
             return format_html(
                 '<span style="background: #7F55B1; color: white; padding: 2px 8px; '
-                'border-radius: 8px; font-size: 10px;">دستی</span>'
+                'border-radius: 8px; font-size: 10px;">گروهی</span>'
             )
         elif obj.created_from_rule:
             return format_html(
@@ -754,7 +754,9 @@ class TimeSlotAdmin(admin.ModelAdmin):
                 'border-radius: 8px; font-size: 10px;" title="{}">از الگو</span>',
                 obj.created_from_rule.name
             )
-        return format_html('<span style="color: #6c757d;">-</span>')
+        return format_html('<span style="background: #B7B7B7; color: white; padding: 2px 8px; '
+                'border-radius: 8px; font-size: 10px;">دستی</span>',
+            )
 
     source_badge.short_description = 'منبع'
 

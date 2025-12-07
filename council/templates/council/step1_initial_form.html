@@ -218,6 +218,19 @@
     </style>
 </head>
 <body>
+<script>
+    const servicePrices = {
+        {% for s in service_types %}
+        "{{ s.id }}": {
+            "name": "{{ s.name }}",
+            "price": "{{ s.price }}",
+            "duration": "{{ s.duration }}"
+        },
+        {% endfor %}
+    };
+</script>
+
+
 <div class="container">
     <div class="card">
         <div class="step-header">
@@ -227,13 +240,13 @@
         </div>
 
         {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}success{% endif %}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}success{% endif %}">
+                {{ message }}
             </div>
+            {% endfor %}
+        </div>
         {% endif %}
 
         <form method="post" enctype="multipart/form-data">
@@ -243,9 +256,9 @@
                 <label for="{{ form.full_name.id_for_label }}">نام و نام خانوادگی</label>
                 {{ form.full_name }}
                 {% if form.full_name.errors %}
-                    {% for error in form.full_name.errors %}
-                        <span class="error-text">{{ error }}</span>
-                    {% endfor %}
+                {% for error in form.full_name.errors %}
+                <span class="error-text">{{ error }}</span>
+                {% endfor %}
                 {% endif %}
             </div>
 
@@ -253,19 +266,30 @@
                 <label for="{{ form.phone_number.id_for_label }}">شماره تلفن</label>
                 {{ form.phone_number }}
                 {% if form.phone_number.errors %}
-                    {% for error in form.phone_number.errors %}
-                        <span class="error-text">{{ error }}</span>
-                    {% endfor %}
+                {% for error in form.phone_number.errors %}
+                <span class="error-text">{{ error }}</span>
+                {% endfor %}
                 {% endif %}
             </div>
 
             <div class="form-group">
                 <label for="{{ form.service_type.id_for_label }}">نوع خدمت</label>
                 {{ form.service_type }}
+                <div id="service-price-box" style="
+                    display:none;
+                    background:#f8f9fa;
+                    padding:12px;
+                    border-radius:10px;
+                    margin-top:10px;
+                    font-size:14px;
+                    border:1px solid #e5e5e5;
+                "></div>
+
+
                 {% if form.service_type.errors %}
-                    {% for error in form.service_type.errors %}
-                        <span class="error-text">{{ error }}</span>
-                    {% endfor %}
+                {% for error in form.service_type.errors %}
+                <span class="error-text">{{ error }}</span>
+                {% endfor %}
                 {% endif %}
             </div>
 
@@ -273,9 +297,9 @@
                 <label for="{{ form.consultation_topic.id_for_label }}">عنوان مشاوره (اختیاری)</label>
                 {{ form.consultation_topic }}
                 {% if form.consultation_topic.errors %}
-                    {% for error in form.consultation_topic.errors %}
-                        <span class="error-text">{{ error }}</span>
-                    {% endfor %}
+                {% for error in form.consultation_topic.errors %}
+                <span class="error-text">{{ error }}</span>
+                {% endfor %}
                 {% endif %}
             </div>
 
@@ -283,9 +307,9 @@
                 <label for="{{ form.message.id_for_label }}">توضیحات (اختیاری)</label>
                 {{ form.message }}
                 {% if form.message.errors %}
-                    {% for error in form.message.errors %}
-                        <span class="error-text">{{ error }}</span>
-                    {% endfor %}
+                {% for error in form.message.errors %}
+                <span class="error-text">{{ error }}</span>
+                {% endfor %}
                 {% endif %}
             </div>
 
@@ -293,9 +317,9 @@
                 <label for="{{ form.prescription.id_for_label }}">آپلود نسخه (اختیاری)</label>
                 {{ form.prescription }}
                 {% if form.prescription.errors %}
-                    {% for error in form.prescription.errors %}
-                        <span class="error-text">{{ error }}</span>
-                    {% endfor %}
+                {% for error in form.prescription.errors %}
+                <span class="error-text">{{ error }}</span>
+                {% endfor %}
                 {% endif %}
             </div>
 
@@ -309,5 +333,41 @@
         </div>
     </div>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const select = document.getElementById("inputServiceType");
+    const priceBox = document.getElementById("service-price-box");
+
+    if (!select) {
+        console.error("❌ عنصر inputServiceType پیدا نشد");
+        return;
+    }
+
+    select.addEventListener("change", function () {
+        const serviceId = this.value;
+
+        if (servicePrices[serviceId]) {
+            const s = servicePrices[serviceId];
+
+            priceBox.style.display = "block";
+            priceBox.innerHTML = `
+                <div style="font-weight:600; margin-bottom:6px;">${s.name}</div>
+                <div style="font-size:15px; margin-bottom:4px;">
+                    💰 <strong>${Number(s.price).toLocaleString('fa-IR')}</strong> تومان
+                </div>
+                <div style="font-size:13px; opacity:0.8;">
+                    ⏱ مدت زمان: ${s.duration} دقیقه
+                </div>
+            `;
+        } else {
+            priceBox.style.display = "none";
+        }
+    });
+
+});
+</script>
+
+
 </body>
 </html>
