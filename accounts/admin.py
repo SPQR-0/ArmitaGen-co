@@ -5,7 +5,7 @@ from django.utils.html import format_html
 from jalali_date import datetime2jalali
 from jalali_date.admin import ModelAdminJalaliMixin
 
-from .models import User, OTP
+from .models import OTP, User
 
 
 class OTPExpiryFilter(admin.SimpleListFilter):

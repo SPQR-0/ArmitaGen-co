@@ -1,8 +1,10 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
+import pytz
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 from django.utils.text import slugify
 
 
@@ -323,21 +325,21 @@ class TimeSlot(models.Model):
         Check if this slot has passed and mark as expired
         Returns True if marked as expired, False otherwise
         """
-        from django.utils import timezone
-        from datetime import datetime
-        import pytz
 
-        # استفاده از timezone ایران
         tehran_tz = pytz.timezone('Asia/Tehran')
         now = timezone.now().astimezone(tehran_tz)
+
         slot_datetime = tehran_tz.localize(datetime.combine(self.date, self.start_time))
 
-        if slot_datetime <= now and not self.is_expired:
+        expiration_deadline = slot_datetime - timedelta(days=1)
+
+        if now >= expiration_deadline and not self.is_expired:
             self.is_expired = True
             self.is_available = False
             self.save(update_fields=['is_expired', 'is_available'])
             return True
         return False
+
 
 class Reservation(models.Model):
     """

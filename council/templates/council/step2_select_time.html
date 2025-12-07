@@ -379,7 +379,7 @@
             <p style="color: #888; font-size: 13px; margin: 0;">
                 نوبت‌های موجود برای ۳۰ روز آینده
             </p>
-            <button type="button" id="refresh-slots-btn" class="btn-refresh" style="
+            <button type="button" id="refresh-slots-btn" data-service-id="{{ service_type.id }}" class="btn-refresh" style="
         padding: 8px 16px;
         background: #f5f5f5;
         border: 1px solid #e0e0e0;
@@ -522,81 +522,97 @@
                         alert('لطفاً یک زمان را انتخاب کنید');
                     }
                 });
+// ... (کدهای قبلی مثل renderSlots سر جای خودشان باشند) ...
 
-                // Refresh functionality
-                const refreshBtn = document.getElementById('refresh-slots-btn');
+// Refresh functionality
+const refreshBtn = document.getElementById('refresh-slots-btn');
 
-                refreshBtn.addEventListener('click', async () => {
-                    // نمایش لودینگ
-                    refreshBtn.classList.add('loading');
-                    refreshBtn.querySelector('span:last-child').textContent = 'در حال بروزرسانی...';
+refreshBtn.addEventListener('click', async () => {
+    const serviceId = refreshBtn.dataset.serviceId;
 
-                    try {
-                        // فراخوانی API برای چک کردن وضعیت نوبت‌ها
-                        const currentSlots = document.querySelectorAll('.slot-btn:not(.unavailable)');
-                        let expiredCount = 0;
+    // UI: حالت لودینگ
+    refreshBtn.classList.add('loading');
+    const originalText = refreshBtn.querySelector('span:last-child').textContent;
+    refreshBtn.querySelector('span:last-child').textContent = 'در حال دریافت نوبت‌ها...';
 
-                        for (const slotBtn of currentSlots) {
-                            const slotId = slotBtn.dataset.slotId;
-                            if (!slotId) continue;
+    try {
+        // 1. درخواست به API جدید برای گرفتن کل دیتا
+        const response = await fetch(`/council/api/slots/${serviceId}/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            }
+        });
 
-                            try {
-                                const response = await fetch(`/council/api/check-slot/${slotId}/`, {
-                                    method: 'GET',
-                                    headers: {
-                                        'X-Requested-With': 'XMLHttpRequest'
-                                    }
-                                });
+        const result = await response.json();
 
-                                const data = await response.json();
+        if (result.status === 'success') {
+            // 2. آپدیت کردن متغیر اصلی دیتا با دیتای جدید سرور
+            // نکته: ما آبجکت slotsData که در بالا تعریف شده بود را تغییر می‌دهیم
 
-                                // اگر نوبت منقضی شده یا unavailable شده
-                                if (!data.available || data.is_expired) {
-                                    slotBtn.classList.add('just-expired');
+            // پاک کردن دیتای قبلی (اختیاری، چون جایگزین می‌شود)
+            for (let key in slotsData) delete slotsData[key];
 
-                                    setTimeout(() => {
-                                        slotBtn.classList.add('unavailable');
-                                        slotBtn.classList.remove('just-expired', 'selected');
-                                        slotBtn.style.pointerEvents = 'none';
+            // ریختن دیتای جدید
+            Object.assign(slotsData, result.data);
 
-                                        // اگر این نوبت انتخاب شده بود
-                                        if (selectedSlotId === parseInt(slotId)) {
-                                            selectedSlotId = null;
-                                            selectedInput.value = '';
-                                            submitBtn.disabled = true;
-                                        }
-                                    }, 500);
+            console.log("[Slots Data Updated]", slotsData);
 
-                                    expiredCount++;
-                                }
-                            } catch (error) {
-                                console.error('Error checking slot:', slotId, error);
-                            }
-                        }
+            // 3. رندر مجدد صفحه
+            if (selectedDateKey) {
+                // اگر قبلاً روزی انتخاب شده، همان روز را دوباره رندر کن
+                if (slotsData[selectedDateKey]) {
+                    renderSlots(selectedDateKey);
+                    alert('✓ لیست نوبت‌ها بروزرسانی شد');
+                } else {
+                    // اگر روزی که انتخاب شده بود دیگر در لیست جدید نیست (مثلا منقضی شده)
+                    slotsContainer.innerHTML = '<div class="empty-state">این تاریخ دیگر در دسترس نیست</div>';
+                    selectedDateKey = null;
+                    selectedSlotId = null;
+                    selectedInput.value = '';
+                    submitBtn.disabled = true;
+                    document.querySelectorAll('.date-btn.active').forEach(b => b.classList.remove('active'));
+                }
+            } else {
+                alert('✓ لیست نوبت‌ها بروزرسانی شد. لطفاً یک تاریخ انتخاب کنید.');
+            }
 
-                        // بروزرسانی تعداد نوبت‌های موجود
-                        if (selectedDateKey && slotsData[selectedDateKey]) {
-                            const availableSlots = document.querySelectorAll('.slot-btn:not(.unavailable)').length;
-                            slotsData[selectedDateKey].available_count = availableSlots;
-                            availableCountEl.textContent = `(${availableSlots} نوبت)`;
-                        }
-
-                        // نمایش نتیجه
-                        if (expiredCount > 0) {
-                            alert(`✓ ${expiredCount} نوبت منقضی شده شناسایی و غیرفعال شد`);
-                        } else {
-                            alert('✓ همه نوبت‌ها به‌روز هستند');
-                        }
-
-                    } catch (error) {
-                        console.error('Refresh error:', error);
-                        alert('❌ خطا در بروزرسانی. لطفا دوباره تلاش کنید');
-                    } finally {
-                        // حذف لودینگ
-                        refreshBtn.classList.remove('loading');
-                        refreshBtn.querySelector('span:last-child').textContent = 'بروزرسانی';
+            // چک کردن اینکه آیا نوبت انتخاب شده هنوز معتبر است یا خیر
+            if (selectedSlotId) {
+                let stillExistsAndAvailable = false;
+                // جستجو در دیتای جدید
+                if (slotsData[selectedDateKey]) {
+                    const slot = slotsData[selectedDateKey].slots.find(s => s.id == selectedSlotId);
+                    if (slot && slot.is_available) {
+                        stillExistsAndAvailable = true;
+                        // اگر هست، دوباره کلاس selected را به دکمه‌اش بده (چون renderSlots همه چیز را ریست کرده)
+                        const btn = document.querySelector(`.slot-btn[data-slot-id="${selectedSlotId}"]`);
+                        if(btn) btn.classList.add('selected');
                     }
-                });
+                }
+
+                if (!stillExistsAndAvailable) {
+                    selectedSlotId = null;
+                    selectedInput.value = '';
+                    submitBtn.disabled = true;
+                    alert('⚠️ نوبتی که انتخاب کرده بودید متأسفانه پر شد یا منقضی گردید.');
+                }
+            }
+
+        } else {
+            throw new Error(result.message || 'خطا در فرمت دیتا');
+        }
+
+    } catch (error) {
+        console.error('Refresh error:', error);
+        alert('❌ خطا در ارتباط با سرور.');
+    } finally {
+        // حذف حالت لودینگ
+        refreshBtn.classList.remove('loading');
+        refreshBtn.querySelector('span:last-child').textContent = originalText;
+    }
+});
             </script>
         {% endif %}
     </div>

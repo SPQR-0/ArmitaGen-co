@@ -1,15 +1,16 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
+import pytz
 from django.contrib import messages
 from django.db import transaction
 from django.http import JsonResponse
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views import View
 from django.views.decorators.http import require_http_methods
 
-from .forms import ReservationStepOneForm, OTPVerificationForm
-from .mixins import ReservationFlowMixin, ExpiredSlotCleanupMixin
+from .forms import OTPVerificationForm, ReservationStepOneForm
+from .mixins import ExpiredSlotCleanupMixin, ReservationFlowMixin
 from .models import Reservation, TimeSlot
 from .services.otp_service import OTPService
 from .services.reservation_service import ReservationService
@@ -334,27 +335,57 @@ class ReservationReceiptView(View):
 # AJAX endpoint (Remains largely the same, but uses a simplified logic for time check)
 @require_http_methods(["GET"])
 def check_slot_availability(request, slot_id):
-    """Check if a time slot is still available and not expired"""
+    """Check if a time slot is available and fits the 24h rule"""
     try:
         slot = TimeSlot.objects.get(id=slot_id, deleted_at__isnull=True)
 
-        # Simplified expiration check (logic remains similar to original view)
-        tehran_tz = slot.date.tzinfo  # Gets timezone from the date field if localized
-        if not tehran_tz:
-            import pytz  # Import needed only here
-            tehran_tz = pytz.timezone('Asia/Tehran')
-
+        tehran_tz = pytz.timezone('Asia/Tehran')
         now = timezone.now().astimezone(tehran_tz)
-        slot_datetime = now.tzinfo.localize(datetime.combine(slot.date, slot.start_time))  # Combine and localize
+        slot_datetime = tehran_tz.localize(datetime.combine(slot.date, slot.start_time))
+        expiration_deadline = slot_datetime - timedelta(days=1)
 
-        is_expired = slot_datetime <= now
+        is_expired = now >= expiration_deadline
+
+        # is_expired = (now + timedelta(days=1)) >= slot_datetime
 
         return JsonResponse({
-            'available': slot.is_available and not is_expired,
-            'is_expired': is_expired,
+            'available': slot.is_available and not is_expired and not slot.is_expired,
+            'is_expired': is_expired or slot.is_expired,
             'date': str(slot.date),
             'start_time': slot.start_time.strftime('%H:%M'),
             'end_time': slot.end_time.strftime('%H:%M')
         })
     except TimeSlot.DoesNotExist:
         return JsonResponse({'available': False}, status=404)
+
+
+def get_service_slots_api(request, service_type_id):
+    """
+    API endpoint to fetch fresh slots data in JSON format for AJAX updates.
+    """
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    try:
+        # استفاده از سرویس موجود برای دریافت دیتا
+        service_type, slots_by_date = ReservationService.get_available_time_slots(service_type_id)
+
+        # تبدیل داده‌های پایتون به فرمت JSON قابل فهم برای فرانت‌اند
+        json_data = {}
+        for date_key, data in slots_by_date.items():
+            json_data[date_key] = {
+                'available_count': data['available_count'],
+                'slots': [
+                    {
+                        'id': slot.id,
+                        'start_time': slot.start_time.strftime('%H:%M'),
+                        'end_time': slot.end_time.strftime('%H:%M'),
+                        'is_available': slot.is_available
+                    } for slot in data['slots']
+                ]
+            }
+
+        return JsonResponse({'status': 'success', 'data': json_data})
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

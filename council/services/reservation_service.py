@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 import pytz
 from django.db import transaction
@@ -6,8 +6,13 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from payments.models import Payment
-from ..models import Reservation, ServiceType, TimeSlot, ConsultationTopic
+
+from ..models import ConsultationTopic, Reservation, ServiceType, TimeSlot
 from ..utils.date_utils import get_jalali_date_info
+
+PAYMENT_DEADLINE_MINUTES = 60
+MIN_RESERVABLE_DAYS = 1
+MAX_RESERVABLE_DAYS = 30
 
 
 class ReservationService:
@@ -30,7 +35,7 @@ class ReservationService:
     @staticmethod
     def get_available_time_slots(service_type_id):
         """
-        Retrieves and groups available time slots by date, considering expiration and current time.
+        Retrieves and groups available time slots by date, considering expiration and 24h rule.
         """
         service_type = get_object_or_404(
             ServiceType,
@@ -40,21 +45,22 @@ class ReservationService:
 
         tehran_tz = pytz.timezone('Asia/Tehran')
         now = timezone.now().astimezone(tehran_tz)
-        today = now.date()
-        current_time = now.time()
-        end_date = today + timedelta(days=30)
 
-        # 1. Base query: Active slots within the 30-day window, not expired globally
+        booking_deadline = now + timedelta(days=MIN_RESERVABLE_DAYS)
+        start_date_filter = booking_deadline.date()
+        end_date = start_date_filter + timedelta(days=MAX_RESERVABLE_DAYS)
+
+        # 1. Base query: Active slots within window, not expired globally
         available_slots = TimeSlot.objects.filter(
             service_type=service_type,
-            date__gte=today,
+            date__gte=start_date_filter,  # after deadline only
             date__lte=end_date,
             deleted_at__isnull=True,
             is_expired=False
         ).exclude(
-            # 2. Exclude slots that are today but time has already passed
-            date=today,
-            start_time__lte=current_time
+            # 2. Exclude slots specifically on the deadline day that are BEFORE the deadline time
+            date=booking_deadline.date(),
+            start_time__lt=booking_deadline.time()
         ).select_related('service_type').order_by('date', 'start_time')
 
         # 3. Group slots by date and add Jalali info
@@ -82,7 +88,7 @@ class ReservationService:
     @staticmethod
     def lock_time_slot(slot_id):
         """
-        Acquires a lock on the time slot, checks availability, and verifies against current time.
+        Acquires a lock on the time slot, checks availability, and verifies against 24h rule.
         Must be called within a transaction.
         Returns the locked TimeSlot object.
         """
@@ -97,8 +103,10 @@ class ReservationService:
         now = timezone.now().astimezone(tehran_tz)
         slot_datetime = tehran_tz.localize(datetime.combine(time_slot.date, time_slot.start_time))
 
-        if slot_datetime < now:
-            raise ValueError('This time slot has expired due to passing time.')
+        min_allowed_datetime = now + timedelta(days=1)
+
+        if slot_datetime < min_allowed_datetime:
+            raise ValueError('زمان رزرو این نوبت گذشته است (رزرو باید حداقل ۲۴ ساعت قبل انجام شود).')
 
         return time_slot
 
@@ -184,8 +192,8 @@ class ReservationService:
 
         remaining_time = None
         if reservation.phone_verified_at:
-            # 15 minutes lock window
-            expires_at = reservation.phone_verified_at + timedelta(minutes=15)
+            # 60 minutes lock window
+            expires_at = reservation.phone_verified_at + timedelta(minutes=PAYMENT_DEADLINE_MINUTES)
             remaining_seconds = (expires_at - timezone.now()).total_seconds()
             if remaining_seconds > 0:
                 remaining_time = int(remaining_seconds)

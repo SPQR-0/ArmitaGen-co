@@ -1,7 +1,8 @@
 from django.contrib import admin
-from django.utils.html import format_html
 from django.db.models import Sum
+from django.utils.html import format_html
 
+from council.utils.export_utils import export_to_csv
 from .models import Payment
 
 
@@ -37,7 +38,7 @@ class PaymentAdmin(admin.ModelAdmin):
         'created_at'
     ]
     date_hierarchy = 'created_at'
-    actions = ['mark_as_refunded', 'export_payment_report']
+    actions = ['mark_as_refunded', 'export_payment_report', 'export_payments_csv']
 
     fieldsets = (
         ('اطلاعات پرداخت', {
@@ -58,6 +59,7 @@ class PaymentAdmin(admin.ModelAdmin):
             obj.reservation.tracking_code,
             obj.reservation.full_name
         )
+
     reservation_info.short_description = 'رزرو'
 
     def amount_display(self, obj):
@@ -92,6 +94,7 @@ class PaymentAdmin(admin.ModelAdmin):
             icon,
             obj.get_status_display()
         )
+
     status_badge.short_description = 'وضعیت'
 
     def changelist_view(self, request, extra_context=None):
@@ -134,6 +137,7 @@ class PaymentAdmin(admin.ModelAdmin):
                 'فقط پرداخت‌های موفق می‌توانند بازگشت داده شوند.',
                 level='warning'
             )
+
     mark_as_refunded.short_description = 'بازگشت وجه'
 
     def export_payment_report(self, request, queryset):
@@ -147,7 +151,23 @@ class PaymentAdmin(admin.ModelAdmin):
             f'{total_amount:,} تومان آماده است. این قابلیت به زودی اضافه خواهد شد.',
             level='info'
         )
+
     export_payment_report.short_description = 'خروجی گزارش پرداخت'
+
+    @admin.action(description='📥 خروجی CSV پرداخت‌ها')
+    def export_payments_csv(self, request, queryset):
+        """Export payments to CSV"""
+        fields = [
+            'id',
+            'reservation',
+            'amount',
+            'status',
+            'reference_code',
+            'tracking_code',
+            'paid_at',
+            'created_at',
+        ]
+        return export_to_csv(queryset, 'payments', fields)
 
     def has_add_permission(self, request):
         return False

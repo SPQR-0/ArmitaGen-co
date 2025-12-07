@@ -171,3 +171,20 @@ AUTH_USER_MODEL = 'accounts.User'
 
 # Prescription preview setting
 X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+JALALI_DATE_DEFAULTS = {
+    'Strftime': {
+        'date': '%Y/%m/%d',
+        'datetime': '%Y/%m/%d - %H:%M:%S',
+    },
+    'Static': {
+        'js': [
+            'admin/js/django_jalali.min.js',
+        ],
+        'css': {
+            'all': [
+                'admin/jquery.ui.datepicker.jalali/themes/base/jquery-ui.min.css',
+            ]
+        }
+    },
+}

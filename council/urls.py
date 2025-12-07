@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 
 app_name = 'council'
@@ -22,4 +23,5 @@ urlpatterns = [
 
     # AJAX endpoints
     path('api/check-slot/<int:slot_id>/', views.check_slot_availability, name='check_slot_availability'),
+    path('api/slots/<int:service_type_id>/', views.get_service_slots_api, name='get_service_slots_api'),
 ]

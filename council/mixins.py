@@ -1,7 +1,8 @@
 from django.contrib import messages
 from django.shortcuts import redirect
 
-from .utils.reservation_expiration import release_expired_reservations, mark_expired_time_slots
+from .utils.reservation_expiration import (mark_expired_time_slots,
+                                           release_expired_reservations)
 
 
 class ReservationFlowMixin:

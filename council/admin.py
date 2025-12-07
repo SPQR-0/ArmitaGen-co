@@ -1,16 +1,22 @@
-from datetime import datetime, timedelta, date
+from datetime import date, datetime, timedelta
 
 import jdatetime
-from django.contrib import admin
-from django.contrib import messages
+import pytz
+from django.contrib import admin, messages
 from django.db import models
-from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from django.shortcuts import redirect, render
 from django.urls import path
+from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
+from jalali_date.admin import ModelAdminJalaliMixin
 
+from council.utils.export_utils import export_to_csv
+from council.utils.pdf_generator import generate_admin_receipt_pdf, generate_user_receipt_pdf
 from council.utils.reservation_expiration import mark_expired_time_slots
-from .models import ServiceType, SlotRule, TimeSlot, Reservation, ConsultationTopic
+from .models import (ConsultationTopic, Reservation, ServiceType, SlotRule,
+                     TimeSlot)
 
 
 # Helper Function
@@ -81,6 +87,24 @@ class JalaliDateFilter(admin.SimpleListFilter):
         value = self.value()
         if value:
             return queryset.filter(time_slot__date=value)
+        return queryset
+
+
+class HasReservationFilter(admin.SimpleListFilter):
+    title = 'رزرو کننده'
+    parameter_name = 'has_reservation'
+
+    def lookups(self, request, model_admin):
+        return [
+            ('yes', 'دارد'),
+            ('no', 'ندارد'),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(reservations__user__isnull=False).distinct()
+        if self.value() == 'no':
+            return queryset.filter(reservations__user__isnull=True)
         return queryset
 
 
@@ -317,7 +341,7 @@ class SlotRuleAdmin(admin.ModelAdmin):
 
 
 @admin.register(TimeSlot)
-class TimeSlotAdmin(admin.ModelAdmin):
+class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     """Admin panel for individual time slots"""
 
     list_display = [
@@ -329,6 +353,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
         'expired_badge',
         'source_badge',
         'get_payment_status',
+        'get_tracking_code',
         'get_reserver_name',
         'get_reserver_phone',
     ]
@@ -337,11 +362,19 @@ class TimeSlotAdmin(admin.ModelAdmin):
         'is_expired',
         'service_type',
         TimeSlotJalaliDateFilter,
+        HasReservationFilter,
         'date',
         'is_manual',
         'created_at'
     ]
-    search_fields = ['date', 'service_type__name']
+    ordering = ['date', 'start_time']
+    search_fields = [
+        'date',
+        'service_type__name',
+        'reservations__full_name',
+        'reservations__phone_number',
+        'reservations__tracking_code',
+    ]
     date_hierarchy = 'date'
     readonly_fields = ['created_by', 'created_at', 'created_from_rule', 'reservation_details', 'is_expired']
     actions = [
@@ -349,9 +382,22 @@ class TimeSlotAdmin(admin.ModelAdmin):
         'mark_as_available',
         'mark_as_available_force',
         'delete_selected_slots',
-        'mark_expired_slots'
+        'mark_expired_slots',
+        'mark_expired_slots_manual',
+        'mark_active_slots_manual',
+        'export_slots_csv',
     ]
     change_list_template = 'admin/council/timeslot_changelist.html'
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+
+        if 'delete_selected' in actions:
+            function, name, _ = actions['delete_selected']
+
+            actions['delete_selected'] = (function, name, '🗑️ حذف بازه های زمانی (بدون رزرو)')
+
+        return actions
 
     def changelist_view(self, request, extra_context=None):
         """
@@ -755,8 +801,8 @@ class TimeSlotAdmin(admin.ModelAdmin):
                 obj.created_from_rule.name
             )
         return format_html('<span style="background: #B7B7B7; color: white; padding: 2px 8px; '
-                'border-radius: 8px; font-size: 10px;">دستی</span>',
-            )
+                           'border-radius: 8px; font-size: 10px;">دستی</span>',
+                           )
 
     source_badge.short_description = 'منبع'
 
@@ -765,7 +811,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
         updated = queryset.update(is_available=False)
         messages.success(request, f'{updated} نوبت به عنوان غیرقابل دسترس علامت‌گذاری شد.')
 
-    mark_as_unavailable.short_description = 'علامت‌گذاری به عنوان غیرقابل دسترس'
+    mark_as_unavailable.short_description = '👎 علامت‌گذاری به عنوان غیرقابل دسترس (رزرو شده)'
 
     def mark_as_available(self, request, queryset):
         """Mark selected slots as available"""
@@ -780,7 +826,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
                 f'{slots_with_reservations} نوبت دارای رزرو بودند و تغییر نکردند.'
             )
 
-    mark_as_available.short_description = 'علامت‌گذاری به عنوان قابل دسترس'
+    mark_as_available.short_description = '👍 علامت‌گذاری به عنوان قابل دسترس'
 
     def mark_as_available_force(self, request, queryset):
         """
@@ -828,45 +874,95 @@ class TimeSlotAdmin(admin.ModelAdmin):
     mark_as_available_force.short_description = '🔓 علامت‌گذاری اجباری به عنوان قابل دسترس (Force)'
 
     def mark_expired_slots(self, request, queryset):
-        """Manually mark selected slots as expired"""
-        from django.utils import timezone
-        from datetime import datetime
+        """Manually mark slots as expired if less than 24h remains"""
 
-        now = timezone.now()
+        tehran_tz = pytz.timezone('Asia/Tehran')
+        now = timezone.now().astimezone(tehran_tz)
         expired_count = 0
 
         for slot in queryset:
-            slot_datetime = timezone.make_aware(
+            slot_datetime = tehran_tz.localize(
                 datetime.combine(slot.date, slot.start_time)
             )
 
-            if slot_datetime < now:
-                slot.is_expired = True
-                slot.is_available = False
-                slot.save(update_fields=['is_expired', 'is_available'])
-                expired_count += 1
+            # 24 Hours deadline
+            expiration_deadline = slot_datetime - timedelta(days=1)
 
-        messages.success(request, f'✓ {expired_count} نوبت به عنوان منقضی شده علامت‌گذاری شد.')
+            if now >= expiration_deadline:
+                if not slot.is_expired or slot.is_available:
+                    slot.is_expired = True
+                    slot.is_available = False
+                    slot.save(update_fields=['is_expired', 'is_available'])
+                    expired_count += 1
+
+        messages.success(request, f'✓ {expired_count} نوبت (که کمتر از ۲۴ ساعت به شروع آن‌ها مانده) منقضی شد.')
 
     mark_expired_slots.short_description = '⏰ علامت‌گذاری نوبت‌های گذشته به عنوان منقضی'
 
+    def mark_expired_slots_manual(self, request, queryset):
+        """
+        Force mark slots as expired (Manual)
+        """
+        updated_count = queryset.update(is_expired=True, is_available=False)
+
+        messages.success(
+            request,
+            f'✓ {updated_count} نوبت به صورت دستی «منقضی» و از دسترس خارج شد.'
+        )
+
+    mark_expired_slots_manual.short_description = '⛔ منقضی کردن دستی نوبت‌ها (بدون شرط زمان)'
+
+    def mark_active_slots_manual(self, request, queryset):
+        """
+        Force mark slots as active/available (Un-expire)
+        """
+        updated_count = queryset.update(is_expired=False)
+
+        messages.success(
+            request,
+            f'✓ {updated_count} نوبت رفع انقضا شد (وضعیت رزرو و در دسترس بودن تغییر نکرد).'
+        )
+
+    mark_active_slots_manual.short_description = '✅ فعال‌سازی مجدد و لغو انقضا'
+
     def delete_selected_slots(self, request, queryset):
-        """Soft delete selected slots"""
-        # Only delete slots without reservations
-        slots_with_reservations = queryset.filter(reservations__isnull=False)
-        can_delete = queryset.filter(reservations__isnull=True)
+        """
+        Hard Delete selected slots + Force delete related reservations
+        """
+        related_reservations = Reservation.objects.filter(time_slot__in=queryset)
+        res_count = related_reservations.count()
+        slots_count = queryset.count()
 
-        deleted_count = can_delete.count()
-        can_delete.update(deleted_at=datetime.now())
+        if res_count > 0:
+            related_reservations.delete()
 
-        messages.success(request, f'{deleted_count} نوبت حذف شد.')
-        if slots_with_reservations.exists():
+        queryset.delete()
+
+        if res_count > 0:
             messages.warning(
                 request,
-                f'{slots_with_reservations.count()} نوبت دارای رزرو بودند و حذف نشدند.'
+                f'💥 عملیات سنگین: {slots_count} نوبت به همراه {res_count} رزرو متصل به آن‌ها، '
+                f'به صورت کامل و فیزیکی از دیتابیس حذف شدند.'
+            )
+        else:
+            messages.success(
+                request,
+                f'🗑️ {slots_count} نوبت با موفقیت حذف فیزیکی شدند.'
             )
 
-    delete_selected_slots.short_description = 'حذف نوبت‌های انتخاب شده'
+    delete_selected_slots.short_description = '💀 حذف فیزیکی و اجباری (همراه با رزروها)'
+
+    def get_tracking_code(self, obj):
+        reservation = obj.reservations.first()
+        if reservation and reservation.tracking_code:
+            return format_html(
+                '<code style="font-size: 14px; color: #d63384; user-select: all;">{}</code>',
+                reservation.tracking_code
+            )
+        return "-"
+
+    get_tracking_code.short_description = 'کد پیگیری'
+    get_tracking_code.admin_order_field = 'reservations__tracking_code'
 
     def get_reserver_name(self, obj):
         reservation = obj.reservations.first()
@@ -902,9 +998,25 @@ class TimeSlotAdmin(admin.ModelAdmin):
 
     get_payment_status.short_description = "پرداخت"
 
+    @admin.action(description='📥 خروجی CSV نوبت‌ها')
+    def export_slots_csv(self, request, queryset):
+        """Export time slots to CSV"""
+        fields = [
+            'id',
+            'service_type',
+            'date',
+            'start_time',
+            'end_time',
+            'is_available',
+            'is_expired',
+            'is_manual',
+            'created_at',
+        ]
+        return export_to_csv(queryset, 'time_slots', fields)
+
 
 @admin.register(Reservation)
-class ReservationAdmin(admin.ModelAdmin):
+class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     """Admin panel for reservations"""
 
     list_display = [
@@ -946,7 +1058,13 @@ class ReservationAdmin(admin.ModelAdmin):
     ]
     list_display_links = ['row_number', 'full_name_display']
     date_hierarchy = 'time_slot__date'
-    actions = ['mark_as_completed', 'mark_as_cancelled', 'export_to_pdf']
+    actions = [
+        'mark_as_completed',
+        'mark_as_cancelled',
+        'export_selected_csv',
+        'export_selected_pdf_admin',
+        'export_selected_pdf_user',
+    ]
 
     fieldsets = (
         ('اطلاعات رزرو', {
@@ -1212,12 +1330,102 @@ class ReservationAdmin(admin.ModelAdmin):
 
     mark_as_cancelled.short_description = 'لغو رزرو'
 
-    def export_to_pdf(self, request, queryset):
-        """Export selected reservations to PDF (placeholder)"""
-        messages.info(
-            request,
-            f'{queryset.count()} رزرو برای خروجی PDF انتخاب شد. '
-            'این قابلیت به زودی اضافه خواهد شد.'
-        )
+    @admin.action(description='📥 خروجی CSV (فیلتر شده)')
+    def export_selected_csv(self, request, queryset):
+        """
+        Export selected reservations to CSV with all fields
+        """
+        fields = [
+            'id',
+            'tracking_code',
+            'full_name',
+            'phone_number',
+            'email',
+            'service_type',
+            'consultation_topic',
+            'status',
+            'payment_status',
+            'created_at',
+            'phone_verified_at',
+        ]
 
-    export_to_pdf.short_description = 'خروجی PDF'
+        return export_to_csv(queryset, 'reservations', fields)
+
+    # ========== PDF Export (Admin) ==========
+    @admin.action(description='📄 خروجی PDF ادمین (همه رزروها)')
+    def export_selected_pdf_admin(self, request, queryset):
+        """
+        Export selected reservations as admin PDF reports
+        """
+        if queryset.count() == 1:
+            # تک رزرو - یک PDF
+            reservation = queryset.first()
+            return generate_admin_receipt_pdf(reservation)
+        else:
+            # چند رزرو - ZIP فایل
+            return self._export_multiple_pdf_admin(request, queryset)
+
+    # ========== PDF Export (User) ==========
+    @admin.action(description='📄 خروجی PDF کاربر (برای ارسال)')
+    def export_selected_pdf_user(self, request, queryset):
+        """
+        Export selected reservations as user-friendly PDF receipts
+        """
+        if queryset.count() == 1:
+            # تک رزرو - یک PDF
+            reservation = queryset.first()
+            return generate_user_receipt_pdf(reservation)
+        else:
+            # چند رزرو - ZIP فایل
+            return self._export_multiple_pdf_user(request, queryset)
+
+    # ========== Helper: Multiple PDFs as ZIP ==========
+    def _export_multiple_pdf_admin(self, request, queryset):
+        """
+        Export multiple reservations as ZIP of admin PDFs
+        """
+        import zipfile
+        from io import BytesIO
+
+        zip_buffer = BytesIO()
+
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for reservation in queryset:
+                # Generate PDF
+                pdf_response = generate_admin_receipt_pdf(reservation)
+                pdf_content = pdf_response.content
+
+                # Add to ZIP
+                filename = f"admin_{reservation.tracking_code}.pdf"
+                zip_file.writestr(filename, pdf_content)
+
+        zip_buffer.seek(0)
+
+        response = HttpResponse(zip_buffer, content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename="admin_receipts_{queryset.count()}.zip"'
+        return response
+
+    def _export_multiple_pdf_user(self, request, queryset):
+        """
+        Export multiple reservations as ZIP of user PDFs
+        """
+        import zipfile
+        from io import BytesIO
+
+        zip_buffer = BytesIO()
+
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for reservation in queryset:
+                # Generate PDF
+                pdf_response = generate_user_receipt_pdf(reservation)
+                pdf_content = pdf_response.content
+
+                # Add to ZIP
+                filename = f"receipt_{reservation.tracking_code}.pdf"
+                zip_file.writestr(filename, pdf_content)
+
+        zip_buffer.seek(0)
+
+        response = HttpResponse(zip_buffer, content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename="user_receipts_{queryset.count()}.zip"'
+        return response

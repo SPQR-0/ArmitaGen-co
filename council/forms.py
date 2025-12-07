@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from .models import Reservation, ServiceType, ConsultationTopic
+from .models import ConsultationTopic, Reservation, ServiceType
 
 
 class ReservationStepOneForm(forms.ModelForm):

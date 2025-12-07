@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from council.models import Reservation, TimeSlot
 
-EXPIRATION_MINUTES = 15
+EXPIRATION_MINUTES = 60
 
 
 def release_expired_reservations():
@@ -46,7 +46,7 @@ def release_expired_reservations():
 
 def mark_expired_time_slots():
     """
-    Mark all time slots that have passed their datetime as expired.
+    Mark slots as expired if they are starting within the next 24 hours (or in the past).
     This prevents them from being shown in the booking interface.
     Returns number of slots marked as expired.
     """
@@ -54,28 +54,25 @@ def mark_expired_time_slots():
     # Tehran Timezone
     tehran_tz = pytz.timezone('Asia/Tehran')
     now_tehran = timezone.now().astimezone(tehran_tz)
-    current_date = now_tehran.date()
-    current_time = now_tehran.time()
 
-    # print(f"🕐 Current Tehran Time: {now_tehran}")
-    # print(f"📅 Current Date: {current_date}")
-    # print(f"⏰ Current Time: {current_time}")
+    expiration_deadline = now_tehran + timedelta(days=1)
+    deadline_date = expiration_deadline.date()
+    deadline_time = expiration_deadline.time()
 
-    # Get slots that are in the past but not marked as expired yet
+    # current_date = now_tehran.date()
+    # current_time = now_tehran.time()
     expired_slots = TimeSlot.objects.filter(
         is_expired=False,
         deleted_at__isnull=True
     ).filter(
-        # Either date is before today
-        models.Q(date__lt=current_date) |
-        # Or date is today but start time has passed
-        models.Q(date=current_date, start_time__lte=current_time)
+        models.Q(date__lt=deadline_date) |
+        models.Q(date=deadline_date, start_time__lte=deadline_time)
     )
 
     count = expired_slots.count()
 
     if count > 0:
-        print(f"⚠️ Found {count} expired slots to mark")
+        print(f"⚠️ Found {count} slots closer than 24h (or past) to mark as expired")
 
     # Mark them as expired and unavailable
     expired_slots.update(
