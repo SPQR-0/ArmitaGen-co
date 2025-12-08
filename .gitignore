@@ -2,9 +2,10 @@
 .env
 .venv
 .idea
+# Ignore Python bytecode
 __pycache__/
 *.pyc
-
+*.py[cod]
 # IDE
 .IDE
 .vscode
