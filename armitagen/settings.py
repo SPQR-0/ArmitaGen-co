@@ -9,8 +9,9 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import locale
 import os
+import sys
 from pathlib import Path
 
 import environ
@@ -57,6 +58,7 @@ INSTALLED_APPS = [
     'django_render_partial',
     'jalali_date',
     'import_export',
+    'django_admin_listfilter_dropdown',
 ]
 
 MIDDLEWARE = [
@@ -152,7 +154,7 @@ USE_TZ = False
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'armitagen/static', )
+    os.path.join(BASE_DIR, 'armitagen/static', ),
 ]
 
 # Media conf
@@ -188,3 +190,8 @@ JALALI_DATE_DEFAULTS = {
         }
     },
 }
+
+if sys.platform.startswith('win32'):
+    locale.setlocale(locale.LC_ALL, "Persian_Iran.UTF-8")
+else:
+    locale.setlocale(locale.LC_ALL, "fa_IR.UTF-8")

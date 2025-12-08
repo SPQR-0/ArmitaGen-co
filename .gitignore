@@ -11,8 +11,10 @@ __pycache__/
 
 # static
 #static/*
-static/assets/images/*
+static/assets/*
+static/import_export/*
 media/*
+static_collected/
 
 # cache files
 armitagen/__pychache__

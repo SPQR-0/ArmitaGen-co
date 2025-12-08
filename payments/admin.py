@@ -1,9 +1,38 @@
+import jdatetime
 from django.contrib import admin
+from django.contrib.admin import DateFieldListFilter
+from django.contrib.admin import SimpleListFilter
 from django.db.models import Sum
+from django.utils import timezone
 from django.utils.html import format_html
 
 from council.utils.export_utils import export_to_csv
 from .models import Payment
+
+
+class PaidDateFilter(SimpleListFilter):
+    title = 'تاریخ پرداخت'
+    parameter_name = 'paid_at'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('today', 'امروز'),
+            ('yesterday', 'دیروز'),
+            ('last_7_days', '7 روز گذشته'),
+            ('this_month', 'این ماه'),
+        )
+
+    def queryset(self, request, queryset):
+        today = timezone.now().date()
+        if self.value() == 'today':
+            return queryset.filter(paid_at__date=today)
+        elif self.value() == 'yesterday':
+            return queryset.filter(paid_at__date=today - timezone.timedelta(days=1))
+        elif self.value() == 'last_7_days':
+            return queryset.filter(paid_at__date__gte=today - timezone.timedelta(days=7))
+        elif self.value() == 'this_month':
+            return queryset.filter(paid_at__year=today.year, paid_at__month=today.month)
+        return queryset
 
 
 @admin.register(Payment)
@@ -16,13 +45,22 @@ class PaymentAdmin(admin.ModelAdmin):
         'amount_display',
         'status_badge',
         'tracking_code',
-        'paid_at',
-        'created_at'
+        'paid_at_jalali',
+        'created_at_jalali'
     ]
+
+    readonly_fields = [
+        'reservation',
+        'amount',
+        'tracking_code',
+        'paid_at_jalali',
+        'created_at_jalali'
+    ]
+
     list_filter = [
         'status',
-        'created_at',
-        'paid_at'
+        ('created_at', DateFieldListFilter),
+        PaidDateFilter,
     ]
     search_fields = [
         'reservation__tracking_code',
@@ -30,13 +68,7 @@ class PaymentAdmin(admin.ModelAdmin):
         'reservation__full_name',
         'tracking_code'
     ]
-    readonly_fields = [
-        'reservation',
-        'amount',
-        'tracking_code',
-        'paid_at',
-        'created_at'
-    ]
+
     date_hierarchy = 'created_at'
     actions = ['mark_as_refunded', 'export_payment_report', 'export_payments_csv']
 
@@ -49,6 +81,20 @@ class PaymentAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    def paid_at_jalali(self, obj):
+        if obj.paid_at:
+            return jdatetime.datetime.fromgregorian(datetime=obj.paid_at).strftime('%Y/%m/%d %H:%M')
+        return '-'
+
+    paid_at_jalali.short_description = 'تاریخ پرداخت'
+    paid_at_jalali.admin_order_field = 'paid_at'
+
+    def created_at_jalali(self, obj):
+        return jdatetime.datetime.fromgregorian(datetime=obj.created_at).strftime('%Y/%m/%d %H:%M')
+
+    created_at_jalali.short_description = 'تاریخ ایجاد'
+    created_at_jalali.admin_order_field = 'created_at'
 
     def reservation_info(self, obj):
         url = f'/admin/council/reservation/{obj.reservation.id}/change/'
@@ -71,6 +117,7 @@ class PaymentAdmin(admin.ModelAdmin):
         )
 
     amount_display.short_description = 'مبلغ'
+    amount_display.admin_order_field = 'amount'
 
     def status_badge(self, obj):
         colors = {

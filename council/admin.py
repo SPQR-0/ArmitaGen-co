@@ -1,7 +1,9 @@
+import csv
 from datetime import date, datetime, timedelta
 
 import jdatetime
 import pytz
+from django import forms
 from django.contrib import admin, messages
 from django.db import models
 from django.http import HttpResponse
@@ -11,10 +13,13 @@ from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 from jalali_date.admin import ModelAdminJalaliMixin
+from jalali_date.fields import JalaliDateField, SplitJalaliDateTimeField
+from jalali_date.widgets import AdminJalaliDateWidget, AdminSplitJalaliDateTime
 
 from council.utils.export_utils import export_to_csv
 from council.utils.pdf_generator import generate_admin_receipt_pdf, generate_user_receipt_pdf
 from council.utils.reservation_expiration import mark_expired_time_slots
+from .admin_filters import JalaliDateRangeFilter
 from .models import (ConsultationTopic, Reservation, ServiceType, SlotRule,
                      TimeSlot)
 
@@ -250,6 +255,70 @@ class ServiceTypeAdmin(admin.ModelAdmin):
     reservations_count.short_description = 'تعداد رزرو'
 
 
+class SlotRuleAdminForm(forms.ModelForm):
+    WEEKDAYS_CHOICES = [
+        ('0', 'شنبه'),
+        ('1', 'یکشنبه'),
+        ('2', 'دوشنبه'),
+        ('3', 'سه‌شنبه'),
+        ('4', 'چهارشنبه'),
+        ('5', 'پنج‌شنبه'),
+        ('6', 'جمعه'),
+    ]
+
+    apply_from_date = JalaliDateField(
+        widget=AdminJalaliDateWidget,
+        label="تاریخ شروع",
+        required=False
+    )
+    apply_to_date = JalaliDateField(
+        widget=AdminJalaliDateWidget,
+        label="تاریخ پایان",
+        required=False
+    )
+
+    weekdays = forms.MultipleChoiceField(
+        choices=WEEKDAYS_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        label="روزهای هفته",
+        required=False
+    )
+
+    class Meta:
+        model = SlotRule
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.weekdays:
+            self.initial['weekdays'] = self.instance.weekdays.split(',')
+
+    def clean_weekdays(self):
+        data = self.cleaned_data.get('weekdays', [])
+        return ','.join(data)
+
+
+@admin.action(description='خروجی CSV')
+def export_as_csv(modeladmin, request, queryset):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=slot_rules.csv'
+    writer = csv.writer(response)
+
+    # header
+    writer.writerow(['نام', 'نوع سرویس', 'روزهای هفته', 'بازه زمانی', 'مدت هر نوبت'])
+
+    for obj in queryset:
+        writer.writerow([
+            obj.name,
+            obj.service_type,
+            modeladmin.weekdays_csv(obj),
+            f"{obj.start_time.strftime('%H:%M')} - {obj.end_time.strftime('%H:%M')}",
+            f"{obj.slot_duration} دقیقه"
+        ])
+
+    return response
+
+
 @admin.register(SlotRule)
 class SlotRuleAdmin(admin.ModelAdmin):
     """Admin panel for slot generation rules"""
@@ -267,7 +336,8 @@ class SlotRuleAdmin(admin.ModelAdmin):
     list_filter = ['is_active', 'service_type', 'created_at']
     search_fields = ['name']
     readonly_fields = ['created_at', 'updated_at']
-
+    form = SlotRuleAdminForm
+    actions = [export_as_csv]
     fieldsets = (
         ('اطلاعات پایه', {
             'fields': ('name', 'service_type', 'is_active')
@@ -284,6 +354,27 @@ class SlotRuleAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    class Media:
+        css = {
+            'all': ('admin/css/django_jalali.min.css',)
+        }
+        js = (
+            'admin/js/django_jalali.min.js',
+            # 'admin/js/main_jalali.js'
+        )
+
+    def weekdays_csv(self, obj):
+        days_map = {
+            '0': 'شنبه', '1': 'یکشنبه', '2': 'دوشنبه',
+            '3': 'سه‌شنبه', '4': 'چهارشنبه', '5': 'پنج‌شنبه', '6': 'جمعه'
+        }
+        if obj.weekdays:
+            selected = [days_map.get(d.strip(), d) for d in obj.weekdays.split(',')]
+            return ', '.join(selected)
+        return ''
+
+    weekdays_csv.short_description = 'روزهای هفته'
 
     def get_date_range_jalali(self, obj):
         start = date2jalali(obj.apply_from_date) if obj.apply_from_date else "نامحدود"
@@ -340,6 +431,15 @@ class SlotRuleAdmin(admin.ModelAdmin):
     active_badge.short_description = 'فعال'
 
 
+class TimeSlotAdminForm(forms.ModelForm):
+    date = JalaliDateField(widget=AdminJalaliDateWidget, label="تاریخ")
+    created_at = SplitJalaliDateTimeField(widget=AdminSplitJalaliDateTime, required=False)
+
+    class Meta:
+        model = TimeSlot
+        fields = "__all__"
+
+
 @admin.register(TimeSlot)
 class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     """Admin panel for individual time slots"""
@@ -358,14 +458,16 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         'get_reserver_phone',
     ]
     list_filter = [
+        JalaliDateRangeFilter,
         'is_available',
         'is_expired',
         'service_type',
         TimeSlotJalaliDateFilter,
         HasReservationFilter,
-        'date',
+        'start_time',
+        # 'end_time',
         'is_manual',
-        'created_at'
+        'created_at',
     ]
     ordering = ['date', 'start_time']
     search_fields = [
@@ -388,6 +490,16 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         'export_slots_csv',
     ]
     change_list_template = 'admin/council/timeslot_changelist.html'
+    form = TimeSlotAdminForm
+
+    class Media:
+        css = {
+            'all': ('admin/css/django_jalali.min.css',)
+        }
+        js = (
+            'admin/js/django_jalali.min.js',
+            # 'admin/js/main_jalali.js'
+        )
 
     def get_actions(self, request):
         actions = super().get_actions(request)

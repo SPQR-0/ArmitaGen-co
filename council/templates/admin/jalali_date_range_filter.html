@@ -1,0 +1,16 @@
+<div class="jalali-range-filter">
+
+  <form method="get">
+      {% for key, value in params.items %}
+          {% if key != 'start_date' and key != 'end_date' %}
+              <input type="hidden" name="{{ key }}" value="{{ value }}">
+          {% endif %}
+      {% endfor %}
+
+      {{ form.start_date }}
+      {{ form.end_date }}
+
+      <button type="submit" class="button">اعمال</button>
+  </form>
+
+</div>
