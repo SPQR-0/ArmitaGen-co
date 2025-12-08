@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'payments.apps.PaymentsConfig',
     'reports.apps.ReportsConfig',
+    'logs.apps.LogsConfig',
     # Packages
     'django_render_partial',
     'jalali_date',
@@ -69,6 +70,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # --- Custom Middleware ---
+    # Placed at the bottom to ensure 'request.user' is ready
+    # and all other Django processing is complete.
+    'logs.middleware.UserActivityMiddleware',
+
+    # Error logging should usually be last to catch everything
+    'logs.middleware.ErrorLoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'armitagen.urls'
