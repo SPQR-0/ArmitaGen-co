@@ -140,6 +140,7 @@ class ConsultationTopicAdmin(admin.ModelAdmin):
         }),
     )
     actions = ['export_topics_csv']
+
     @admin.action(description='📥 خروجی CSV')
     def export_topics_csv(modeladmin, request, queryset):
 
@@ -219,6 +220,32 @@ class ServiceTypeAdmin(admin.ModelAdmin):
             'fields': ('is_online', 'is_active', 'order')
         }),
     )
+    actions = ['export_services_csv']
+
+    @admin.action(description='📥 خروجی CSV')
+    def export_services_csv(modeladmin, request, queryset):
+
+        response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+        response['Content-Disposition'] = 'attachment; filename=service_types.csv'
+
+        writer = csv.writer(response, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+
+        # Header
+        writer.writerow(['نام سرویس', 'قیمت', 'مدت زمان', 'نوع مشاوره', 'تعداد رزرو', 'تاریخ ایجاد'])
+
+        for obj in queryset:
+            service_type_label = 'غیرحضوری' if obj.is_online else 'حضوری'
+
+            writer.writerow([
+                safe_csv(obj.name),
+                safe_csv("{:,}".format(obj.price) + ' تومان'),
+                safe_csv(f"{obj.duration} دقیقه"),
+                safe_csv(service_type_label),
+                safe_csv(obj.reservations.count()),
+                safe_csv(datetime2jalali(obj.created_at)),
+            ])
+
+        return response
 
     def price_display(self, obj):
         """Display price with thousand separators"""
