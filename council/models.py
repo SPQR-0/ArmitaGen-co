@@ -30,7 +30,7 @@ class ConsultationTopic(models.Model):
     name = models.CharField(
         max_length=200,
         unique=True,
-        verbose_name='عنوان موضوع',
+        verbose_name='عنوان',
         help_text='مثال: مشاوره تغذیه، مشاوره ورزشی'
     )
     slug = models.SlugField(

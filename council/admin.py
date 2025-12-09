@@ -16,6 +16,7 @@ from jalali_date.admin import ModelAdminJalaliMixin
 from jalali_date.fields import JalaliDateField, SplitJalaliDateTimeField
 from jalali_date.widgets import AdminJalaliDateWidget, AdminSplitJalaliDateTime
 
+from council.admin_utils.csv import safe_csv
 from council.utils.export_utils import export_to_csv
 from council.utils.pdf_generator import generate_admin_receipt_pdf, generate_user_receipt_pdf
 from council.utils.reservation_expiration import mark_expired_time_slots
@@ -138,6 +139,27 @@ class ConsultationTopicAdmin(admin.ModelAdmin):
             'fields': ('is_active', 'order')
         }),
     )
+    actions = ['export_topics_csv']
+    @admin.action(description='📥 خروجی CSV')
+    def export_topics_csv(modeladmin, request, queryset):
+
+        response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+        response['Content-Disposition'] = 'attachment; filename=consultation_topics.csv'
+
+        # Prevent Excel from messing with newline
+        writer = csv.writer(response, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+
+        # Header row
+        writer.writerow(['عنوان', 'تعداد رزرو', 'تاریخ ایجاد'])
+
+        for obj in queryset:
+            writer.writerow([
+                safe_csv(obj.name),
+                safe_csv(str(obj.reservations.count())),
+                safe_csv(datetime2jalali(obj.created_at)),
+            ])
+
+        return response
 
     def active_badge(self, obj):
         """Display active status badge"""
