@@ -1,8 +1,11 @@
+import csv
+
 import jdatetime
 from django.contrib import admin
 from django.contrib.admin import DateFieldListFilter
 from django.contrib.admin import SimpleListFilter
 from django.db.models import Sum
+from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.html import format_html
 
@@ -70,7 +73,7 @@ class PaymentAdmin(admin.ModelAdmin):
     ]
 
     date_hierarchy = 'created_at'
-    actions = ['mark_as_refunded', 'export_payment_report', 'export_payments_csv']
+    actions = ['mark_as_refunded', 'export_payment_report', 'export_payments_csv_jalali']
 
     fieldsets = (
         ('اطلاعات پرداخت', {
@@ -81,6 +84,56 @@ class PaymentAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    @admin.action(description='📥 خروجی CSV کامل پرداخت‌ها')
+    def export_payments_csv_jalali(self, request, queryset):
+        response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+        response['Content-Disposition'] = 'attachment; filename=payments_full.csv'
+
+        writer = csv.writer(response, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+
+        # Header CSV
+        writer.writerow([
+            'شناسه',
+            'رزرو',
+            'نام و نام خانوادگی',
+            'شماره تماس',
+            'کد پیگیری رزرو',
+            'نوع مشاوره',
+            'عنوان مشاوره',
+            'وضعیت پرداخت',
+            'مبلغ (تومان)',
+            'تاریخ و زمان پرداخت',
+            'تاریخ و زمان ایجاد پرداخت',
+            'تاریخ و زمان رزرو نوبت'
+        ])
+
+        def jalali_date(dt):
+            if not dt:
+                return '-'
+            return jdatetime.datetime.fromgregorian(datetime=dt).strftime('%Y/%m/%d %H:%M:%S')
+
+        for payment in queryset:
+            reservation = payment.reservation
+            service_type = reservation.service_type.name if reservation.service_type else '-'
+            consultation_topic = reservation.consultation_topic.name if reservation.consultation_topic else '-'
+
+            writer.writerow([
+                payment.id,
+                reservation.tracking_code if reservation else '-',
+                reservation.full_name if reservation else '-',
+                reservation.phone_number if reservation else '-',
+                reservation.tracking_code if reservation else '-',
+                service_type,
+                consultation_topic,
+                payment.get_status_display(),
+                payment.amount,
+                jalali_date(payment.paid_at),
+                jalali_date(payment.created_at),
+                jalali_date(reservation.reserved_at) if reservation else '-',
+            ])
+
+        return response
 
     def paid_at_jalali(self, obj):
         if obj.paid_at:
@@ -187,34 +240,35 @@ class PaymentAdmin(admin.ModelAdmin):
 
     mark_as_refunded.short_description = 'بازگشت وجه'
 
+    @admin.action(description='📊 گزارش کامل پرداخت‌ها')
     def export_payment_report(self, request, queryset):
+        total_payments = queryset.count()
+        successful_payments = queryset.filter(status='success').count()
+        pending_payments = queryset.filter(status='pending').count()
+        failed_payments = queryset.filter(status='failed').count()
+        refunded_payments = queryset.filter(status='refunded').count()
+
         total_amount = queryset.filter(status='success').aggregate(
             Sum('amount')
         )['amount__sum'] or 0
 
-        self.message_user(
-            request,
-            f'گزارش {queryset.count()} پرداخت با مجموع '
-            f'{total_amount:,} تومان آماده است. این قابلیت به زودی اضافه خواهد شد.',
-            level='info'
+        refunded_amount = queryset.filter(status='refunded').aggregate(
+            Sum('amount')
+        )['amount__sum'] or 0
+
+        message = (
+            f"📊 گزارش پرداخت‌ها:\n"
+            f"تعداد کل پرداخت‌ها: {total_payments}\n | "
+            f"پرداخت‌های موفق: {successful_payments}\n | "
+            f"پرداخت‌های در انتظار: {pending_payments}\n | "
+            f"پرداخت‌های ناموفق: {failed_payments}\n | "
+            f"پرداخت‌های بازگشت داده شده: {refunded_payments}\n | "
+            f"مجموع مبلغ پرداخت موفق: {total_amount:,} تومان\n | "
+            f"مجموع مبلغ بازگشت داده شده: {refunded_amount:,} تومان"
         )
 
-    export_payment_report.short_description = 'خروجی گزارش پرداخت'
+        self.message_user(request, message, level='info')
 
-    @admin.action(description='📥 خروجی CSV پرداخت‌ها')
-    def export_payments_csv(self, request, queryset):
-        """Export payments to CSV"""
-        fields = [
-            'id',
-            'reservation',
-            'amount',
-            'status',
-            'reference_code',
-            'tracking_code',
-            'paid_at',
-            'created_at',
-        ]
-        return export_to_csv(queryset, 'payments', fields)
 
     def has_add_permission(self, request):
         return False
