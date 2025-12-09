@@ -29,10 +29,13 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY")
 # SECRET_KEY = "django-insecure-2hez2&hth6=k*vo0bf8ta(8o!fl_@)x92!vwbgd*v*&6-#%3tz"
-DEBUG = env.bool("DEBUG", default=False)
+# DEBUG = env.bool("DEBUG", default=False)
 # SECURITY WARNING: don't run with debug turned on in production!
 
-ALLOWED_HOSTS = []
+DEBUG = False
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# ALLOWED_HOSTS = []
+
 
 # Application definition
 
@@ -54,6 +57,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'payments.apps.PaymentsConfig',
     'reports.apps.ReportsConfig',
+    'errors.apps.ErrorsConfig',
     # Packages
     'django_render_partial',
     'jalali_date',
