@@ -143,7 +143,6 @@ class ConsultationTopicAdmin(admin.ModelAdmin):
 
     @admin.action(description='📥 خروجی CSV')
     def export_topics_csv(modeladmin, request, queryset):
-
         response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
         response['Content-Disposition'] = 'attachment; filename=consultation_topics.csv'
 
@@ -224,7 +223,6 @@ class ServiceTypeAdmin(admin.ModelAdmin):
 
     @admin.action(description='📥 خروجی CSV')
     def export_services_csv(modeladmin, request, queryset):
-
         response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
         response['Content-Disposition'] = 'attachment; filename=service_types.csv'
 
@@ -347,27 +345,6 @@ class SlotRuleAdminForm(forms.ModelForm):
         return ','.join(data)
 
 
-@admin.action(description='خروجی CSV')
-def export_as_csv(modeladmin, request, queryset):
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=slot_rules.csv'
-    writer = csv.writer(response)
-
-    # header
-    writer.writerow(['نام', 'نوع سرویس', 'روزهای هفته', 'بازه زمانی', 'مدت هر نوبت'])
-
-    for obj in queryset:
-        writer.writerow([
-            obj.name,
-            obj.service_type,
-            modeladmin.weekdays_csv(obj),
-            f"{obj.start_time.strftime('%H:%M')} - {obj.end_time.strftime('%H:%M')}",
-            f"{obj.slot_duration} دقیقه"
-        ])
-
-    return response
-
-
 @admin.register(SlotRule)
 class SlotRuleAdmin(admin.ModelAdmin):
     """Admin panel for slot generation rules"""
@@ -386,7 +363,6 @@ class SlotRuleAdmin(admin.ModelAdmin):
     search_fields = ['name']
     readonly_fields = ['created_at', 'updated_at']
     form = SlotRuleAdminForm
-    actions = [export_as_csv]
     fieldsets = (
         ('اطلاعات پایه', {
             'fields': ('name', 'service_type', 'is_active')
@@ -404,6 +380,8 @@ class SlotRuleAdmin(admin.ModelAdmin):
         }),
     )
 
+    actions = ['export_slot_rule_csv']
+
     class Media:
         css = {
             'all': ('admin/css/django_jalali.min.css',)
@@ -412,6 +390,26 @@ class SlotRuleAdmin(admin.ModelAdmin):
             'admin/js/django_jalali.min.js',
             # 'admin/js/main_jalali.js'
         )
+
+    @admin.action(description='خروجی CSV')
+    def export_slot_rule_csv(modeladmin, request, queryset):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=slot_rules.csv'
+        writer = csv.writer(response)
+
+        # header
+        writer.writerow(['نام', 'نوع سرویس', 'روزهای هفته', 'بازه زمانی', 'مدت هر نوبت'])
+
+        for obj in queryset:
+            writer.writerow([
+                obj.name,
+                obj.service_type,
+                modeladmin.weekdays_csv(obj),
+                f"{obj.start_time.strftime('%H:%M')} - {obj.end_time.strftime('%H:%M')}",
+                f"{obj.slot_duration} دقیقه"
+            ])
+
+        return response
 
     def weekdays_csv(self, obj):
         days_map = {
@@ -549,6 +547,110 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             'admin/js/django_jalali.min.js',
             # 'admin/js/main_jalali.js'
         )
+
+    @admin.action(description='📥 خروجی به فرمت CSV')
+    def export_slots_csv(self, request, queryset):
+        """Export time slots to CSV with complete reservation and payment details"""
+        response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+        response['Content-Disposition'] = 'attachment; filename=time_slots.csv'
+
+        writer = csv.writer(response, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+
+        # CSV Header
+        writer.writerow([
+            'نوع مشاوره',
+            'زمان',
+            'تاریخ',
+            'روز هفته',
+            'وضعیت رزرو',
+            'وضعیت پرداخت',
+            'مبلغ نهایی پرداخت',
+            'کد پیگیری',
+            'رزرو کننده',
+            'شماره تماس رزرو کننده',
+            'زمان رزرو',
+            'زمان ایجاد نوبت'
+        ])
+
+        # Persian weekday mapping
+        WEEKDAY_PERSIAN = {
+            0: "دوشنبه",  # Monday
+            1: "سه‌شنبه",  # Tuesday
+            2: "چهارشنبه",  # Wednesday
+            3: "پنج‌شنبه",  # Thursday
+            4: "جمعه",  # Friday
+            5: "شنبه",  # Saturday
+            6: "یکشنبه",  # Sunday
+        }
+
+        def convert_to_jalali_date(date_obj):
+            """Convert Gregorian date to Jalali format (YYYY/MM/DD)"""
+            if not date_obj:
+                return '-'
+            jalali_date = jdatetime.date.fromgregorian(date=date_obj)
+            return jalali_date.strftime('%Y/%m/%d')
+
+        def convert_to_jalali_datetime(datetime_obj):
+            """Convert Gregorian datetime to Jalali format (YYYY/MM/DD HH:MM:SS)"""
+            if not datetime_obj:
+                return '-'
+            jalali_datetime = jdatetime.datetime.fromgregorian(datetime=datetime_obj)
+            return jalali_datetime.strftime('%Y/%m/%d %H:%M:%S')
+
+        def format_time_range(start_time, end_time):
+            """Format time range as HH:MM - HH:MM"""
+            return f"{start_time.strftime('%H:%M')} - {end_time.strftime('%H:%M')}"
+
+        # Process each slot in queryset
+        for slot in queryset:
+            reservation = slot.reservations.first()
+
+            # Get weekday in Persian
+            weekday_persian = WEEKDAY_PERSIAN.get(slot.date.weekday(), "-")
+
+            # Availability status
+            availability_status = "رزرو شده" if not slot.is_available else "در دسترس"
+
+            # Extract reservation and payment details
+            if reservation:
+                # Get successful payment
+                successful_payment = reservation.payments.filter(status='success').first()
+
+                payment_status = (
+                    reservation.get_payment_status_display()
+                    if hasattr(reservation, 'get_payment_status_display')
+                    else reservation.payment_status
+                )
+                final_amount = successful_payment.amount if successful_payment else "-"
+                tracking_code = reservation.tracking_code or "-"
+                reserver_name = reservation.full_name or "-"
+                reserver_phone = reservation.phone_number or "-"
+                booking_time = convert_to_jalali_datetime(reservation.reserved_at)
+            else:
+                payment_status = "-"
+                final_amount = "-"
+                tracking_code = "-"
+                reserver_name = "-"
+                reserver_phone = "-"
+                booking_time = "-"
+
+            # Write row to CSV
+            writer.writerow([
+                safe_csv(slot.service_type.name),
+                safe_csv(format_time_range(slot.start_time, slot.end_time)),
+                safe_csv(convert_to_jalali_date(slot.date)),
+                safe_csv(weekday_persian),
+                safe_csv(availability_status),
+                safe_csv(payment_status),
+                safe_csv(final_amount),
+                safe_csv(tracking_code),
+                safe_csv(reserver_name),
+                safe_csv(reserver_phone),
+                safe_csv(booking_time),
+                safe_csv(convert_to_jalali_datetime(slot.created_at)),
+            ])
+
+        return response
 
     def get_actions(self, request):
         actions = super().get_actions(request)
@@ -691,18 +793,20 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     get_jalali_date.admin_order_field = 'date'
 
     def get_weekday_fa(self, obj):
+        """Return weekday in Persian for the given date"""
         weekday_map = {
-            "Saturday": "شنبه",
-            "Sunday": "یکشنبه",
-            "Monday": "دوشنبه",
-            "Tuesday": "سه‌شنبه",
-            "Wednesday": "چهارشنبه",
-            "Thursday": "پنجشنبه",
-            "Friday": "جمعه",
+            0: "شنبه",
+            1: "یکشنبه",
+            2: "دوشنبه",
+            3: "سه‌شنبه",
+            4: "چهارشنبه",
+            5: "پنجشنبه",
+            6: "جمعه",
         }
 
-        week_day_en = jdatetime.date.fromgregorian(date=obj.date).strftime('%A')
-        return weekday_map.get(week_day_en, "-")
+        # weekday() بر اساس Monday=0 تا Sunday=6
+        week_day_index = obj.date.weekday()
+        return weekday_map.get(week_day_index, "-")
 
     get_weekday_fa.short_description = 'روز هفته'
     get_weekday_fa.admin_order_field = 'date'
@@ -1158,22 +1262,6 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         )
 
     get_payment_status.short_description = "پرداخت"
-
-    @admin.action(description='📥 خروجی CSV نوبت‌ها')
-    def export_slots_csv(self, request, queryset):
-        """Export time slots to CSV"""
-        fields = [
-            'id',
-            'service_type',
-            'date',
-            'start_time',
-            'end_time',
-            'is_available',
-            'is_expired',
-            'is_manual',
-            'created_at',
-        ]
-        return export_to_csv(queryset, 'time_slots', fields)
 
 
 @admin.register(Reservation)
