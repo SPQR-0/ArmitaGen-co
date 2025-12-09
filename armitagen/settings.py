@@ -63,6 +63,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # Django Core
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -71,13 +72,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    # --- Custom Middleware ---
-    # Placed at the bottom to ensure 'request.user' is ready
-    # and all other Django processing is complete.
-    'logs.middleware.UserActivityMiddleware',
-
-    # Error logging should usually be last to catch everything
+    # --- Custom Logging Middleware ---
     'logs.middleware.ErrorLoggingMiddleware',
+    'logs.middleware.UserSessionTrackingMiddleware',
+
+    'logs.middleware.ActivityTrackingMiddleware',
 ]
 
 ROOT_URLCONF = 'armitagen.urls'
