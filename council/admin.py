@@ -1310,7 +1310,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     actions = [
         'mark_as_completed',
         'mark_as_cancelled',
-        'export_selected_csv',
+        'export_reservations_csv',
         'export_selected_pdf_admin',
         'export_selected_pdf_user',
     ]
@@ -1342,6 +1342,85 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    @admin.action(description='📥 خروجی CSV رزروها')
+    def export_reservations_csv(self, request, queryset):
+        """Export selected reservations to CSV with Jalali dates and times"""
+        response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+        response['Content-Disposition'] = 'attachment; filename=reservations.csv'
+
+        writer = csv.writer(response, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+
+        # CSV Header
+        writer.writerow([
+            'شناسه',
+            'نام و نام خانوادگی',
+            'شماره تماس',
+            'کد پیگیری',
+            'نوع مشاوره',
+            'عنوان مشاوره',
+            'تاریخ نوبت',
+            'بازه زمانی نوبت',
+            'روز نوبت',
+            'وضعیت پرداخت',
+            'تاریخ و زمان رزرو نوبت',
+        ])
+
+        WEEKDAY_PERSIAN = {
+            0: "شنبه",
+            1: "یکشنبه",
+            2: "دوشنبه",
+            3: "سه‌شنبه",
+            4: "چهارشنبه",
+            5: "پنج‌شنبه",
+            6: "جمعه",
+        }
+
+        def date2jalali(date_obj):
+            if not date_obj:
+                return "-"
+            jalali_date = jdatetime.date.fromgregorian(date=date_obj)
+            return jalali_date.strftime('%Y/%m/%d')
+
+        def datetime2jalali(datetime_obj):
+            if not datetime_obj:
+                return "-"
+            jalali_dt = jdatetime.datetime.fromgregorian(datetime=datetime_obj)
+            return jalali_dt.strftime('%Y/%m/%d %H:%M:%S')
+
+        def format_time_range(start_time, end_time):
+            return f"{start_time.strftime('%H:%M')} - {end_time.strftime('%H:%M')}"
+
+        for res in queryset:
+            slot = res.time_slot
+            if slot:
+                jalali_date = date2jalali(slot.date)
+                time_range = format_time_range(slot.start_time, slot.end_time)
+                weekday = WEEKDAY_PERSIAN.get(slot.date.weekday(), "-")
+            else:
+                jalali_date = "-"
+                time_range = "-"
+                weekday = "-"
+
+            payment_status = res.get_payment_status_display() if hasattr(res,
+                                                                         'get_payment_status_display') else res.payment_status
+            booking_time = datetime2jalali(res.reserved_at)
+
+            writer.writerow([
+                res.id,
+                res.full_name or "-",
+                res.phone_number or "-",
+                res.tracking_code or "-",
+                res.service_type.name if res.service_type else "-",
+                res.consultation_topic.name if res.consultation_topic else "-",
+                jalali_date,
+                time_range,
+                weekday,
+                payment_status,
+                booking_time,
+            ])
+
+        return response
 
     def row_number(self, obj):
         return f"#{obj.id}"
@@ -1578,27 +1657,6 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         messages.success(request, f'{updated} رزرو لغو شد.')
 
     mark_as_cancelled.short_description = 'لغو رزرو'
-
-    @admin.action(description='📥 خروجی CSV (فیلتر شده)')
-    def export_selected_csv(self, request, queryset):
-        """
-        Export selected reservations to CSV with all fields
-        """
-        fields = [
-            'id',
-            'tracking_code',
-            'full_name',
-            'phone_number',
-            'email',
-            'service_type',
-            'consultation_topic',
-            'status',
-            'payment_status',
-            'created_at',
-            'phone_verified_at',
-        ]
-
-        return export_to_csv(queryset, 'reservations', fields)
 
     # ========== PDF Export (Admin) ==========
     @admin.action(description='📄 خروجی PDF ادمین (همه رزروها)')
