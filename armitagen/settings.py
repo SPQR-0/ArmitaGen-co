@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'payments.apps.PaymentsConfig',
     'reports.apps.ReportsConfig',
     'errors.apps.ErrorsConfig',
+    'logs.apps.LogsConfig',
     # Packages
     'django_render_partial',
     'jalali_date',
@@ -66,6 +67,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # Django Core
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -73,6 +75,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # --- Custom Logging Middleware ---
+    'logs.middleware.ErrorLoggingMiddleware',
+    'logs.middleware.UserSessionTrackingMiddleware',
+
+    'logs.middleware.ActivityTrackingMiddleware',
 ]
 
 ROOT_URLCONF = 'armitagen.urls'

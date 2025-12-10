@@ -9,6 +9,8 @@ from django.utils import timezone
 from django.views import View
 from django.views.decorators.http import require_http_methods
 
+from logs.utils import log_activity
+from logs.utils import log_error
 from .forms import OTPVerificationForm, ReservationStepOneForm
 from .mixins import ExpiredSlotCleanupMixin, ReservationFlowMixin
 from .models import Reservation, TimeSlot
@@ -28,6 +30,20 @@ class ReservationStep1View(View):
         form = ReservationStepOneForm()
         service_types, consultation_topics = self.service.get_step_one_data(request)
 
+        # Log page view for guest
+        log_activity(
+            user=request.user if request.user.is_authenticated else None,
+            session_key=request.session.session_key if not request.user.is_authenticated else None,
+            action_type='page_view',
+            description='مشاهده فرم اطلاعات اولیه رزرو',
+            severity='info',
+            request=request,
+            metadata={
+                'step': 1,
+                'has_user': request.user.is_authenticated
+            }
+        )
+
         context = {
             'form': form,
             'service_types': service_types,
@@ -40,6 +56,23 @@ class ReservationStep1View(View):
         form = ReservationStepOneForm(request.POST, request.FILES)
 
         if form.is_valid():
+            # Log form submission by guest
+            log_activity(
+                user=request.user if request.user.is_authenticated else None,
+                session_key=request.session.session_key if not request.user.is_authenticated else None,
+                action_type='reservation_start',
+                description='ثبت اطلاعات اولیه رزرو توسط کاربر',
+                severity='info',
+                request=request,
+                metadata={
+                    'full_name': form.cleaned_data['full_name'],
+                    'phone_number': form.cleaned_data['phone_number'],
+                    'service_type': form.cleaned_data['service_type'].name,
+                    'has_prescription': bool(form.cleaned_data.get('prescription')),
+                    'step': 1
+                }
+            )
+
             # Store data in session
             request.session['reservation_data'] = {
                 'full_name': form.cleaned_data['full_name'],
@@ -76,10 +109,23 @@ class ReservationStep2View(ExpiredSlotCleanupMixin, ReservationFlowMixin, View):
     service = ReservationService()
 
     def get(self, request):
-        # Use Mixin to check flow
         check = self.check_step_one_completed(request)
         if check:
             return check
+
+        # Log time selection page view
+        log_activity(
+            user=request.user if request.user.is_authenticated else None,
+            session_key=request.session.session_key if not request.user.is_authenticated else None,
+            action_type='page_view',
+            description='مشاهده صفحه انتخاب زمان',
+            severity='info',
+            request=request,
+            metadata={
+                'step': 2,
+                'service_type_id': request.session['reservation_data']['service_type_id']
+            }
+        )
 
         reservation_data = request.session['reservation_data']
         service_type, slots_by_date = self.service.get_available_time_slots(
@@ -108,6 +154,22 @@ class ReservationStep2View(ExpiredSlotCleanupMixin, ReservationFlowMixin, View):
                 # Save slot to session inside the transaction lock
                 request.session['selected_time_slot_id'] = time_slot.id
                 request.session.modified = True
+
+                # Log slot selection by guest
+                log_activity(
+                    user=request.user if request.user.is_authenticated else None,
+                    session_key=request.session.session_key if not request.user.is_authenticated else None,
+                    action_type='reservation_start',
+                    description='انتخاب زمان مشاوره',
+                    severity='info',
+                    request=request,
+                    metadata={
+                        'slot_id': time_slot.id,
+                        'slot_date': str(time_slot.date),
+                        'slot_time': f"{time_slot.start_time} - {time_slot.end_time}",
+                        'step': 2
+                    }
+                )
 
         except TimeSlot.DoesNotExist:
             messages.error(request, '❌ این نوبت دیگر در دسترس نیست')
@@ -195,6 +257,9 @@ class ReservationStep3View(ReservationFlowMixin, View):
         phone_number = reservation_data['phone_number']
         time_slot_id = request.session.get('selected_time_slot_id')
 
+        # Store session key BEFORE user is created
+        guest_session_key = request.session.session_key
+
         otp = self.otp_service.verify_otp_code(phone_number, otp_code)  # Call Service layer
 
         if not otp:
@@ -215,7 +280,22 @@ class ReservationStep3View(ReservationFlowMixin, View):
                 time_slot_id
             )
 
-            # 3. Store info and clear session data
+            # 4. Log successful verification with NEW authenticated user
+            log_activity(
+                user=user,  # Now we have authenticated user
+                action_type='otp_verify',
+                description=f'تایید موفق کد OTP و ایجاد رزرو {reservation.tracking_code}',
+                severity='info',
+                request=request,
+                metadata={
+                    'reservation_id': reservation.id,
+                    'tracking_code': reservation.tracking_code,
+                    'migrated_from_session': guest_session_key,
+                    'step': 3
+                }
+            )
+
+            # 5. Store info and clear session data
             request.session['reservation_id'] = reservation.id
             request.session['reservation_tracking_code'] = reservation.tracking_code
             # The expiration time is calculated and stored in the reservation model by finalize_reservation
@@ -242,6 +322,14 @@ class ReservationStep3View(ReservationFlowMixin, View):
             messages.error(request, f'❌ {msg}')
             return redirect('council:step2_select_time')
         except Exception as e:
+            # Log error
+            log_error(
+                error_type='reservation',
+                error_message=str(e),
+                user=request.user if request.user.is_authenticated else None,
+                request=request,
+                view_name='ReservationStep3View'
+            )
             msg = f'خطا در ثبت رزرو: {str(e)}'
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': False, 'message': msg})
@@ -367,10 +455,8 @@ def get_service_slots_api(request, service_type_id):
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
     try:
-        # استفاده از سرویس موجود برای دریافت دیتا
         service_type, slots_by_date = ReservationService.get_available_time_slots(service_type_id)
 
-        # تبدیل داده‌های پایتون به فرمت JSON قابل فهم برای فرانت‌اند
         json_data = {}
         for date_key, data in slots_by_date.items():
             json_data[date_key] = {
