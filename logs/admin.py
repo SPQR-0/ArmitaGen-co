@@ -180,7 +180,7 @@ class UserActivityAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         wb.save(response)
         return response
 
-    export_as_excel.short_description = "صدور Excel با استایل و ردیف‌های رنگی"
+    export_as_excel.short_description = "صدور Excel فعالیت کاربران"
 
     def user_display(self, obj):
         """Display user with link"""
@@ -318,7 +318,7 @@ class UserActivityAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     @admin.display(description='تاریخ (شمسی)', ordering='created_at')
     def get_jalali_created_at(self, obj):
-        return datetime2jalali(obj.created_at).strftime('%Y/%m/%d - %H:%M:%S')
+        return datetime2jalali(obj.created_at)
 
     def has_add_permission(self, request):
         return False
@@ -505,7 +505,7 @@ class UserStatisticsAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         wb.save(response)
         return response
 
-    export_statistics_excel.short_description = "صدور Excel آمار کاربران با استایل"
+    export_statistics_excel.short_description = "صدور Excel آمار کاربران"
 
     def user_display(self, obj):
         """Display user with link and avatar"""
@@ -777,7 +777,7 @@ class ReservationLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         wb.save(response)
         return response
 
-    export_reservation_logs_excel.short_description = "صدور Excel لاگ تغییرات رزرو با استایل"
+    export_reservation_logs_excel.short_description = "صدور Excel لاگ تغییرات رزرو"
 
     def reservation_display(self, obj):
         """Display reservation with link"""

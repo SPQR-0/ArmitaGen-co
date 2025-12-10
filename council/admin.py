@@ -609,7 +609,7 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             weekday_persian = WEEKDAY_PERSIAN.get(slot.date.weekday(), "-")
 
             # Availability status
-            availability_status = "رزرو شده" if not slot.is_available else "در دسترس"
+            availability_status = "غیر قابل دسترس" if not slot.is_available else "در دسترس"
 
             # Extract reservation and payment details
             if reservation:
@@ -1033,7 +1033,7 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             )
         return format_html(
             '<span style="background: #EDA35A; color: dark; padding: 3px 10px; '
-            'border-radius: 12px; font-size: 11px;">رزرو شده</span>'
+            'border-radius: 12px; font-size: 11px;">غیر قابل دسترس</span>'
         )
 
     availability_badge.short_description = 'وضعیت'
@@ -1076,7 +1076,7 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         updated = queryset.update(is_available=False)
         messages.success(request, f'{updated} نوبت به عنوان غیرقابل دسترس علامت‌گذاری شد.')
 
-    mark_as_unavailable.short_description = '👎 علامت‌گذاری به عنوان غیرقابل دسترس (رزرو شده)'
+    mark_as_unavailable.short_description = '👎 علامت‌گذاری به عنوان غیرقابل دسترس'
 
     def mark_as_available(self, request, queryset):
         """Mark selected slots as available"""
