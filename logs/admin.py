@@ -682,6 +682,102 @@ class ReservationLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             'fields': ('created_at',)
         })
     )
+    actions = ['export_reservation_logs_excel']
+
+    def export_reservation_logs_excel(modeladmin, request, queryset):
+        """
+        Export ReservationLog as styled Excel (.xlsx)
+        """
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "لاگ تغییرات رزرو"
+
+        # Styles
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="3A75B8", end_color="3A75B8", fill_type="solid")  # Dark sky blue
+        right_alignment = Alignment(horizontal="right", vertical="center", wrap_text=True)
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+
+        # Alternating row colors
+        row_colors = ["FFFFFF", "D9EAF7"]  # white / sky blue
+
+        # Headers
+        headers = [
+            'ID',
+            'رزرو',
+            'نام مشتری',
+            'کاربر',
+            'وضعیت قبلی',
+            'وضعیت جدید',
+            'تغییر توسط',
+            'علت تغییر',
+            'داده‌ها',
+            'تاریخ ایجاد'
+        ]
+
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = right_alignment
+            cell.border = thin_border
+
+        # Rows
+        for row_num, obj in enumerate(queryset.order_by('created_at'), start=2):
+            reservation_code = obj.reservation.tracking_code if obj.reservation else '-'
+            reservation_name = obj.reservation.full_name if obj.reservation else '-'
+            user_name = obj.user.full_name if obj.user else '-'
+            old_status = obj.old_status or 'جدید'
+            new_status = obj.get_new_status_display()
+            changed_by = obj.changed_by.full_name if obj.changed_by else 'سیستم'
+            change_reason = obj.change_reason or '-'
+            metadata_text = json.dumps(obj.metadata, indent=2, ensure_ascii=False) if obj.metadata else '-'
+            created_jalali = datetime2jalali(obj.created_at)
+
+            row = [
+                obj.id,
+                reservation_code,
+                reservation_name,
+                user_name,
+                old_status,
+                new_status,
+                changed_by,
+                change_reason,
+                metadata_text,
+                created_jalali
+            ]
+
+            fill_color = PatternFill(
+                start_color=row_colors[(row_num - 2) % 2],
+                end_color=row_colors[(row_num - 2) % 2],
+                fill_type="solid"
+            )
+
+            for col_num, value in enumerate(row, 1):
+                cell = ws.cell(row=row_num, column=col_num, value=value)
+                cell.alignment = right_alignment
+                cell.fill = fill_color
+                cell.border = thin_border
+
+        # Adjust column widths
+        for col in ws.columns:
+            max_length = max(len(str(cell.value)) if cell.value else 0 for cell in col)
+            ws.column_dimensions[col[0].column_letter].width = max_length + 5
+
+        # Response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="reservation_logs.xlsx"'
+        wb.save(response)
+        return response
+
+    export_reservation_logs_excel.short_description = "صدور Excel لاگ تغییرات رزرو با استایل"
 
     def reservation_display(self, obj):
         """Display reservation with link"""
@@ -741,7 +837,7 @@ class ReservationLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     @admin.display(description='تاریخ', ordering='created_at')
     def get_jalali_created_at(self, obj):
-        return datetime2jalali(obj.created_at).strftime('%Y/%m/%d - %H:%M')
+        return datetime2jalali(obj.created_at)
 
     def has_add_permission(self, request):
         return False
