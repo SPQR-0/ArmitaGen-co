@@ -1,11 +1,14 @@
 import json
 from datetime import timedelta
 
+import openpyxl
 from django.contrib import admin
+from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.html import format_html
 from jalali_date import datetime2jalali
 from jalali_date.admin import ModelAdminJalaliMixin
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 
 from .models import (
     UserActivity, UserStatistics, ReservationLog, PaymentLog, ErrorLog
@@ -86,6 +89,79 @@ class UserActivityAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             'fields': ('created_at', 'get_jalali_created_at')
         })
     )
+    actions = ['export_as_csv', 'export_as_excel']
+
+    def export_as_excel(modeladmin, request, queryset):
+        """
+        Export UserActivity as styled Excel (.xlsx) with alternating row colors
+        """
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "فعالیت کاربران"
+
+        # Styles
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="3A75B8", end_color="3A75B8", fill_type="solid")  # darker sky blue
+        right_alignment = Alignment(horizontal="right", vertical="center", wrap_text=True)
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+
+        # Alternating row colors
+        row_colors = ["FFFFFF", "D9EAF7"]  # white, sky blue
+
+        # Headers
+        headers = ['ID', 'کاربر', 'نوع عملیات', 'توضیحات', 'دستگاه', 'IP', 'زمان']
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = right_alignment
+            cell.border = thin_border
+
+        # Rows
+        for row_num, obj in enumerate(queryset.order_by('created_at'), start=2):
+            user_text = f"{obj.user.full_name} - {obj.user.phone}" if obj.user else (
+                obj.session_key[:10] if obj.session_key else '-')
+            device_text = f"{obj.device_type or '-'} - {obj.browser or '-'} - {obj.os or '-'}"
+
+            row = [
+                obj.id,
+                user_text,
+                obj.get_action_type_display(),
+                obj.description,
+                device_text,
+                obj.ip_address or '-',
+                modeladmin.get_jalali_created_at(obj)
+            ]
+
+            # Alternate row color
+            fill_color = PatternFill(start_color=row_colors[(row_num - 2) % 2], end_color=row_colors[(row_num - 2) % 2],
+                                     fill_type="solid")
+
+            for col_num, value in enumerate(row, 1):
+                cell = ws.cell(row=row_num, column=col_num, value=value)
+                cell.alignment = right_alignment
+                cell.fill = fill_color
+                cell.border = thin_border
+
+        # Adjust column widths
+        for col in ws.columns:
+            max_length = max(len(str(cell.value)) if cell.value else 0 for cell in col)
+            ws.column_dimensions[col[0].column_letter].width = max_length + 5  # padding
+
+        # Response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="user_activities.xlsx"'
+        wb.save(response)
+        return response
+
+    export_as_excel.short_description = "صدور Excel با استایل و ردیف‌های رنگی"
 
     def user_display(self, obj):
         """Display user with link"""
@@ -438,6 +514,7 @@ class UserStatisticsAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+
 @admin.register(ReservationLog)
 class ReservationLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     """
@@ -502,6 +579,7 @@ class ReservationLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             obj.reservation.tracking_code,
             obj.reservation.full_name
         )
+
     reservation_display.short_description = 'رزرو'
 
     def user_display(self, obj):
@@ -510,6 +588,7 @@ class ReservationLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             url = f'/admin/accounts/user/{obj.user.id}/change/'
             return format_html('<a href="{}">{}</a>', url, obj.user.full_name)
         return '-'
+
     user_display.short_description = 'کاربر'
 
     def status_change(self, obj):
@@ -523,6 +602,7 @@ class ReservationLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             obj.old_status or 'جدید',
             obj.get_new_status_display()
         )
+
     status_change.short_description = 'تغییر وضعیت'
 
     def changed_by_display(self, obj):
@@ -530,6 +610,7 @@ class ReservationLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         if obj.changed_by:
             return obj.changed_by.full_name
         return 'سیستم'
+
     changed_by_display.short_description = 'تغییر توسط'
 
     def metadata_display(self, obj):
@@ -541,6 +622,7 @@ class ReservationLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             except:
                 return str(obj.metadata)
         return '-'
+
     metadata_display.short_description = 'داده‌ها'
 
     @admin.display(description='تاریخ', ordering='created_at')
@@ -669,6 +751,7 @@ class PaymentLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         )
 
     amount_display.short_description = 'مبلغ'
+
     def gateway_display(self, obj):
         """Display gateway"""
         # اصلاح: استفاده از gateway_name به جای gateway
@@ -728,6 +811,7 @@ class PaymentLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
 
 @admin.register(ErrorLog)
 class ErrorLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
@@ -896,4 +980,3 @@ class ErrorLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
-
