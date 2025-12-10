@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import pytz
 from django.contrib import messages
+from django.contrib.auth import login
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -9,14 +10,24 @@ from django.utils import timezone
 from django.views import View
 from django.views.decorators.http import require_http_methods
 
-from logs.utils import log_activity
-from logs.utils import log_error
+from logs.utils import log_activity, log_error
 from .forms import OTPVerificationForm, ReservationStepOneForm
 from .mixins import ExpiredSlotCleanupMixin, ReservationFlowMixin
 from .models import Reservation, TimeSlot
 from .services.otp_service import OTPService
 from .services.reservation_service import ReservationService
 from .utils.date_utils import get_jalali_date_info
+
+
+def login_user_for_24h(request, user):
+    """
+    Log in the user and keep the session valid for 24 hours.
+    """
+    # Explicit backend is required since we are bypassing password authentication
+    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
+    # Set session expiry to 24 hours
+    request.session.set_expiry(60 * 60 * 24)  # 24 hours
 
 
 class ReservationStep1View(View):
@@ -242,10 +253,41 @@ class ReservationStep3View(ReservationFlowMixin, View):
         messages.success(request, '✓ کد تایید برای شما ارسال شد')
         return redirect('council:step3_verify_phone')
 
-    def _verify_otp_handler(self, request):
-        """Handler for verifying OTP code and creating reservation (delegated to service)"""
-        form = OTPVerificationForm(request.POST)
+    # Step 2: Save reservation data into session
+    def step2_submit_reservation(self, request):
+        if request.method == "POST":
+            full_name = request.POST.get("full_name")
+            phone_number = request.POST.get("phone_number")
+            time_slot_id = request.POST.get("time_slot_id")
 
+            if not full_name or not phone_number or not time_slot_id:
+                messages.error(request, '❌ لطفا همه فیلدها را پر کنید')
+                return redirect('council:step2_select_time')
+
+            # Save in session
+            request.session['reservation_data'] = {
+                'full_name': full_name,
+                'phone_number': phone_number
+            }
+            request.session['selected_time_slot_id'] = time_slot_id
+            request.session.modified = True
+
+            return redirect('council:step3_verify_phone')
+
+    def _verify_otp_handler(self, request):
+        """Handler for verifying OTP code and creating reservation"""
+        reservation_data = request.session.get('reservation_data')
+        time_slot_id = request.session.get('selected_time_slot_id')
+
+        # Safety check: redirect if session data missing
+        if not reservation_data or not time_slot_id:
+            msg = 'لطفا ابتدا فرم رزرو را تکمیل کنید'
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': msg})
+            messages.error(request, f'❌ {msg}')
+            return redirect('council:step1_start_reservation')
+
+        form = OTPVerificationForm(request.POST)
         if not form.is_valid():
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': False, 'message': 'کد وارد شده معتبر نیست'})
@@ -253,15 +295,10 @@ class ReservationStep3View(ReservationFlowMixin, View):
             return redirect('council:step3_verify_phone')
 
         otp_code = form.cleaned_data['otp_code']
-        reservation_data = request.session.get('reservation_data')
         phone_number = reservation_data['phone_number']
-        time_slot_id = request.session.get('selected_time_slot_id')
-
-        # Store session key BEFORE user is created
         guest_session_key = request.session.session_key
 
-        otp = self.otp_service.verify_otp_code(phone_number, otp_code)  # Call Service layer
-
+        otp = self.otp_service.verify_otp_code(phone_number, otp_code)
         if not otp:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': False, 'message': 'کد تایید نامعتبر یا منقضی شده است'})
@@ -269,20 +306,28 @@ class ReservationStep3View(ReservationFlowMixin, View):
             return redirect('council:step3_verify_phone')
 
         try:
-            # 1. Create/Get User and mark OTP as used
-            user = self.otp_service.create_or_update_user(phone_number, reservation_data['full_name'])
+            # Create or update user (update full_name if changed)
+            user = self.otp_service.create_or_update_user(
+                phone_number,
+                reservation_data['full_name']
+            )
+
+            # Mark OTP as used
             otp.mark_as_used(user=user)
 
-            # 2. Finalize Reservation (lock slot, create reservation)
+            # Log user in
+            login_user_for_24h(request, user)
+
+            # Finalize reservation
             reservation = self.res_service.finalize_reservation(
                 user,
                 reservation_data,
                 time_slot_id
             )
 
-            # 4. Log successful verification with NEW authenticated user
+            # Log activity
             log_activity(
-                user=user,  # Now we have authenticated user
+                user=user,
                 action_type='otp_verify',
                 description=f'تایید موفق کد OTP و ایجاد رزرو {reservation.tracking_code}',
                 severity='info',
@@ -295,15 +340,14 @@ class ReservationStep3View(ReservationFlowMixin, View):
                 }
             )
 
-            # 5. Store info and clear session data
+            # Safely remove session keys
+            request.session.pop('reservation_data', None)
+            request.session.pop('selected_time_slot_id', None)
             request.session['reservation_id'] = reservation.id
             request.session['reservation_tracking_code'] = reservation.tracking_code
-            # The expiration time is calculated and stored in the reservation model by finalize_reservation
-
-            del request.session['reservation_data']
-            del request.session['selected_time_slot_id']
             request.session.modified = True
 
+            # Return JSON for AJAX or redirect
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': True,
@@ -315,14 +359,14 @@ class ReservationStep3View(ReservationFlowMixin, View):
             return redirect('council:step4_review', tracking_code=reservation.tracking_code)
 
         except TimeSlot.DoesNotExist:
-            # In case the slot got taken/expired between step 2 lock and step 3 finalization
             msg = 'این نوبت دیگر در دسترس نیست'
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': False, 'message': msg})
             messages.error(request, f'❌ {msg}')
             return redirect('council:step2_select_time')
+
+
         except Exception as e:
-            # Log error
             log_error(
                 error_type='reservation',
                 error_message=str(e),

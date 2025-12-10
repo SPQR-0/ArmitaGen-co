@@ -207,3 +207,8 @@ if sys.platform.startswith('win32'):
     locale.setlocale(locale.LC_ALL, "Persian_Iran.UTF-8")
 else:
     locale.setlocale(locale.LC_ALL, "fa_IR.UTF-8")
+
+
+# Cookie Stuff
+SESSION_COOKIE_AGE = 60 * 60 * 24  # default session duration: 24h
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
