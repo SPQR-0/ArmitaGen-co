@@ -1,6 +1,7 @@
 import json
 from datetime import timedelta
 
+import jdatetime
 import openpyxl
 from django.contrib import admin
 from django.http import HttpResponse
@@ -13,6 +14,24 @@ from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from .models import (
     UserActivity, UserStatistics, ReservationLog, PaymentLog, ErrorLog
 )
+
+
+def datetime2jalali(date_time):
+    if not date_time:
+        return '-'
+    if isinstance(date_time, type(jdatetime.date.today())):
+        jdate = jdatetime.date.fromgregorian(date=date_time)
+        return jdate.strftime('%Y/%m/%d')
+
+    jdate = jdatetime.datetime.fromgregorian(datetime=date_time)
+    return jdate.strftime('%Y/%m/%d - %H:%M')
+
+
+def date2jalali(date_obj):
+    if not date_obj:
+        return '-'
+    jdate = jdatetime.date.fromgregorian(date=date_obj)
+    return jdate.strftime('%Y/%m/%d')
 
 
 @admin.register(UserActivity)
@@ -392,6 +411,101 @@ class UserStatisticsAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             'classes': ('collapse',)
         })
     )
+    actions = ['export_statistics_excel']
+
+    def export_statistics_excel(modeladmin, request, queryset):
+        """
+        Export UserStatistics as styled Excel (.xlsx)
+        """
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "آمار کاربران"
+
+        # Styles
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="3A75B8", end_color="3A75B8", fill_type="solid")  # dark sky blue
+        right_alignment = Alignment(horizontal="right", vertical="center", wrap_text=True)
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+
+        # Alternating row colors
+        row_colors = ["FFFFFF", "D9EAF7"]  # white / sky blue
+
+        # Headers
+        headers = [
+            'نام کاربر',
+            'تلفن کاربر',
+            'کل رزروها',
+            'رزروهای موفق',
+            'رزروهای لغو شده',
+            'پرداخت کل (تومان)',
+            'پرداخت‌های موفق',
+            'پرداخت‌های ناموفق',
+            'ورودها',
+            'فعالیت‌ها',
+            'آخرین فعالیت'
+        ]
+
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = right_alignment
+            cell.border = thin_border
+
+        # Rows
+        for row_num, obj in enumerate(queryset.order_by('user__full_name'), start=2):
+            user_name = obj.user.full_name if obj.user else '-'
+            user_phone = obj.user.phone if obj.user else '-'
+
+            last_activity_text = '-'
+            if obj.last_activity:
+                last_activity_text = datetime2jalali(obj.last_activity)
+
+            row = [
+                user_name,
+                user_phone,
+                obj.total_reservations or 0,
+                obj.completed_reservations or 0,
+                obj.cancelled_reservations or 0,
+                int(obj.total_payments or 0),
+                obj.successful_payments or 0,
+                obj.failed_payments or 0,
+                obj.total_logins or 0,
+                obj.total_activities or 0,
+                last_activity_text
+            ]
+
+            fill_color = PatternFill(
+                start_color=row_colors[(row_num - 2) % 2],
+                end_color=row_colors[(row_num - 2) % 2],
+                fill_type="solid"
+            )
+
+            for col_num, value in enumerate(row, 1):
+                cell = ws.cell(row=row_num, column=col_num, value=value)
+                cell.alignment = right_alignment
+                cell.fill = fill_color
+                cell.border = thin_border
+
+        # Adjust column widths
+        for col in ws.columns:
+            max_length = max(len(str(cell.value)) if cell.value else 0 for cell in col)
+            ws.column_dimensions[col[0].column_letter].width = max_length + 5
+
+        # Response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="user_statistics.xlsx"'
+        wb.save(response)
+        return response
+
+    export_statistics_excel.short_description = "صدور Excel آمار کاربران با استایل"
 
     def user_display(self, obj):
         """Display user with link and avatar"""
@@ -502,7 +616,7 @@ class UserStatisticsAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
                 '<small style="color: #9ca3af;">{}</small>',
                 color,
                 time_ago,
-                jalali.strftime('%Y/%m/%d %H:%M')
+                jalali
             )
         return '-'
 
