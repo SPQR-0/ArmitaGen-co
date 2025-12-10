@@ -7,7 +7,7 @@ from django.utils import timezone
 from council.models import Reservation, TimeSlot
 
 EXPIRATION_MINUTES = 60
-
+EXPIRATION_SLOT_DAY = 1
 
 def release_expired_reservations():
     """
@@ -55,7 +55,7 @@ def mark_expired_time_slots():
     tehran_tz = pytz.timezone('Asia/Tehran')
     now_tehran = timezone.now().astimezone(tehran_tz)
 
-    expiration_deadline = now_tehran + timedelta(days=1)
+    expiration_deadline = now_tehran + timedelta(days=EXPIRATION_SLOT_DAY)
     deadline_date = expiration_deadline.date()
     deadline_time = expiration_deadline.time()
 

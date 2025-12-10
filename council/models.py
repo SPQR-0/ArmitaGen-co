@@ -7,6 +7,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 
+EXPIRATION_SLOT_DAY = 1
+
 
 def prescription_upload_path(instance, filename):
     """
@@ -331,7 +333,7 @@ class TimeSlot(models.Model):
 
         slot_datetime = tehran_tz.localize(datetime.combine(self.date, self.start_time))
 
-        expiration_deadline = slot_datetime - timedelta(days=1)
+        expiration_deadline = slot_datetime - timedelta(days=EXPIRATION_SLOT_DAY)
 
         if now >= expiration_deadline and not self.is_expired:
             self.is_expired = True
@@ -506,3 +508,52 @@ class Reservation(models.Model):
     def can_be_cancelled(self):
         """Check if reservation can be cancelled"""
         return self.status in ['pending', 'phone_verified', 'paid']
+
+
+class ReservationSettings(models.Model):
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="در صورت فعال بودن، این تنظیمات به عنوان تنظیمات اصلی سیستم استفاده می‌شود."
+    )
+    payment_deadline_minutes = models.PositiveIntegerField(
+        default=60,
+        verbose_name="مهلت پرداخت (دقیقه)",
+        help_text="مهلت پرداخت پس از تأیید شماره تلفن (به دقیقه)."
+    )
+    min_reservable_day = models.PositiveIntegerField(
+        default=1,
+        verbose_name="حداقل روزهای قابل رزرو",
+        help_text="کاربر حداقل چند روز قبل از نوبت می‌تواند رزرو ها را مشاهده کند؟"
+    )
+    max_reservable_day = models.PositiveIntegerField(
+        default=30,
+        verbose_name="حداکثر روزهای قابل رزرو",
+        help_text="کاربر حداکثر چند روز آینده را می‌تواند رزرو کند؟"
+    )
+    expiration_slot_day = models.PositiveIntegerField(
+        default=1,
+        verbose_name="روز منقضی شدن نوبت",
+        help_text="چند روز قبل از زمان نوبت باید آن را منقضی و غیرقابل رزرو کرد؟"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاریخ ایجاد"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="آخرین به‌روزرسانی"
+    )
+    class Meta:
+        verbose_name = "تنظیمات رزرو"
+        verbose_name_plural = "تنظیمات رزرو"
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        if self.is_active:
+            ReservationSettings.objects.exclude(id=self.id).update(is_active=False)
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"تنظیمات فعال: {self.is_active} (حداقل {self.min_reservable_day} روز، حداکثر {self.max_reservable_day} روز)"

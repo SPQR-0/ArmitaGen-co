@@ -8,7 +8,7 @@ from django.contrib import admin, messages
 from django.db import models
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
-from django.urls import path
+from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
@@ -17,12 +17,11 @@ from jalali_date.fields import JalaliDateField, SplitJalaliDateTimeField
 from jalali_date.widgets import AdminJalaliDateWidget, AdminSplitJalaliDateTime
 
 from council.admin_utils.csv import safe_csv
-from council.utils.export_utils import export_to_csv
 from council.utils.pdf_generator import generate_admin_receipt_pdf, generate_user_receipt_pdf
 from council.utils.reservation_expiration import mark_expired_time_slots
 from .admin_filters import JalaliDateRangeFilter
 from .models import (ConsultationTopic, Reservation, ServiceType, SlotRule,
-                     TimeSlot)
+                     TimeSlot, ReservationSettings)
 
 
 # Helper Function
@@ -1736,3 +1735,94 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         response = HttpResponse(zip_buffer, content_type='application/zip')
         response['Content-Disposition'] = f'attachment; filename="user_receipts_{queryset.count()}.zip"'
         return response
+
+
+@admin.register(ReservationSettings)
+class ReservationSettingsAdmin(admin.ModelAdmin):
+    list_display = [
+        "id",
+        "is_active",
+        "payment_deadline_minutes",
+        "min_reservable_day",
+        "max_reservable_day",
+        "expiration_slot_day",
+        "created_at_jalali",
+        "updated_at_jalali",
+        "activate_button",
+    ]
+
+    list_filter = ["is_active"]
+
+    readonly_fields = [
+        "created_at_jalali",
+        "updated_at_jalali",
+        "created_at",
+        "updated_at",
+    ]
+
+    fieldsets = (
+        ("🔧 تنظیمات فعال", {
+            "fields": ("is_active",)
+        }),
+        ("⏱ زمان‌بندی‌ها", {
+            "fields": (
+                "payment_deadline_minutes",
+                "min_reservable_day",
+                "max_reservable_day",
+                "expiration_slot_day",
+            )
+        }),
+        ("🕒 تاریخ‌ها", {
+            "fields": (
+                "created_at_jalali",
+                "updated_at_jalali",
+                "created_at",
+                "updated_at",
+            )
+        }),
+    )
+
+    # --- تاریخ‌های جلالی ---
+    def created_at_jalali(self, obj):
+        return datetime2jalali(obj.created_at)
+
+    created_at_jalali.short_description = "تاریخ ایجاد (جلالی)"
+
+    def updated_at_jalali(self, obj):
+        return datetime2jalali(obj.updated_at)
+
+    updated_at_jalali.short_description = "آخرین بروزرسانی (جلالی)"
+
+    def activate_button(self, obj):
+        if obj.is_active:
+            return "فعال"
+        url = reverse(
+            f"admin:{obj._meta.app_label}_{obj._meta.model_name}_activate",
+            args=[obj.id]
+        )
+        return format_html(f'<a class="button" href="{url}">فعال‌سازی</a>')
+
+    activate_button.short_description = "فعال‌سازی"
+
+    def get_urls(self):
+        urls = super().get_urls()
+
+        app = self.model._meta.app_label
+        model = self.model._meta.model_name
+
+        custom = [
+            path(
+                "<int:pk>/activate/",
+                self.admin_site.admin_view(self.activate_setting),
+                name=f"{app}_{model}_activate",
+            )
+        ]
+        return custom + urls
+
+    def activate_setting(self, request, pk):
+        obj = ReservationSettings.objects.get(pk=pk)
+        obj.is_active = True
+        obj.save()
+        self.message_user(request, "تنظیمات با موفقیت فعال شد.")
+        from django.shortcuts import redirect
+        return redirect("/admin/council/reservationsettings/")

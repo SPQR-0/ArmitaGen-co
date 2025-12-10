@@ -18,6 +18,7 @@ from .services.otp_service import OTPService
 from .services.reservation_service import ReservationService
 from .utils.date_utils import get_jalali_date_info
 
+EXPIRATION_SLOT_DAY = 1
 
 def login_user_for_24h(request, user):
     """
@@ -474,7 +475,7 @@ def check_slot_availability(request, slot_id):
         tehran_tz = pytz.timezone('Asia/Tehran')
         now = timezone.now().astimezone(tehran_tz)
         slot_datetime = tehran_tz.localize(datetime.combine(slot.date, slot.start_time))
-        expiration_deadline = slot_datetime - timedelta(days=1)
+        expiration_deadline = slot_datetime - timedelta(days=EXPIRATION_SLOT_DAY)
 
         is_expired = now >= expiration_deadline
 
