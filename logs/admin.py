@@ -992,7 +992,7 @@ class PaymentLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         wb.save(response)
         return response
 
-    export_paymentlog_excel.short_description = "صدور Excel تراکنش‌های پرداخت با استایل"
+    export_paymentlog_excel.short_description = "صدور Excel تراکنش‌های پرداخت"
 
     def reservation_display(self, obj):
         """Display reservation"""
@@ -1147,7 +1147,7 @@ class ErrorLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     date_hierarchy = 'created_at'
     list_per_page = 50
-    actions = ['mark_as_resolved', 'mark_as_unresolved']
+    actions = ['mark_as_resolved', 'mark_as_unresolved', 'export_errorlog_excel']
 
     fieldsets = (
         ('خطا', {
@@ -1171,6 +1171,101 @@ class ErrorLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             'fields': ('created_at',)
         })
     )
+
+    def export_errorlog_excel(modeladmin, request, queryset):
+        """
+        Export ErrorLog as styled Excel (.xlsx)
+        """
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "گزارش خطاها"
+
+        # Styles
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="3A75B8", end_color="3A75B8", fill_type="solid")
+        right_alignment = Alignment(horizontal="right", vertical="center", wrap_text=True)
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+
+        row_colors = ["FFFFFF", "D9EAF7"]
+
+        # Headers
+        headers = [
+            'نوع خطا',
+            'پیام خطا',
+            'کاربر',
+            'View Name',
+            'آدرس URL',
+            'وضعیت',
+            'IP',
+            'User Agent',
+            'روش درخواست',
+            'داده درخواست',
+            'تاریخ'
+        ]
+
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = right_alignment
+            cell.border = thin_border
+
+        for row_num, obj in enumerate(queryset.order_by('created_at'), start=2):
+
+            created_text = datetime2jalali(obj.created_at)
+
+            # request_data pretty formatting
+            if obj.request_data:
+                try:
+                    request_data = json.dumps(obj.request_data, ensure_ascii=False)
+                except:
+                    request_data = str(obj.request_data)
+            else:
+                request_data = '-'
+
+            row = [
+                obj.get_error_type_display(),
+                obj.error_message,
+                obj.user.full_name if obj.user else '-',
+                obj.view_name or '-',
+                obj.url or '-',
+                'برطرف شده' if obj.is_resolved else 'فعال',
+                obj.ip_address or '-',
+                obj.user_agent or '-',
+                obj.request_method or '-',
+                request_data,
+                created_text
+            ]
+
+            fill_color = PatternFill(
+                start_color=row_colors[(row_num - 2) % 2],
+                end_color=row_colors[(row_num - 2) % 2],
+                fill_type="solid"
+            )
+
+            for col_num, value in enumerate(row, 1):
+                cell = ws.cell(row=row_num, column=col_num, value=value)
+                cell.alignment = right_alignment
+                cell.fill = fill_color
+                cell.border = thin_border
+
+        # Adjust column widths
+        for col in ws.columns:
+            max_length = max(len(str(cell.value)) if cell.value else 0 for cell in col)
+            ws.column_dimensions[col[0].column_letter].width = max_length + 5
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="error_logs.xlsx"'
+        wb.save(response)
+        return response
+    export_errorlog_excel.short_description = "صدور Excel لاگ های خطا"
 
     def error_badge(self, obj):
         """Display error type"""
@@ -1248,7 +1343,7 @@ class ErrorLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     @admin.display(description='تاریخ', ordering='created_at')
     def get_jalali_created_at(self, obj):
-        return datetime2jalali(obj.created_at).strftime('%Y/%m/%d - %H:%M:%S')
+        return datetime2jalali(obj.created_at)
 
     @admin.action(description='✓ علامت‌گذاری به عنوان برطرف شده')
     def mark_as_resolved(self, request, queryset):
