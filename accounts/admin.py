@@ -1,11 +1,35 @@
+import csv
+
+import jdatetime
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.db.models import Q
+from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.html import format_html
 from jalali_date import datetime2jalali
 from jalali_date.admin import ModelAdminJalaliMixin
 
-from .models import OTP, User
+from .models import OTP, User, UserInfo
+
+
+# Helper Functions
+def datetime2jalali(date_time):
+    if not date_time:
+        return '-'
+    if isinstance(date_time, type(jdatetime.date.today())):
+        jdate = jdatetime.date.fromgregorian(date=date_time)
+        return jdate.strftime('%Y/%m/%d')
+
+    jdate = jdatetime.datetime.fromgregorian(datetime=date_time)
+    return jdate.strftime('%Y/%m/%d - %H:%M')
+
+
+def date2jalali(date_obj):
+    if not date_obj:
+        return '-'
+    jdate = jdatetime.date.fromgregorian(date=date_obj)
+    return jdate.strftime('%Y/%m/%d')
 
 
 class OTPExpiryFilter(admin.SimpleListFilter):
@@ -95,7 +119,7 @@ class UserAdmin(ModelAdminJalaliMixin, BaseUserAdmin):
 
     @admin.display(description='تاریخ عضویت', ordering='date_joined')
     def get_jalali_date_joined(self, obj):
-        return datetime2jalali(obj.date_joined).strftime('%Y/%m/%d - %H:%M')
+        return datetime2jalali(obj.date_joined)
 
     @admin.display(description='وضعیت OTP')
     def otp_status(self, obj):
@@ -236,15 +260,15 @@ class OTPAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     @admin.display(description='تاریخ ایجاد', ordering='created_at')
     def get_jalali_created_at(self, obj):
-        return datetime2jalali(obj.created_at).strftime('%Y/%m/%d - %H:%M')
+        return datetime2jalali(obj.created_at)
 
     @admin.display(description='تاریخ انقضا (شمسی)')
     def get_jalali_expires_at(self, obj):
-        return datetime2jalali(obj.expires_at).strftime('%Y/%m/%d - %H:%M:%S')
+        return datetime2jalali(obj.expires_at)
 
     @admin.display(description='تاریخ ایجاد (شمسی)')
     def get_jalali_created_at_detail(self, obj):
-        return datetime2jalali(obj.created_at).strftime('%Y/%m/%d - %H:%M:%S')
+        return datetime2jalali(obj.created_at)
 
     @admin.display(description='زمان باقی‌مانده')
     def time_remaining(self, obj):
@@ -273,3 +297,239 @@ class OTPAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+
+@admin.register(UserInfo)
+class UserInfoAdmin(admin.ModelAdmin):
+    list_display = [
+        'full_name',
+        'phone',
+        'email',
+        'verification_badge',
+        'total_reservations',
+        'completed_reservations',
+        'total_payments_display',
+        'last_login_display',
+    ]
+
+    list_filter = [
+        'is_otp_verified',
+        ('last_login', admin.DateFieldListFilter),
+        ('last_reservation_date', admin.DateFieldListFilter),
+        ('created_at', admin.DateFieldListFilter),
+    ]
+
+    search_fields = [
+        'full_name',
+        'phone',
+        'email',
+        'user__phone',
+    ]
+
+    readonly_fields = [
+        'user',
+        'full_name',
+        'phone',
+        'email',
+        'is_otp_verified',
+        'last_login',
+        'first_reservation_date',
+        'last_reservation_date',
+        'total_reservations',
+        'completed_reservations',
+        'cancelled_reservations',
+        'pending_reservations',
+        'total_payments_sum',
+        'successful_payments_count',
+        'created_at',
+        'updated_at',
+        'stats_display',
+    ]
+
+    fieldsets = (
+        ('اطلاعات پایه', {
+            'fields': (
+                'user',
+                'full_name',
+                'phone',
+                'email',
+                'is_otp_verified',
+            )
+        }),
+        ('فعالیت', {
+            'fields': (
+                'last_login',
+                'first_reservation_date',
+                'last_reservation_date',
+            )
+        }),
+        ('آمار رزروها', {
+            'fields': (
+                'total_reservations',
+                'completed_reservations',
+                'cancelled_reservations',
+                'pending_reservations',
+                'stats_display',
+            )
+        }),
+        ('اطلاعات مالی', {
+            'fields': (
+                'total_payments_sum',
+                'successful_payments_count',
+            )
+        }),
+        ('تاریخچه', {
+            'fields': (
+                'created_at',
+                'updated_at',
+            ),
+            'classes': ('collapse',)
+        }),
+    )
+
+    actions = [
+        'export_to_csv',
+        'refresh_user_stats',
+        'export_active_users',
+        'export_inactive_users',
+        'export_top_customers',
+    ]
+
+    def verification_badge(self, obj):
+        """Display verification status as badge"""
+        if obj.is_otp_verified:
+            return format_html(
+                '<span style="background-color: #28a745; color: white; '
+                'padding: 3px 10px; border-radius: 3px;">✓ تایید شده</span>'
+            )
+        return format_html(
+            '<span style="background-color: #dc3545; color: white; '
+            'padding: 3px 10px; border-radius: 3px;">✗ تایید نشده</span>'
+        )
+
+    verification_badge.short_description = 'وضعیت OTP'
+
+    def total_payments_display(self, obj):
+        """Display total payments with formatting"""
+        return f"{obj.total_payments_sum:,} تومان"
+
+    total_payments_display.short_description = 'مجموع پرداخت‌ها'
+    total_payments_display.admin_order_field = 'total_payments_sum'
+
+
+    def last_login_display(self, obj):
+        """Display last login with formatting"""
+        if obj.last_login:
+            from django.utils.timesince import timesince
+            return f"{timesince(obj.last_login)} پیش"
+        return "—"
+
+    last_login_display.short_description = 'آخرین ورود'
+    last_login_display.admin_order_field = 'last_login'
+
+    def stats_display(self, obj):
+        """Display comprehensive statistics"""
+        return format_html(
+            '<div style="line-height: 1.8;">'
+            '<strong>تعداد رزروها:</strong> {}<br>'
+            '<strong>رزروهای تکمیل شده:</strong> {}<br>'
+            '<strong>رزروهای لغو شده:</strong> {}<br>'
+            '<strong>روزهای از آخرین رزرو:</strong> {}'
+            '</div>',
+            obj.total_reservations,
+            obj.completed_reservations,
+            obj.cancelled_reservations,
+            obj.days_since_last_reservation or '—'
+        )
+
+    stats_display.short_description = 'آمار کامل'
+
+    @admin.action(description='خروجی CSV از کاربران انتخاب شده')
+    def export_to_csv(self, request, queryset):
+        """Export selected users to CSV with Persian dates"""
+        response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+        response[
+            'Content-Disposition'] = f'attachment; filename="user_info_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        response.write('\ufeff')  # UTF-8 BOM for Excel
+
+        writer = csv.writer(response)
+
+        writer.writerow([
+            'نام و نام خانوادگی',
+            'شماره تلفن',
+            'ایمیل',
+            'تایید شماره',
+            'تعداد رزروها',
+            'رزروهای تکمیل شده',
+            'رزروهای لغو شده',
+            'رزروهای در انتظار',
+            'مجموع پرداخت‌ها (تومان)',
+            'تعداد پرداخت‌های موفق',
+            'آخرین ورود',
+            'تاریخ اولین رزرو',
+            'تاریخ آخرین رزرو',
+        ])
+
+        for obj in queryset:
+            writer.writerow([
+                obj.full_name,
+                obj.phone,
+                obj.email or '',
+                'بله' if obj.is_otp_verified else 'خیر',
+                obj.total_reservations,
+                obj.completed_reservations,
+                obj.cancelled_reservations,
+                obj.pending_reservations,
+                obj.total_payments_sum,
+                obj.successful_payments_count,
+                datetime2jalali(obj.last_login),
+                date2jalali(obj.first_reservation_date.date()) if obj.first_reservation_date else '-',
+                date2jalali(obj.last_reservation_date.date()) if obj.last_reservation_date else '-',
+            ])
+
+        return response
+
+    @admin.action(description='بروزرسانی آمار کاربران انتخاب شده')
+    def refresh_user_stats(self, request, queryset):
+        """Refresh statistics for selected users"""
+        count = 0
+        for user_info in queryset:
+            user_info.refresh_stats()
+            count += 1
+
+        self.message_user(
+            request,
+            f'آمار {count} کاربر با موفقیت بروزرسانی شد.'
+        )
+
+    @admin.action(description='خروجی CSV کاربران فعال (30 روز اخیر)')
+    def export_active_users(self, request, queryset):
+        """Export active users (reserved in last 30 days)"""
+        thirty_days_ago = timezone.now() - timezone.timedelta(days=30)
+        active_users = queryset.filter(
+            last_reservation_date__gte=thirty_days_ago
+        )
+        return self.export_to_csv(request, active_users)
+
+    @admin.action(description='خروجی CSV کاربران غیرفعال (بیش از 30 روز)')
+    def export_inactive_users(self, request, queryset):
+        """Export inactive users (no reservation in last 30 days)"""
+        thirty_days_ago = timezone.now() - timezone.timedelta(days=30)
+        inactive_users = queryset.filter(
+            Q(last_reservation_date__lt=thirty_days_ago) |
+            Q(last_reservation_date__isnull=True)
+        )
+        return self.export_to_csv(request, inactive_users)
+
+    @admin.action(description='خروجی CSV برترین مشتریان (بیشترین خرید)')
+    def export_top_customers(self, request, queryset):
+        """Export top customers by payment amount"""
+        top_customers = queryset.filter(
+            total_payments_sum__gt=0
+        ).order_by('-total_payments_sum')[:100]  # Top 100
+        return self.export_to_csv(request, top_customers)
+
+    def get_queryset(self, request):
+        """Optimize queryset with select_related"""
+        qs = super().get_queryset(request)
+        return qs.select_related('user')

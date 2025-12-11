@@ -56,7 +56,7 @@ INSTALLED_APPS = [
     'team.apps.TeamConfig',
     'accounts.apps.AccountsConfig',
     'payments.apps.PaymentsConfig',
-    'reports.apps.ReportsConfig',
+    # 'reports.apps.ReportsConfig',
     'errors.apps.ErrorsConfig',
     'logs.apps.LogsConfig',
     # Packages

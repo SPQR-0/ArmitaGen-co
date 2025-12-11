@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.views import View
 from django.views.decorators.http import require_http_methods
 
+from accounts.models import UserInfo
 from logs.utils import log_activity, log_error
 from .forms import OTPVerificationForm, ReservationStepOneForm
 from .mixins import ExpiredSlotCleanupMixin, ReservationFlowMixin
@@ -17,8 +18,6 @@ from .models import Reservation, TimeSlot, ReservationSettings
 from .services.otp_service import OTPService
 from .services.reservation_service import ReservationService
 from .utils.date_utils import get_jalali_date_info
-
-EXPIRATION_SLOT_DAY = 1
 
 def login_user_for_24h(request, user):
     """
@@ -320,6 +319,13 @@ class ReservationStep3View(ReservationFlowMixin, View):
             # Log user in
             login_user_for_24h(request, user)
 
+            try:
+                UserInfo.create_or_update_for_user(user)
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Failed to update UserInfo for user {user.id}: {e}")
+
             # Finalize reservation
             reservation = self.res_service.finalize_reservation(
                 user,
@@ -432,6 +438,16 @@ class ReservationStep4View(ExpiredSlotCleanupMixin, View):
             # Process payment via Service layer
             reservation = self.service.process_payment(reservation)
 
+            # UPDATE UserInfo after successful payment
+            if reservation.user:
+                try:
+                    UserInfo.create_or_update_for_user(reservation.user)
+                except Exception as e:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"Failed to update UserInfo after payment: {e}")
+
+
         except ValueError as e:
             messages.error(request, f'❌ {str(e)}')
             return redirect('council:step4_review', tracking_code=tracking_code)
@@ -476,7 +492,8 @@ def check_slot_availability(request, slot_id):
         tehran_tz = pytz.timezone('Asia/Tehran')
         now = timezone.now().astimezone(tehran_tz)
         slot_datetime = tehran_tz.localize(datetime.combine(slot.date, slot.start_time))
-        expiration_deadline = slot_datetime - timedelta(days=EXPIRATION_SLOT_DAY)
+        settings_obj = ReservationSettings.active()
+        expiration_deadline = slot_datetime - timedelta(days=settings_obj.expiration_slot_day)
 
         is_expired = now >= expiration_deadline
 
