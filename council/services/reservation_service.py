@@ -6,17 +6,18 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from payments.models import Payment
-
-from ..models import ConsultationTopic, Reservation, ServiceType, TimeSlot
+from ..models import ConsultationTopic, Reservation, ServiceType, TimeSlot, ReservationSettings
 from ..utils.date_utils import get_jalali_date_info
 
-PAYMENT_DEADLINE_MINUTES = 60
-MIN_RESERVABLE_DAYS = 1
-MAX_RESERVABLE_DAYS = 30
 
 
 class ReservationService:
     """Handles all business logic related to the Reservation flow."""
+
+    @staticmethod
+    def get_settings():
+        settings_obj = ReservationSettings.active()
+        return settings_obj or ReservationSettings()
 
     @staticmethod
     def get_step_one_data(request):
@@ -37,6 +38,7 @@ class ReservationService:
         """
         Retrieves and groups available time slots by date, considering expiration and 24h rule.
         """
+
         service_type = get_object_or_404(
             ServiceType,
             id=service_type_id,
@@ -46,9 +48,11 @@ class ReservationService:
         tehran_tz = pytz.timezone('Asia/Tehran')
         now = timezone.now().astimezone(tehran_tz)
 
-        booking_deadline = now + timedelta(days=MIN_RESERVABLE_DAYS)
+        settings_obj = ReservationSettings.active()
+
+        booking_deadline = now + timedelta(days=settings_obj.min_reservable_day)
         start_date_filter = booking_deadline.date()
-        end_date = start_date_filter + timedelta(days=MAX_RESERVABLE_DAYS)
+        end_date = start_date_filter + timedelta(days=settings_obj.max_reservable_day)
 
         # 1. Base query: Active slots within window, not expired globally
         available_slots = TimeSlot.objects.filter(
@@ -193,7 +197,8 @@ class ReservationService:
         remaining_time = None
         if reservation.phone_verified_at:
             # 60 minutes lock window
-            expires_at = reservation.phone_verified_at + timedelta(minutes=PAYMENT_DEADLINE_MINUTES)
+            settings_obj = ReservationSettings.active()
+            expires_at = reservation.phone_verified_at + timedelta(minutes=settings_obj.payment_deadline_minutes)
             remaining_seconds = (expires_at - timezone.now()).total_seconds()
             if remaining_seconds > 0:
                 remaining_time = int(remaining_seconds)

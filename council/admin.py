@@ -1743,6 +1743,7 @@ class ReservationSettingsAdmin(admin.ModelAdmin):
         "id",
         "is_active",
         "payment_deadline_minutes",
+        "expiration_deadline_minutes",
         "min_reservable_day",
         "max_reservable_day",
         "expiration_slot_day",
@@ -1767,6 +1768,7 @@ class ReservationSettingsAdmin(admin.ModelAdmin):
         ("⏱ زمان‌بندی‌ها", {
             "fields": (
                 "payment_deadline_minutes",
+                "expiration_deadline_minutes",
                 "min_reservable_day",
                 "max_reservable_day",
                 "expiration_slot_day",

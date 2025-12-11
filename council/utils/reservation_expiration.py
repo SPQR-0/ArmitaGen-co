@@ -4,19 +4,17 @@ import pytz
 from django.db import models
 from django.utils import timezone
 
-from council.models import Reservation, TimeSlot
+from council.models import Reservation, TimeSlot, ReservationSettings
 
-EXPIRATION_MINUTES = 60
-EXPIRATION_SLOT_DAY = 1
 
 def release_expired_reservations():
     """
-    Cancels unpaid reservations that passed verification > 15 minutes ago
+    Cancels unpaid reservations that passed verification > n minutes ago
     and releases their time slots.
     Returns (cancelled_count, released_slots_count)
     """
-
-    cutoff_time = timezone.now() - timedelta(minutes=EXPIRATION_MINUTES)
+    settings_obj = ReservationSettings.active()
+    cutoff_time = timezone.now() - timedelta(minutes=settings_obj.expiration_deadline_minutes)
 
     expired_reservations = Reservation.objects.filter(
         status='phone_verified',
@@ -54,8 +52,8 @@ def mark_expired_time_slots():
     # Tehran Timezone
     tehran_tz = pytz.timezone('Asia/Tehran')
     now_tehran = timezone.now().astimezone(tehran_tz)
-
-    expiration_deadline = now_tehran + timedelta(days=EXPIRATION_SLOT_DAY)
+    settings_obj = ReservationSettings.active()
+    expiration_deadline = now_tehran + timedelta(days=settings_obj.expiration_slot_day)
     deadline_date = expiration_deadline.date()
     deadline_time = expiration_deadline.time()
 

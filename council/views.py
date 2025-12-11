@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 from logs.utils import log_activity, log_error
 from .forms import OTPVerificationForm, ReservationStepOneForm
 from .mixins import ExpiredSlotCleanupMixin, ReservationFlowMixin
-from .models import Reservation, TimeSlot
+from .models import Reservation, TimeSlot, ReservationSettings
 from .services.otp_service import OTPService
 from .services.reservation_service import ReservationService
 from .utils.date_utils import get_jalali_date_info
@@ -39,6 +39,7 @@ class ReservationStep1View(View):
     service = ReservationService()
 
     def get(self, request):
+
         form = ReservationStepOneForm()
         service_types, consultation_topics = self.service.get_step_one_data(request)
 

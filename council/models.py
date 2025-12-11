@@ -7,8 +7,6 @@ from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 
-EXPIRATION_SLOT_DAY = 1
-
 
 def prescription_upload_path(instance, filename):
     """
@@ -328,18 +326,24 @@ class TimeSlot(models.Model):
         Returns True if marked as expired, False otherwise
         """
 
+        settings_obj = ReservationSettings.active()
+        expiration_days = settings_obj.expiration_slot_day if settings_obj else 1
+
         tehran_tz = pytz.timezone('Asia/Tehran')
         now = timezone.now().astimezone(tehran_tz)
 
-        slot_datetime = tehran_tz.localize(datetime.combine(self.date, self.start_time))
+        slot_datetime = tehran_tz.localize(
+            datetime.combine(self.date, self.start_time)
+        )
 
-        expiration_deadline = slot_datetime - timedelta(days=EXPIRATION_SLOT_DAY)
+        expiration_deadline = slot_datetime - timedelta(days=expiration_days)
 
         if now >= expiration_deadline and not self.is_expired:
             self.is_expired = True
             self.is_available = False
             self.save(update_fields=['is_expired', 'is_available'])
             return True
+
         return False
 
 
@@ -517,9 +521,14 @@ class ReservationSettings(models.Model):
         help_text="در صورت فعال بودن، این تنظیمات به عنوان تنظیمات اصلی سیستم استفاده می‌شود."
     )
     payment_deadline_minutes = models.PositiveIntegerField(
-        default=60,
+        default=15,
         verbose_name="مهلت پرداخت (دقیقه)",
         help_text="مهلت پرداخت پس از تأیید شماره تلفن (به دقیقه)."
+    )
+    expiration_deadline_minutes = models.PositiveIntegerField(
+        default=60,
+        verbose_name="مهلت منقضی شدن نوبت (دقیقه)",
+        help_text="مدت زمانی که اگر کاربر پرداخت را انجام ندهد، نوبت به صورت خودکار منقضی می‌شود."
     )
     min_reservable_day = models.PositiveIntegerField(
         default=1,
@@ -544,10 +553,15 @@ class ReservationSettings(models.Model):
         auto_now=True,
         verbose_name="آخرین به‌روزرسانی"
     )
+
     class Meta:
         verbose_name = "تنظیمات رزرو"
         verbose_name_plural = "تنظیمات رزرو"
         ordering = ['-created_at']
+
+    @staticmethod
+    def active():
+        return ReservationSettings.objects.filter(is_active=True).first()
 
     def save(self, *args, **kwargs):
         if self.is_active:
