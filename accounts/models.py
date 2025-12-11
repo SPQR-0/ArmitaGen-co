@@ -99,9 +99,8 @@ class OTP(models.Model):
         return f"{self.phone} - {self.code}"
 
     def is_expired(self):
-        # if not self.is_expired():
-        #     return False
-        return timezone.now() > self.expires_at
+        """Return True if OTP is expired (2 minutes after creation)"""
+        return timezone.now() > self.created_at + timedelta(minutes=2)
 
     def mark_as_used(self, user=None):
         self.is_used = True
@@ -118,7 +117,7 @@ class OTP(models.Model):
         if not self.code:
             self.code = self.generate_code()
         if not self.expires_at:
-            self.expires_at = timezone.now() + timedelta(minutes=5)
+            self.expires_at = timezone.now() + timedelta(minutes=2)
         super().save(*args, **kwargs)
 
 
