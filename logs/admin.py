@@ -327,6 +327,7 @@ class UserActivityAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         return False
 
 
+
 @admin.register(UserStatistics)
 class UserStatisticsAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     """
@@ -336,7 +337,7 @@ class UserStatisticsAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     list_display = [
         'user_display',
         'reservation_stats',
-        'payment_stats',
+        # 'payment_stats',  # غیرفعال شد - فعال کنید وقتی درگاه پرداخت وصل شد
         'activity_stats',
         'last_activity_display'
     ]
@@ -534,10 +535,10 @@ class UserStatisticsAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         completed = int(obj.completed_reservations or 0)
         cancelled = int(obj.cancelled_reservations or 0)
 
-        completed_pct = round((completed / total * 100) if total else 0)
-        cancelled_pct = round((cancelled / total * 100) if total else 0)
+        # FIX: Use float division to get accurate percentage
+        completed_pct = round((completed / total * 100.0) if total else 0)
+        cancelled_pct = round((cancelled / total * 100.0) if total else 0)
 
-        # همه مقادیر به str تبدیل می‌شوند
         return format_html(
             '<div style="min-width: 150px;">'
             '<strong style="font-size: 24px; color: #667eea;">{}</strong> '
@@ -558,23 +559,23 @@ class UserStatisticsAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     def payment_stats(self, obj):
         """Display payment statistics"""
-        total = int(obj.total_payments or 0)
-        successful = int(obj.successful_payments or 0)
-        failed = int(obj.failed_payments or 0)
+        # FIX: total_payments is the AMOUNT (مبلغ), not count
+        total_amount = int(obj.total_payments or 0)
+        successful_count = int(obj.successful_payments or 0)
+        failed_count = int(obj.failed_payments or 0)
 
-        # اصلاح: فرمت {:,} را به {} تغییر دهید و عدد را در آرگومان فرمت کنید
         return format_html(
             '<div style="min-width: 150px;">'
-            '<strong style="font-size: 18px; color: #059669;">{}</strong> '  # اینجا {:,} حذف شد
+            '<strong style="font-size: 18px; color: #059669;">{}</strong> '
             '<small style="color: #9ca3af;">تومان</small><br/>'
             '<div style="margin-top: 5px;">'
             '<span style="color: #10b981;">✓ {}</span> | '
             '<span style="color: #ef4444;">✗ {}</span>'
             '</div>'
             '</div>',
-            f"{total:,}",  # اینجا عدد را فرمت کنید
-            successful,
-            failed
+            f"{total_amount:,}",
+            successful_count,
+            failed_count
         )
 
     payment_stats.short_description = 'پرداخت‌ها'
@@ -627,6 +628,7 @@ class UserStatisticsAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
 
 
 @admin.register(ReservationLog)
@@ -1029,7 +1031,6 @@ class PaymentLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     def amount_display(self, obj):
         """Display amount"""
-        # اصلاح: رفع خطای ValueError با استفاده از f-string قبل از format_html
         amount = int(obj.amount or 0)
         return format_html(
             '<strong style="color: #059669; font-size: 14px;">{}</strong> '
@@ -1041,7 +1042,6 @@ class PaymentLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     def gateway_display(self, obj):
         """Display gateway"""
-        # اصلاح: استفاده از gateway_name به جای gateway
         if obj.gateway_name:
             return format_html(
                 '<span style="background: #f3f4f6; padding: 3px 10px; '
@@ -1089,7 +1089,6 @@ class PaymentLogAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     response_data_display.short_description = 'داده‌های پاسخ'
 
-    @admin.display(description='تاریخ', ordering='created_at')
     @admin.display(description='تاریخ', ordering='created_at')
     def get_jalali_created_at(self, obj):
         if obj.created_at:

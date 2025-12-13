@@ -206,7 +206,7 @@ def log_reservation_created(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Payment)
 def log_payment_activity(sender, instance, created, **kwargs):
-    """Log payment transactions"""
+    """Log payment transactions and update statistics"""
 
     transaction_type = 'init' if created else instance.status
 
@@ -224,18 +224,19 @@ def log_payment_activity(sender, instance, created, **kwargs):
         user=instance.reservation.user,
         transaction_type=transaction_type,
         amount=instance.amount,
-        gateway_name=safe_gateway,  # ← مدل جدید
+        gateway_name=safe_gateway,
         gateway_status=instance.status,
-        gateway_message=None,       # می‌توانید gateway_response را اضافه کنید
+        gateway_message=None,
         authority=safe_authority,
         ref_id=safe_ref_id,
-        request_data={},            # در صورت نیاز پر شود
-        response_data={},           # در صورت نیاز پر شود
-        ip_address=None             # در صورت نیاز پر شود
+        request_data={},
+        response_data={},
+        ip_address=None
     )
 
-    # UserActivity logging (می‌توانید بدون تغییر نگه دارید)
-    action_type = 'payment_init' if created else ('payment_success' if instance.status == 'success' else 'payment_failed')
+    # UserActivity logging
+    action_type = 'payment_init' if created else (
+        'payment_success' if instance.status == 'success' else 'payment_failed')
     severity = 'info' if instance.status == 'success' else 'warning'
 
     UserActivity.objects.create(
@@ -245,7 +246,7 @@ def log_payment_activity(sender, instance, created, **kwargs):
         description=description,
         content_type=ContentType.objects.get_for_model(instance),
         object_id=instance.pk,
-        metadata={  # اگر فیلد metadata از مدل UserActivity حذف نشده
+        metadata={
             'payment_id': instance.id,
             'reservation_code': instance.reservation.tracking_code,
             'amount': str(instance.amount),
@@ -255,6 +256,22 @@ def log_payment_activity(sender, instance, created, **kwargs):
         }
     )
 
+    # ✅ FIX: Update UserStatistics for payment
+    if instance.reservation.user:
+        stats, _ = UserStatistics.objects.get_or_create(user=instance.reservation.user)
+
+        if not created:  # Only update stats when payment status changes (not on creation)
+            if instance.status == 'success':
+                # Add payment amount to total
+                stats.total_payments = (stats.total_payments or 0) + int(instance.amount)
+                stats.successful_payments = (stats.successful_payments or 0) + 1
+                stats.last_payment = timezone.now()
+
+            elif instance.status == 'failed':
+                stats.failed_payments = (stats.failed_payments or 0) + 1
+
+            stats.last_activity = timezone.now()
+            stats.save()
 
 
 @receiver(post_save, sender=Reservation)
