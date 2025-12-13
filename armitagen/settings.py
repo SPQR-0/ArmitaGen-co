@@ -212,3 +212,12 @@ else:
 # Cookie Stuff
 SESSION_COOKIE_AGE = 60 * 60 * 24  # default session duration: 24h
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+
+# from kavenegar import *
+# api = KavenegarAPI('')
+# params = { 'sender' : '2000660110', 'receptor': '09122154850', 'message' :'.وب سرویس پیام کوتاه کاوه نگار' }
+KAVENEGAR_API_KEY = env('KAVENEGAR_API_KEY')
+KAVENEGAR_SENDER = env('KAVENEGAR_SENDER')
+
+# response = api.sms_send(params)
