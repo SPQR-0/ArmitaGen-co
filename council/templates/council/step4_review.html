@@ -68,17 +68,64 @@
         .messages {
             margin-bottom: 20px;
         }
+        /* Messages Container */
+        .messages {
+            margin: 16px 0;
+        }
 
+        /* Base Alert */
         .alert {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             padding: 12px 16px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 14px;
+            line-height: 1.6;
             margin-bottom: 10px;
-            background: #ffebee;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* Success */
+        .alert-success {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        /* Error */
+        .alert-error,
+        .alert-danger {
+            background-color: #ffebee;
             border: 1px solid #ffcdd2;
             color: #c62828;
         }
 
+        /* Info */
+        .alert-info {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            color: #1565c0;
+        }
+
+        /* Warning */
+        .alert-warning {
+            background-color: #fff8e1;
+            border: 1px solid #ffecb3;
+            color: #ef6c00;
+        }
+
+    /* Animation */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
         .timer-section {
             background: #fff8e1;
             border: 1px solid #ffe082;
@@ -260,11 +307,13 @@
         </div>
 
         {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <div class="alert">{{ message }}</div>
-                {% endfor %}
-            </div>
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'success' }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
         {% endif %}
 
         {% if remaining_time %}

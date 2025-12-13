@@ -19,6 +19,7 @@ from .services.otp_service import OTPService
 from .services.reservation_service import ReservationService
 from .utils.date_utils import get_jalali_date_info
 
+
 def login_user_for_24h(request, user):
     """
     Log in the user and keep the session valid for 24 hours.
@@ -416,6 +417,9 @@ class ReservationStep4View(ExpiredSlotCleanupMixin, View):
                 messages.error(request, '❌ شما دسترسی به این رزرو را ندارید')
                 return redirect('council:step1_initial')
 
+        if reservation.payment_status == 'paid':
+            return redirect('council:final_receipt', tracking_code=tracking_code)
+
         jalali_date_str = f"{jalali_info['weekday']} — {jalali_info['jalali_str']}"
 
         context = {
@@ -430,33 +434,36 @@ class ReservationStep4View(ExpiredSlotCleanupMixin, View):
         reservation = get_object_or_404(
             Reservation,
             tracking_code=tracking_code,
-            status='phone_verified',
             deleted_at__isnull=True
         )
 
+        if reservation.payment_status == 'paid':
+            messages.info(request, 'ℹ️ این رزرو قبلاً پرداخت شده است')
+            return redirect('council:final_receipt', tracking_code=tracking_code)
+
+        if reservation.status != 'phone_verified':
+            messages.error(request, '❌ این رزرو در وضعیت پرداخت نیست')
+            return redirect('council:step1_initial')
+
         try:
-            # Process payment via Service layer
             reservation = self.service.process_payment(reservation)
 
-            # UPDATE UserInfo after successful payment
             if reservation.user:
                 try:
                     UserInfo.create_or_update_for_user(reservation.user)
-                except Exception as e:
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.warning(f"Failed to update UserInfo after payment: {e}")
-
+                except Exception:
+                    pass
 
         except ValueError as e:
             messages.error(request, f'❌ {str(e)}')
             return redirect('council:step4_review', tracking_code=tracking_code)
+
         except Exception as e:
             messages.error(request, f'❌ خطا در فرآیند پرداخت: {str(e)}')
             return redirect('council:step4_review', tracking_code=tracking_code)
 
         messages.success(request, '✓ پرداخت با موفقیت انجام شد')
-        return redirect('council:final_receipt', tracking_code=reservation.tracking_code)
+        return redirect('council:final_receipt', tracking_code=tracking_code)
 
 
 class ReservationReceiptView(View):
