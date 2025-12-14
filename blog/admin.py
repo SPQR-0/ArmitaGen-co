@@ -1,8 +1,27 @@
+import jdatetime
 from django.contrib import admin
 from django.db.models import Count
 from django.utils.html import format_html
 
 from .models import Post, PostSection, Media, Layout
+
+
+def datetime2jalali(date_time):
+    if not date_time:
+        return '-'
+    if isinstance(date_time, type(jdatetime.date.today())):
+        jdate = jdatetime.date.fromgregorian(date=date_time)
+        return jdate.strftime('%Y/%m/%d')
+
+    jdate = jdatetime.datetime.fromgregorian(datetime=date_time)
+    return jdate.strftime('%Y/%m/%d - %H:%M')
+
+
+def date2jalali(date_obj):
+    if not date_obj:
+        return '-'
+    jdate = jdatetime.date.fromgregorian(date=date_obj)
+    return jdate.strftime('%Y/%m/%d')
 
 
 class PostSectionInline(admin.TabularInline):
@@ -31,8 +50,8 @@ class PostAdmin(admin.ModelAdmin):
         'author',
         'status_badge',
         'get_sections_count',
-        'published_at',
-        'created_at',
+        'jalali_published_at',
+        'jalali_created_at',
         'featured_image_preview'
     ]
 
@@ -90,6 +109,29 @@ class PostAdmin(admin.ModelAdmin):
         if not obj.pk:
             obj.author = request.user
         super().save_model(request, obj, form, change)
+
+    def jalali_published_at(self, obj):
+        if not obj.published_at:
+            if obj.status == 'draft':
+                return format_html('<span style="color: #6c757d;">پیش‌نویس</span>')
+            elif obj.status == 'archived':
+                return format_html('<span style="color: #dc3545;">بایگانی شده</span>')
+            return '-'
+
+        jalali_date = datetime2jalali(obj.published_at)
+        return format_html(
+            '<span style="color: #28a745;">{}</span>',
+            jalali_date
+        )
+
+    jalali_published_at.short_description = 'تاریخ انتشار'
+    jalali_published_at.admin_order_field = 'published_at'
+
+    def jalali_created_at(self, obj):
+        return datetime2jalali(obj.created_at)
+
+    jalali_created_at.short_description = 'تاریخ ایجاد'
+    jalali_created_at.admin_order_field = 'created_at'
 
     def status_badge(self, obj):
         colors = {
@@ -251,7 +293,7 @@ class MediaAdmin(admin.ModelAdmin):
         'file_preview',
         'get_file_size_display',
         'alt_text',
-        'created_at',
+        'jalali_created_at',
     ]
 
     list_filter = [
@@ -333,6 +375,12 @@ class MediaAdmin(admin.ModelAdmin):
 
     file_preview.short_description = 'پیش‌نمایش'
 
+    def jalali_created_at(self, obj):
+        return datetime2jalali(obj.created_at)
+
+    jalali_created_at.short_description = 'تاریخ ایجاد'
+    jalali_created_at.admin_order_field = 'created_at'
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.select_related('post', 'section')
@@ -344,7 +392,7 @@ class LayoutAdmin(admin.ModelAdmin):
         'name',
         'is_active',
         'thumbnail_preview',
-        'created_at',
+        'jalali_created_at',
     ]
 
     list_filter = [
@@ -388,8 +436,12 @@ class LayoutAdmin(admin.ModelAdmin):
 
     thumbnail_preview.short_description = 'پیش‌نمایش'
 
+    def jalali_created_at(self, obj):
+        return datetime2jalali(obj.created_at)
 
+    jalali_created_at.short_description = 'تاریخ ایجاد'
+    jalali_created_at.admin_order_field = 'created_at'
 # Admin panel appearance settings
-admin.site.site_header = 'پنل مدیریت بلاگ'
-admin.site.site_title = 'ادمین بلاگ'
-admin.site.index_title = 'مدیریت محتوا'
+# admin.site.site_header = 'پنل مدیریت بلاگ'
+# admin.site.site_title = 'ادمین بلاگ'
+# admin.site.index_title = 'مدیریت محتوا'

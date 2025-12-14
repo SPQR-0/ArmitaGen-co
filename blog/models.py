@@ -360,7 +360,31 @@ class Media(models.Model):
             return f'<img src="{self.file.url}" width="100" height="100" style="object-fit: cover;" />'
         return '—'
 
-
+def get_default_layout_json():
+    """JSON پیش‌فرض برای قالب"""
+    return {
+        "sections": [
+            {
+                "id": 1,
+                "type": "text",
+                "position": "top-center",
+                "width": "80%",
+                "height": "auto"
+            },
+            {
+                "id": 2,
+                "type": "image",
+                "position": "middle-center",
+                "width": "60%",
+                "height": "400px"
+            }
+        ],
+        "settings": {
+            "background": "#ffffff",
+            "padding": "20px",
+            "max_width": "1200px"
+        }
+    }
 class Layout(models.Model):
     """Pre-built templates for quick layout"""
 
@@ -377,7 +401,7 @@ class Layout(models.Model):
     template_json = models.JSONField(
         verbose_name='تنظیمات قالب',
         help_text='ساختار JSON شامل موقعیت‌ها و تنظیمات بخش‌ها',
-        default=dict
+        default=get_default_layout_json
     )
     thumbnail = models.ImageField(
         upload_to='layouts/thumbnails/',
