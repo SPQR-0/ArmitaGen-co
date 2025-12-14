@@ -1302,7 +1302,8 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         'phone_verified_at',
         'reserved_at',
         'created_at',
-        'updated_at'
+        'updated_at',
+        'prescription_preview',
     ]
     list_display_links = ['row_number', 'full_name_display']
     date_hierarchy = 'time_slot__date'
@@ -1333,7 +1334,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             'classes': ('collapse',)
         }),
         ('جزئیات بیشتر', {
-            'fields': ('message', 'prescription'),
+            'fields': ('message', 'prescription_preview'),
             'classes': ('collapse',)
         }),
         ('اطلاعات سیستمی', {
@@ -1374,6 +1375,33 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             5: "پنج‌شنبه",
             6: "جمعه",
         }
+
+        def prescription_status(self, obj):
+            """Show prescription status in list view"""
+            if not obj.prescription:
+                return format_html('<span style="color: #999;">—</span>')
+
+            file_ext = obj.prescription.name.split('.')[-1].lower()
+            icons = {
+                'pdf': '📄',
+                'jpg': '🖼️',
+                'jpeg': '🖼️',
+                'png': '🖼️',
+                'gif': '🖼️',
+                'webp': '🖼️',
+            }
+            icon = icons.get(file_ext, '📎')
+
+            return format_html(
+                '<a href="{}" target="_blank" '
+                'style="background: #28a745; color: white; padding: 2px 8px; '
+                'border-radius: 4px; text-decoration: none; font-size: 11px;">'
+                '{} دارد'
+                '</a>',
+                obj.prescription.url, icon
+            )
+
+        prescription_status.short_description = 'نسخه'
 
         def date2jalali(date_obj):
             if not date_obj:
@@ -1474,6 +1502,96 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     get_jalali_reserve_date.short_description = 'تاریخ نوبت'
     get_jalali_reserve_date.admin_order_field = 'time_slot__date'
+
+    def prescription_preview(self, obj):
+        """Display prescription preview with download option"""
+        if not obj.prescription:
+            return format_html('<span style="color: #999;">—</span>')
+
+        file_url = obj.prescription.url
+        file_name = obj.prescription.name.split('/')[-1]
+        file_ext = file_name.split('.')[-1].lower()
+
+        # Image preview
+        if file_ext in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+            return format_html(
+                '<div style="display: flex; gap: 10px; align-items: center;">'
+                '<a href="{}" target="_blank" style="display: block;">'
+                '<img src="{}" style="max-width: 120px; max-height: 120px; '
+                'border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; '
+                'transition: transform 0.2s;" '
+                'onmouseover="this.style.transform=\'scale(1.05)\'" '
+                'onmouseout="this.style.transform=\'scale(1)\'" />'
+                '</a>'
+                '<div style="display: flex; flex-direction: column; gap: 5px;">'
+                '<a href="{}" target="_blank" '
+                'style="background: #17a2b8; color: white; padding: 6px 12px; '
+                'border-radius: 6px; text-decoration: none; font-size: 12px; '
+                'display: inline-block; text-align: center;">'
+                '👁️ مشاهده کامل'
+                '</a>'
+                '<a href="{}" download="{}" '
+                'style="background: #28a745; color: white; padding: 6px 12px; '
+                'border-radius: 6px; text-decoration: none; font-size: 12px; '
+                'display: inline-block; text-align: center;">'
+                '📥 دانلود'
+                '</a>'
+                '</div>'
+                '</div>',
+                file_url, file_url, file_url, file_url, file_name
+            )
+
+        # PDF preview
+        elif file_ext == 'pdf':
+            return format_html(
+                '<div style="display: flex; gap: 10px; align-items: center;">'
+                '<div style="width: 120px; height: 120px; background: #f8f9fa; '
+                'border: 2px solid #dee2e6; border-radius: 8px; '
+                'display: flex; align-items: center; justify-content: center;">'
+                '<span style="font-size: 48px;">📄</span>'
+                '</div>'
+                '<div style="display: flex; flex-direction: column; gap: 5px;">'
+                '<a href="{}" target="_blank" '
+                'style="background: #dc3545; color: white; padding: 6px 12px; '
+                'border-radius: 6px; text-decoration: none; font-size: 12px; '
+                'display: inline-block; text-align: center;">'
+                '👁️ مشاهده PDF'
+                '</a>'
+                '<a href="{}" download="{}" '
+                'style="background: #28a745; color: white; padding: 6px 12px; '
+                'border-radius: 6px; text-decoration: none; font-size: 12px; '
+                'display: inline-block; text-align: center;">'
+                '📥 دانلود'
+                '</a>'
+                '<small style="color: #6c757d;">{}</small>'
+                '</div>'
+                '</div>',
+                file_url, file_url, file_name, file_name
+            )
+
+        # Other file types
+        else:
+            return format_html(
+                '<div style="display: flex; gap: 10px; align-items: center;">'
+                '<div style="width: 120px; height: 120px; background: #f8f9fa; '
+                'border: 2px solid #dee2e6; border-radius: 8px; '
+                'display: flex; align-items: center; justify-content: center;">'
+                '<span style="font-size: 48px;">📎</span>'
+                '</div>'
+                '<div style="display: flex; flex-direction: column; gap: 5px;">'
+                '<a href="{}" download="{}" '
+                'style="background: #28a745; color: white; padding: 6px 12px; '
+                'border-radius: 6px; text-decoration: none; font-size: 12px; '
+                'display: inline-block; text-align: center;">'
+                '📥 دانلود فایل'
+                '</a>'
+                '<small style="color: #6c757d;">{}</small>'
+                '</div>'
+                '</div>',
+                file_url, file_name, file_name
+            )
+
+    prescription_preview.short_description = 'نسخه پزشک'
 
     def save_model(self, request, obj, form, change):
         """Auto-mark time slot as unavailable when reservation is created/updated"""
