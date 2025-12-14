@@ -7,6 +7,7 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.text import slugify
 from django.views import View
 from django.views.decorators.http import require_http_methods
 
@@ -65,6 +66,8 @@ class ReservationStep1View(View):
         }
         return render(request, self.template_name, context)
 
+    # In ReservationStep1View.post() method - COMPLETE replacement:
+
     def post(self, request):
         form = ReservationStepOneForm(request.POST, request.FILES)
 
@@ -86,6 +89,32 @@ class ReservationStep1View(View):
                 }
             )
 
+            # Handle prescription file FIRST before storing other data
+            prescription_path = None
+            prescription_file = form.cleaned_data.get('prescription')
+
+            if prescription_file:
+                # Save file immediately to disk
+                from django.core.files.storage import default_storage
+                from datetime import datetime
+
+                # Create directory structure
+                now = datetime.now()
+                year = now.strftime("%Y")
+                month = now.strftime("%m")
+                user_name = slugify(form.cleaned_data['full_name'], allow_unicode=True)
+
+                # Get file extension
+                ext = prescription_file.name.split('.')[-1] if '.' in prescription_file.name else 'jpg'
+                filename = f"prescription.{ext}"
+
+                # Build path
+                relative_path = f"prescriptions/{year}/{month}/{user_name}/{filename}"
+                print(now, year, month, user_name, relative_path)
+
+                # Save file
+                prescription_path = default_storage.save(relative_path, prescription_file)
+
             # Store data in session
             request.session['reservation_data'] = {
                 'full_name': form.cleaned_data['full_name'],
@@ -94,11 +123,8 @@ class ReservationStep1View(View):
                 'consultation_topic_id': form.cleaned_data.get('consultation_topic').id if form.cleaned_data.get(
                     'consultation_topic') else None,
                 'message': form.cleaned_data.get('message', ''),
+                'prescription_path': prescription_path,  # Store the path in session
             }
-
-            # Handle file upload separately (if applicable)
-            if form.cleaned_data.get('prescription'):
-                request.session['has_prescription'] = True
 
             messages.success(request, '✓ اطلاعات شما ثبت شد. لطفاً زمان مشاوره را انتخاب کنید.')
             return redirect('council:step2_select_time')
@@ -334,6 +360,12 @@ class ReservationStep3View(ReservationFlowMixin, View):
                 time_slot_id
             )
 
+            # Attach prescription file path if exists
+            prescription_path = reservation_data.get('prescription_path')
+            if prescription_path:
+                reservation.prescription = prescription_path
+                reservation.save(update_fields=['prescription'])
+
             # Log activity
             log_activity(
                 user=user,
@@ -352,6 +384,8 @@ class ReservationStep3View(ReservationFlowMixin, View):
             # Safely remove session keys
             request.session.pop('reservation_data', None)
             request.session.pop('selected_time_slot_id', None)
+            request.session.pop('has_prescription', None)
+            request.session.pop('prescription_file_path', None)
             request.session['reservation_id'] = reservation.id
             request.session['reservation_tracking_code'] = reservation.tracking_code
             request.session.modified = True
