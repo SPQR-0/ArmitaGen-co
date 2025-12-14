@@ -561,7 +561,18 @@ class ReservationSettings(models.Model):
 
     @staticmethod
     def active():
-        return ReservationSettings.objects.filter(is_active=True).first()
+        obj = ReservationSettings.objects.filter(is_active=True).first()
+        if not obj:
+            # Safe fallback
+            obj = ReservationSettings.objects.create(
+                is_active=True,
+                payment_deadline_minutes=15,
+                expiration_deadline_minutes=60,
+                min_reservable_day=1,
+                max_reservable_day=30,
+                expiration_slot_day=1,
+            )
+        return obj
 
     def save(self, *args, **kwargs):
         if self.is_active:
