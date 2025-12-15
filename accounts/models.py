@@ -46,7 +46,7 @@ class User(AbstractUser):
 
     phone = models.CharField(max_length=15, unique=True, db_index=True, verbose_name='تلفن')
     email = models.EmailField(unique=False, null=True, blank=True, verbose_name='ایمیل')
-    full_name = models.CharField(max_length=255, verbose_name='نام و نام خانوادگی')
+    full_name = models.CharField(max_length=50, verbose_name='نام و نام خانوادگی')
     otp_verified = models.BooleanField(default=False, verbose_name='تایید کد پیامکی')
     is_active = models.BooleanField(default=True, verbose_name='فعال')
 

@@ -410,7 +410,7 @@ class Reservation(models.Model):
 
     # Contact Information (collected before OTP verification)
     full_name = models.CharField(
-        max_length=255,
+        max_length=50,
         verbose_name='نام و نام خانوادگی'
     )
     phone_number = models.CharField(
