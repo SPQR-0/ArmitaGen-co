@@ -12,6 +12,8 @@ from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
+from django_flatpickr.schemas import FlatpickrOptions
+from django_flatpickr.widgets import TimePickerInput
 from jalali_date.admin import ModelAdminJalaliMixin
 from jalali_date.fields import JalaliDateField, SplitJalaliDateTimeField
 from jalali_date.widgets import AdminJalaliDateWidget, AdminSplitJalaliDateTime
@@ -311,6 +313,9 @@ class SlotRuleAdminForm(forms.ModelForm):
         ('5', 'پنج‌شنبه'),
         ('6', 'جمعه'),
     ]
+    TIME_OPTIONS = FlatpickrOptions(
+        time_24hr=True,
+    )
 
     apply_from_date = JalaliDateField(
         widget=AdminJalaliDateWidget,
@@ -328,6 +333,15 @@ class SlotRuleAdminForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
         label="روزهای هفته",
         required=False
+    )
+    start_time = forms.TimeField(
+        label='زمان شروع',
+        widget=TimePickerInput(options=TIME_OPTIONS)
+    )
+
+    end_time = forms.TimeField(
+        label='زمان پایان',
+        widget=TimePickerInput(options=TIME_OPTIONS)
     )
 
     class Meta:
