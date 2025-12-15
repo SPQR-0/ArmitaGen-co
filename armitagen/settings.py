@@ -64,7 +64,6 @@ INSTALLED_APPS = [
     'jalali_date',
     'import_export',
     'django_admin_listfilter_dropdown',
-    'django_flatpickr',
 ]
 
 MIDDLEWARE = [
