@@ -12,8 +12,6 @@ from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
-from django_flatpickr.schemas import FlatpickrOptions
-from django_flatpickr.widgets import TimePickerInput
 from jalali_date.admin import ModelAdminJalaliMixin
 from jalali_date.fields import JalaliDateField, SplitJalaliDateTimeField
 from jalali_date.widgets import AdminJalaliDateWidget, AdminSplitJalaliDateTime
@@ -24,7 +22,7 @@ from council.utils.reservation_expiration import mark_expired_time_slots
 from .admin_filters import JalaliDateRangeFilter
 from .models import (ConsultationTopic, Reservation, ServiceType, SlotRule,
                      TimeSlot, ReservationSettings)
-from .widgets import AnalogClockPickerWidget, CustomAnalogClockWidget, ModernTimePickerWidget
+from .widgets import ModernTimePickerWidget
 
 
 # Helper Function
@@ -492,6 +490,16 @@ class SlotRuleAdmin(admin.ModelAdmin):
 class TimeSlotAdminForm(forms.ModelForm):
     date = JalaliDateField(widget=AdminJalaliDateWidget, label="تاریخ")
     created_at = SplitJalaliDateTimeField(widget=AdminSplitJalaliDateTime, required=False)
+
+    start_time = forms.TimeField(
+        label='زمان شروع',
+        widget=ModernTimePickerWidget()
+    )
+
+    end_time = forms.TimeField(
+        label='زمان پایان',
+        widget=ModernTimePickerWidget()
+    )
 
     class Meta:
         model = TimeSlot

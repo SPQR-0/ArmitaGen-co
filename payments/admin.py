@@ -80,7 +80,7 @@ class PaymentAdmin(admin.ModelAdmin):
             'fields': ('reservation', 'amount', 'status')
         }),
         ('زمان‌بندی', {
-            'fields': ('paid_at', 'created_at'),
+            'fields': ('paid_at',),
             'classes': ('collapse',)
         }),
     )
