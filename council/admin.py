@@ -24,6 +24,7 @@ from council.utils.reservation_expiration import mark_expired_time_slots
 from .admin_filters import JalaliDateRangeFilter
 from .models import (ConsultationTopic, Reservation, ServiceType, SlotRule,
                      TimeSlot, ReservationSettings)
+from .widgets import AnalogClockPickerWidget, CustomAnalogClockWidget, ModernTimePickerWidget
 
 
 # Helper Function
@@ -313,9 +314,6 @@ class SlotRuleAdminForm(forms.ModelForm):
         ('5', 'پنج‌شنبه'),
         ('6', 'جمعه'),
     ]
-    TIME_OPTIONS = FlatpickrOptions(
-        time_24hr=True,
-    )
 
     apply_from_date = JalaliDateField(
         widget=AdminJalaliDateWidget,
@@ -336,12 +334,12 @@ class SlotRuleAdminForm(forms.ModelForm):
     )
     start_time = forms.TimeField(
         label='زمان شروع',
-        widget=TimePickerInput(options=TIME_OPTIONS)
+        widget=ModernTimePickerWidget()
     )
 
     end_time = forms.TimeField(
         label='زمان پایان',
-        widget=TimePickerInput(options=TIME_OPTIONS)
+        widget=ModernTimePickerWidget()
     )
 
     class Meta:
