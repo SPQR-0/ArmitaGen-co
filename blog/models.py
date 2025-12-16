@@ -8,7 +8,7 @@ User = get_user_model()
 
 
 class Author(models.Model):
-    """نویسندگان محتوا"""
+    """Post Authors Model"""
 
     name = models.CharField(
         max_length=100,
@@ -176,6 +176,14 @@ class Post(models.Model):
     def get_media_sections(self):
         """Get image segments"""
         return self.sections.filter(section_type__in=['image', 'gallery', 'video'])
+
+    def get_likes_count(self):
+        """Number of likes"""
+        return self.likes.count()
+
+    def is_liked_by_ip(self, ip_address):
+        """Check if this IP has liked it?"""
+        return self.likes.filter(ip_address=ip_address).exists()
 
 
 class PostSection(models.Model):
@@ -505,3 +513,35 @@ class Layout(models.Model):
         if isinstance(self.template_json, dict) and 'sections' in self.template_json:
             return len(self.template_json['sections'])
         return 0
+
+
+class PostLike(models.Model):
+    """Post Likes Model"""
+
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='likes',
+        verbose_name='پست'
+    )
+
+    ip_address = models.GenericIPAddressField(
+        verbose_name='آی‌پی کاربر',
+        help_text='آدرس IP کاربری که لایک کرده'
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ لایک'
+    )
+
+    class Meta:
+        verbose_name = 'لایک'
+        verbose_name_plural = 'لایک‌ها'
+        unique_together = ['post', 'ip_address']
+        indexes = [
+            models.Index(fields=['post', 'ip_address'], name='like_post_ip_idx'),
+        ]
+
+    def __str__(self):
+        return f"{self.post.title} - {self.ip_address}"

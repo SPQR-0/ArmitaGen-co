@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .views import PostLikeView
 
 app_name = 'blog'
 
@@ -11,4 +12,5 @@ urlpatterns = [
     path('archive/<int:year>/<int:month>/', views.PostArchiveView.as_view(), name='post_archive_month'),
     path('preview/<slug:slug>/', views.PostPreviewView.as_view(), name='post_preview'),
     path('<slug:slug>/', views.PostDetailView.as_view(), name='post_detail'),
+    path('<slug:slug>/like/', PostLikeView.as_view(), name='post_like'),
 ]

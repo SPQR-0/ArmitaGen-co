@@ -399,6 +399,105 @@
         {% endfor %}
     </div>
 
+
+    <!-- Like Section -->
+    <div style="background: white; padding: 32px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); margin-bottom: 30px; text-align: center;">
+        <button id="like-button"
+                data-slug="{{ post.slug }}"
+                data-liked="{{ is_liked|yesno:'true,false' }}"
+                style="padding: 14px 32px; border: 2px solid #e0e0e0; background: {% if is_liked %}#222{% else %}white{% endif %}; color: {% if is_liked %}white{% else %}#333{% endif %}; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 10px;">
+            <span id="like-icon" style="font-size: 20px;">{% if is_liked %}❤️{% else %}🤍{% endif %}</span>
+            <span id="like-text">{% if is_liked %}لایک شده{% else %}لایک کنید{% endif %}</span>
+            <span id="like-count"
+                  style="background: #f5f5f5; padding: 4px 10px; border-radius: 6px; font-size: 14px; color: #666;">{{ likes_count }}</span>
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const likeButton = document.getElementById('like-button');
+            const likeIcon = document.getElementById('like-icon');
+            const likeText = document.getElementById('like-text');
+            const likeCount = document.getElementById('like-count');
+
+            let isLiked = likeButton.dataset.liked === 'true';
+            const slug = likeButton.dataset.slug;
+
+            likeButton.addEventListener('click', function () {
+                // Disable button during request
+                likeButton.disabled = true;
+                likeButton.style.opacity = '0.6';
+                likeButton.style.cursor = 'wait';
+
+                // Send AJAX request
+                fetch(`/blog/${slug}/like/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // در production باید CSRF token رو اضافه کنی
+                        // 'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            isLiked = data.liked;
+
+                            // Update UI
+                            if (isLiked) {
+                                likeButton.style.background = '#222';
+                                likeButton.style.color = 'white';
+                                likeIcon.textContent = '❤️';
+                                likeText.textContent = 'لایک شده';
+                            } else {
+                                likeButton.style.background = 'white';
+                                likeButton.style.color = '#333';
+                                likeIcon.textContent = '🤍';
+                                likeText.textContent = 'لایک کنید';
+                            }
+
+                            // Update count
+                            likeCount.textContent = data.likes_count;
+
+                            // Add animation
+                            likeButton.style.transform = 'scale(1.1)';
+                            setTimeout(() => {
+                                likeButton.style.transform = 'scale(1)';
+                            }, 200);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('خطا در لایک کردن. لطفا دوباره تلاش کنید.');
+                    })
+                    .finally(() => {
+                        // Re-enable button
+                        likeButton.disabled = false;
+                        likeButton.style.opacity = '1';
+                        likeButton.style.cursor = 'pointer';
+                    });
+            });
+        });
+
+        // Helper function for CSRF token (در production استفاده کن)
+        // function getCookie(name) {
+        //     let cookieValue = null;
+        //     if (document.cookie && document.cookie !== '') {
+        //         const cookies = document.cookie.split(';');
+        //         for (let i = 0; i < cookies.length; i++) {
+        //             const cookie = cookies[i].trim();
+        //             if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        //                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        //                 break;
+        //             }
+        //         }
+        //     }
+        //     return cookieValue;
+        // }
+    </script>
+
+
+    <!-- Authors Section -->
     {% if authors %}
         <div style="background: white; padding: 40px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); margin-bottom: 30px;">
             <h3 style="font-size: 18px; font-weight: 600; color: #222; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #f0f0f0;">

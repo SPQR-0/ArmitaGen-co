@@ -1,9 +1,24 @@
 from django.core.cache import cache
 from django.db.models import Q
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, DetailView
 
 from .mixins import *
 from .models import Post
+from .models import PostLike
+
+
+def get_client_ip(request):
+    """Getting the user's real IP"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 
 class PostListView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
@@ -101,6 +116,10 @@ class PostDetailView(PublishedPostMixin, DetailView):
         context['sections'] = self.object.sections.all()
         context['authors'] = self.object.authors.all()
 
+        # Like info
+        ip_address = get_client_ip(self.request)
+        context['likes_count'] = self.object.get_likes_count()
+        context['is_liked'] = self.object.is_liked_by_ip(ip_address)
         context['previous_post'] = (
             Post.objects
             .filter(
@@ -241,3 +260,35 @@ class PostPreviewView(AdminOnlyMixin, OptimizedQuerysetMixin, DetailView):
         context['sections'] = self.object.sections.all().order_by('order')
 
         return context
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class PostLikeView(View):
+
+    def post(self, request, slug):
+        try:
+            post = Post.objects.get(slug=slug, status='published')
+        except Post.DoesNotExist:
+            return JsonResponse({'error': 'پست یافت نشد'}, status=404)
+
+        ip_address = get_client_ip(request)
+
+        like, created = PostLike.objects.get_or_create(
+            post=post,
+            ip_address=ip_address
+        )
+
+        if not created:
+
+            like.delete()
+            liked = False
+        else:
+            liked = True
+
+        likes_count = post.get_likes_count()
+
+        return JsonResponse({
+            'success': True,
+            'liked': liked,
+            'likes_count': likes_count
+        })
