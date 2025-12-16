@@ -7,6 +7,67 @@ from django.utils.text import slugify
 User = get_user_model()
 
 
+class Author(models.Model):
+    """نویسندگان محتوا"""
+
+    name = models.CharField(
+        max_length=100,
+        verbose_name='نام',
+        help_text='نام نویسنده'
+    )
+
+    avatar = models.ImageField(
+        upload_to='authors/avatars/',
+        blank=True,
+        null=True,
+        verbose_name='آواتار',
+        help_text='تصویر پروفایل نویسنده'
+    )
+
+    bio = models.TextField(
+        blank=True,
+        verbose_name='بیوگرافی',
+        help_text='معرفی کوتاه نویسنده'
+    )
+
+    linkedin = models.URLField(
+        blank=True,
+        verbose_name='لینکدین',
+        help_text='آدرس لینکدین'
+    )
+
+    twitter = models.URLField(
+        blank=True,
+        verbose_name='توییتر',
+        help_text='آدرس توییتر'
+    )
+
+    instagram = models.URLField(
+        blank=True,
+        verbose_name='اینستاگرام',
+        help_text='آدرس اینستاگرام'
+    )
+
+    website = models.URLField(
+        blank=True,
+        verbose_name='وبسایت',
+        help_text='وبسایت شخصی'
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد'
+    )
+
+    class Meta:
+        verbose_name = 'نویسنده'
+        verbose_name_plural = 'نویسندگان'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
 class Post(models.Model):
     """Main Blog Post Model"""
 
@@ -28,12 +89,19 @@ class Post(models.Model):
         help_text='URL خودکار از عنوان ساخته می‌شود',
         db_index=True
     )
-    author = models.ForeignKey(
+    editor = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        related_name='edited_posts',
+        verbose_name='ویرایشگر',
+        help_text='ادمینی که این پست را تنظیم کرده است'
+    )
+    authors = models.ManyToManyField(
+        Author,
         related_name='posts',
-        verbose_name='نویسنده',
-        help_text='ادمینی که این پست را نوشته است'
+        verbose_name='نویسندگان',
+        help_text='نویسندگان این پست',
+        blank=True
     )
     status = models.CharField(
         max_length=20,
@@ -79,7 +147,7 @@ class Post(models.Model):
         ordering = ['-published_at', '-created_at']
         indexes = [
             models.Index(fields=['status', '-published_at'], name='post_status_pub_idx'),
-            models.Index(fields=['author', '-created_at'], name='post_author_date_idx'),
+            models.Index(fields=['editor', '-created_at'], name='post_editor_date_idx'),
         ]
 
     def __str__(self):
@@ -360,6 +428,7 @@ class Media(models.Model):
             return f'<img src="{self.file.url}" width="100" height="100" style="object-fit: cover;" />'
         return '—'
 
+
 def get_default_layout_json():
     """JSON پیش‌فرض برای قالب"""
     return {
@@ -385,6 +454,8 @@ def get_default_layout_json():
             "max_width": "1200px"
         }
     }
+
+
 class Layout(models.Model):
     """Pre-built templates for quick layout"""
 

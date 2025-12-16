@@ -18,7 +18,7 @@ class PostListView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
         queryset = super().get_queryset()
 
         # Filter by author
-        author = self.request.GET.get('author')
+        author = self.request.GET.get('editor')
         if author:
             queryset = queryset.filter(author__username=author)
 
@@ -75,10 +75,12 @@ class PostDetailView(PublishedPostMixin, DetailView):
 
     def get_queryset(self):
         """Optimized query with nested prefetch"""
+
         return (
             Post.objects
-            .select_related('author')
+            .select_related('editor')
             .prefetch_related(
+                'authors',
                 Prefetch(
                     'sections',
                     queryset=PostSection.objects
@@ -97,6 +99,7 @@ class PostDetailView(PublishedPostMixin, DetailView):
         context = super().get_context_data(**kwargs)
 
         context['sections'] = self.object.sections.all()
+        context['authors'] = self.object.authors.all()
 
         context['previous_post'] = (
             Post.objects

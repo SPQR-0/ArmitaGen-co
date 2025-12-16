@@ -21,7 +21,7 @@ class OptimizedQuerysetMixin:
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset.select_related('author').prefetch_related(
+        return queryset.select_related('editor').prefetch_related(
             Prefetch('sections', queryset=PostSection.objects.order_by('order')),
             Prefetch('media', queryset=Media.objects.all())
         )

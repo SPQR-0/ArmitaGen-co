@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.db.models import Count
 from django.utils.html import format_html
 
-from .models import Post, PostSection, Media, Layout
+from .models import Post, PostSection, Media, Layout, Author
 
 
 def datetime2jalali(date_time):
@@ -43,11 +43,76 @@ class MediaInline(admin.TabularInline):
     get_file_size_display.short_description = 'حجم فایل'
 
 
+@admin.register(Author)
+class AuthorAdmin(admin.ModelAdmin):
+    """ادمین پنل نویسندگان"""
+
+    list_display = [
+        'name',
+        'avatar_preview',
+        'has_social_links',
+        'posts_count',
+        'created_at',
+    ]
+
+    search_fields = ['name', 'bio']
+
+    list_filter = ['created_at']
+
+    readonly_fields = ['avatar_preview', 'created_at']
+
+    fieldsets = (
+        ('اطلاعات اصلی', {
+            'fields': ('name', 'avatar', 'avatar_preview', 'bio')
+        }),
+        ('شبکه‌های اجتماعی', {
+            'fields': ('twitter', 'instagram', 'linkedin', 'website'),
+            'classes': ('collapse',),
+        }),
+        ('زمان', {
+            'fields': ('created_at',),
+            'classes': ('collapse',),
+        }),
+    )
+
+    def avatar_preview(self, obj):
+        if obj.avatar:
+            return format_html(
+                '<img src="{}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;"/>',
+                obj.avatar.url
+            )
+        return '—'
+
+    avatar_preview.short_description = 'پیش‌نمایش آواتار'
+
+    def has_social_links(self, obj):
+        count = sum([
+            bool(obj.twitter),
+            bool(obj.instagram),
+            bool(obj.linkedin),
+            bool(obj.website),
+        ])
+        if count > 0:
+            return format_html(
+                '<span style="color: #28a745;">✓ {} لینک</span>',
+                count
+            )
+        return format_html('<span style="color: #999;">—</span>')
+
+    has_social_links.short_description = 'شبکه‌های اجتماعی'
+
+    def posts_count(self, obj):
+        return obj.posts.count()
+
+    posts_count.short_description = 'تعداد پست‌ها'
+
+
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display = [
         'title',
-        'author',
+        'editor',
+        'authors_list',
         'status_badge',
         'get_sections_count',
         'jalali_published_at',
@@ -59,19 +124,20 @@ class PostAdmin(admin.ModelAdmin):
         'status',
         'created_at',
         'published_at',
-        'author',
+        'editor',
     ]
 
     search_fields = [
         'title',
         'slug',
         'meta_description',
-        'author__username',
-        'author__email',
+        'editor__username',
+        'editor__email',
+        'authors__name',
     ]
 
     readonly_fields = [
-        'author',
+        'editor',
         'created_at',
         'updated_at',
         'get_sections_count',
@@ -82,7 +148,7 @@ class PostAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('اطلاعات اصلی', {
-            'fields': ('title', 'slug', 'author', 'status')
+            'fields': ('title', 'slug', 'authors', 'status')
         }),
         ('محتوا', {
             'fields': ('featured_image', 'featured_image_preview', 'meta_description'),
@@ -97,7 +163,7 @@ class PostAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
         }),
     )
-
+    filter_horizontal = ['authors']
     inlines = [PostSectionInline, MediaInline]
 
     date_hierarchy = 'created_at'
@@ -107,8 +173,20 @@ class PostAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         """Automatically get the author from the current user"""
         if not obj.pk:
-            obj.author = request.user
+            obj.editor = request.user  #
         super().save_model(request, obj, form, change)
+
+    def authors_list(self, obj):
+        authors = obj.authors.all()
+        if authors:
+            names = ', '.join([author.name for author in authors])
+            return format_html(
+                '<span style="color: #666;">{}</span>',
+                names
+            )
+        return '—'
+
+    authors_list.short_description = 'نویسندگان'
 
     def jalali_published_at(self, obj):
         if not obj.published_at:
@@ -205,7 +283,7 @@ class PostAdmin(admin.ModelAdmin):
         Avoiding additional queries for author and section count.
         """
         qs = super().get_queryset(request)
-        return qs.select_related('author').annotate(
+        return qs.select_related('editor').prefetch_related('authors').annotate(
             sections_count=Count('sections')
         )
 
