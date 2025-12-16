@@ -6,7 +6,7 @@ from .models import PostSection, Media
 
 
 class PublishedPostMixin:
-    """Mixin to display only published posts"""
+    """Mixin to show only published posts"""
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -28,10 +28,9 @@ class OptimizedQuerysetMixin:
 
 
 class AdminOnlyMixin(LoginRequiredMixin, UserPassesTestMixin):
-    """Mixin to restrict access to admins"""
+    """Mixin to restrict access to admins only"""
 
-    login_url = '/admin/login/'  # go to login page (django admin)
+    login_url = '/admin/login/'
 
     def test_func(self):
-        """is admin?"""
         return self.request.user.is_staff or self.request.user.is_superuser

@@ -7,30 +7,32 @@ from .models import Post
 
 
 class PostListView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
+    """List of all published posts with filtering"""
+
     model = Post
     template_name = 'blog/post_list.html'
     context_object_name = 'posts'
-    paginate_by = 10
+    paginate_by = 5
 
     def get_queryset(self):
         queryset = super().get_queryset()
 
-        # author filter
+        # Filter by author
         author = self.request.GET.get('author')
         if author:
             queryset = queryset.filter(author__username=author)
 
-        # filter based on year
+        # Filter by year
         year = self.request.GET.get('year')
         if year and year.isdigit():
             queryset = queryset.filter(published_at__year=year)
 
-        # filter based on month
+        # Filter by month
         month = self.request.GET.get('month')
         if month and month.isdigit():
             queryset = queryset.filter(published_at__month=month)
 
-        # ordering
+        # Ordering
         sort = self.request.GET.get('sort', '-published_at')
         allowed_sorts = ['-published_at', 'published_at', 'title', '-title', '-created_at']
         if sort in allowed_sorts:
@@ -41,20 +43,30 @@ class PostListView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        # Add filter params to context for display in template
         context['current_author'] = self.request.GET.get('author', '')
         context['current_year'] = self.request.GET.get('year', '')
         context['current_month'] = self.request.GET.get('month', '')
         context['current_sort'] = self.request.GET.get('sort', '-published_at')
 
-        # available year to filter
-        context['available_years'] = Post.objects.filter(
-            status='published'
-        ).dates('published_at', 'year', order='DESC')
+        # Cache available years for 1 hour
+        available_years = cache.get('blog_available_years')
+        if available_years is None:
+            available_years = list(
+                Post.objects
+                .filter(status='published')
+                .dates('published_at', 'year', order='DESC')
+            )
+            cache.set('blog_available_years', available_years, 60 * 60)
+
+        context['available_years'] = available_years
 
         return context
 
 
-class PostDetailView(PublishedPostMixin, OptimizedQuerysetMixin, DetailView):
+class PostDetailView(PublishedPostMixin, DetailView):
+    """Display details of a single post"""
+
     model = Post
     template_name = 'blog/post_detail.html'
     context_object_name = 'post'
@@ -62,6 +74,7 @@ class PostDetailView(PublishedPostMixin, OptimizedQuerysetMixin, DetailView):
     slug_url_kwarg = 'slug'
 
     def get_queryset(self):
+        """Optimized query with nested prefetch"""
         return (
             Post.objects
             .select_related('author')
