@@ -510,7 +510,7 @@ class Reservation(models.Model):
         return self.payment_status == 'paid'
 
     def can_be_cancelled(self):
-        """Check if reservation can be cancelled"""
+        """Check if reservation can be canceled"""
         return self.status in ['pending', 'phone_verified', 'paid']
 
 

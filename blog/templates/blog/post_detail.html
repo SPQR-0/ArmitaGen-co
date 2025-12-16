@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post.title }} - بلاگ</title>
+    <meta name="description" content="{{ post.meta_description|default:post.title }}">
+    <meta property="og:title" content="{{ meta_title }}">
+    <meta property="og:description" content="{{ meta_description }}">
+    {% if meta_image %}
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ meta_image }}">
+    {% endif %}
+    <link rel="canonical" href="{{ canonical_url }}">
+    <style>
+        /* ==================== Global Styles ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Vazir', 'Tahoma', sans-serif;
+            background: #fafafa;
+            color: #333;
+            line-height: 1.8;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+
+        /* ==================== Layout ==================== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* ==================== Header ==================== */
+        header {
+            background: white;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 20px 0;
+            margin-bottom: 40px;
+        }
+
+        .site-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #222;
+            letter-spacing: -0.5px;
+        }
+
+        nav {
+            margin-top: 15px;
+            display: flex;
+            gap: 20px;
+        }
+
+        nav a {
+            color: #666;
+            font-size: 14px;
+            padding: 6px 0;
+            border-bottom: 2px solid transparent;
+        }
+
+        nav a:hover {
+            color: #222;
+            border-bottom-color: #222;
+        }
+
+        /* ==================== Page Specific Styles ==================== */
+        /* Post Header */
+        .post-header {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            margin-bottom: 30px;
+        }
+
+        .post-title {
+            font-size: 32px;
+            font-weight: 600;
+            color: #222;
+            line-height: 1.3;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        .post-description {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .post-meta {
+            display: flex;
+            gap: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .post-meta strong {
+            color: #333;
+        }
+
+        /* Featured Image */
+        .featured-image {
+            margin-bottom: 30px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .featured-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Post Content */
+        .post-content {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            margin-bottom: 30px;
+        }
+
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Section Types */
+        .section-text {
+            font-size: 16px;
+            line-height: 1.9;
+            color: #333;
+        }
+
+        .section-quote {
+            background: #fafafa;
+            border-right: 3px solid #222;
+            padding: 20px 24px;
+            font-size: 17px;
+            font-style: italic;
+            color: #555;
+            border-radius: 4px;
+        }
+
+        .section-code {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+
+        .section-code pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .section-image figure {
+            margin: 0;
+        }
+
+        .section-image img {
+            width: 100%;
+            height: auto;
+            border-radius: 6px;
+        }
+
+        .section-image figcaption {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .section-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .section-gallery img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .section-video video {
+            width: 100%;
+            border-radius: 6px;
+        }
+
+        /* Navigation */
+        .post-navigation {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .nav-link {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .nav-link.next {
+            text-align: left;
+        }
+
+        /* Back Button */
+        .back-button {
+            text-align: center;
+        }
+
+        .back-button a {
+            display: inline-block;
+            padding: 12px 28px;
+            background: #f5f5f5;
+            color: #333;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .back-button a:hover {
+            background: #222;
+            color: white;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 60px;
+            padding: 30px 0;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .post-title {
+                font-size: 24px;
+            }
+
+            .post-header,
+            .post-content {
+                padding: 24px;
+            }
+
+            .post-navigation {
+                grid-template-columns: 1fr;
+            }
+
+            .post-meta {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <div class="site-title">📝 بلاگ</div>
+        <nav>
+            <a href="{% url 'blog:post_list' %}">خانه</a>
+            <a href="{% url 'blog:post_search' %}">جستجو</a>
+            {% if user.is_staff %}
+                <a href="/admin/">پنل ادمین</a>
+            {% endif %}
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+
+    <!-- Post Header -->
+    <div class="post-header">
+        <h1 class="post-title">{{ post.title }}</h1>
+
+        {% if post.meta_description %}
+            <p class="post-description">{{ post.meta_description }}</p>
+        {% endif %}
+
+        <div class="post-meta">
+            <span>نویسنده: <strong>{{ post.author.full_name }}</strong></span>
+            <span>تاریخ: <strong>{{ post.published_at|date:"Y/m/d" }}</strong></span>
+            <span>بخش‌ها: <strong>{{ sections.count }}</strong></span>
+        </div>
+    </div>
+
+    <!-- Featured Image -->
+    {% if post.featured_image %}
+        <div class="featured-image">
+            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
+        </div>
+    {% endif %}
+
+    <!-- Post Content -->
+    <div class="post-content">
+        {% for section in sections %}
+
+            {% if section.section_type == 'text' %}
+                <div class="section section-text">
+                    {{ section.content|safe|linebreaks }}
+                </div>
+
+            {% elif section.section_type == 'quote' %}
+                <blockquote class="section section-quote">
+                    {{ section.content }}
+                </blockquote>
+
+            {% elif section.section_type == 'code' %}
+                <div class="section section-code">
+                    <pre><code>{{ section.content }}</code></pre>
+                </div>
+
+            {% elif section.section_type == 'image' %}
+                <div class="section section-image">
+                    {% for media in section.media.all %}
+                        {% if media.is_image %}
+                            <figure>
+                                <img src="{{ media.file.url }}" alt="{{ media.alt_text|default:post.title }}">
+                                {% if media.caption %}
+                                    <figcaption>{{ media.caption }}</figcaption>
+                                {% endif %}
+                            </figure>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+            {% elif section.section_type == 'gallery' %}
+                <div class="section section-gallery">
+                    {% for media in section.media.all %}
+                        {% if media.is_image %}
+                            <img src="{{ media.file.url }}" alt="{{ media.alt_text|default:post.title }}">
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+            {% elif section.section_type == 'video' %}
+                <div class="section section-video">
+                    {% for media in section.media.all %}
+                        {% if media.is_video %}
+                            <video controls>
+                                <source src="{{ media.file.url }}" type="video/mp4">
+                            </video>
+                            {% if media.caption %}
+                                <p style="margin-top: 12px; text-align: center; font-size: 14px; color: #888;">{{ media.caption }}</p>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+        {% endfor %}
+    </div>
+
+    <!-- Post Navigation -->
+    <div class="post-navigation">
+        {% if previous_post %}
+            <a href="{% url 'blog:post_detail' previous_post.slug %}" class="nav-link">
+                <div class="nav-label">پست قبلی</div>
+                <div class="nav-title">{{ previous_post.title }}</div>
+            </a>
+        {% else %}
+            <div></div>
+        {% endif %}
+
+        {% if next_post %}
+            <a href="{% url 'blog:post_detail' next_post.slug %}" class="nav-link next">
+                <div class="nav-label">پست بعدی</div>
+                <div class="nav-title">{{ next_post.title }}</div>
+            </a>
+        {% else %}
+            <div></div>
+        {% endif %}
+    </div>
+
+    <!-- Back Button -->
+    <div class="back-button">
+        <a href="{% url 'blog:post_list' %}">بازگشت به لیست</a>
+    </div>
+
+</main>
+
+<footer>
+    <div class="container">
+        © 2024 بلاگ. تمامی حقوق محفوظ است.
+    </div>
+</footer>
+
+</body>
+</html>

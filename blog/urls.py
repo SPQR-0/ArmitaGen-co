@@ -1,11 +1,14 @@
-from django import urls
 from django.urls import path
 
-from .views import *
+from . import views
 
 app_name = 'blog'
 
 urlpatterns = [
-    path('', IndexView.as_view(), name='home'),
-    path('test', TestView.as_view(), name='test')
+    path('', views.PostListView.as_view(), name='post_list'),
+    path('search/', views.PostSearchView.as_view(), name='post_search'),
+    path('archive/<int:year>/', views.PostArchiveView.as_view(), name='post_archive_year'),
+    path('archive/<int:year>/<int:month>/', views.PostArchiveView.as_view(), name='post_archive_month'),
+    path('preview/<slug:slug>/', views.PostPreviewView.as_view(), name='post_preview'),
+    path('<slug:slug>/', views.PostDetailView.as_view(), name='post_detail'),
 ]
