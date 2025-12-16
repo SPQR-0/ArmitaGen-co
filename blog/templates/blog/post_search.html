@@ -364,12 +364,18 @@
                                 <h2 class="post-title">
                                     <a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a>
                                 </h2>
-
                                 <div class="post-meta">
-                                    <span>{{ post.author.get_full_name|default:post.author.username }}</span>
+                                    {% if post.authors.exists %}
+                                        <span>
+            {% for author in post.authors.all %}
+                {{ author.name }}{% if not forloop.last %}، {% endif %}
+            {% endfor %}
+        </span>
+                                    {% else %}
+                                        <span>بدون نویسنده</span>
+                                    {% endif %}
                                     <span>{{ post.published_at|date:"Y/m/d" }}</span>
                                 </div>
-
                                 {% if post.meta_description %}
                                     <p class="post-description">{{ post.meta_description|truncatewords:25 }}</p>
                                 {% endif %}

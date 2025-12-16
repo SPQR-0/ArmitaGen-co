@@ -172,14 +172,13 @@ class PostSearchView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
         query = self.request.GET.get('q', '').strip()
 
         if query:
-            # Search by title, meta description, section content, and author name
+            # Search by title, meta description, section content, and authors
             queryset = queryset.filter(
                 Q(title__icontains=query) |
                 Q(meta_description__icontains=query) |
                 Q(sections__content__icontains=query) |
-                Q(author__full_name__icontains=query) |
-                Q(author__phone__icontains=query) |
-                Q(author__email__icontains=query)
+                Q(authors__name__icontains=query) |
+                Q(authors__bio__icontains=query)
             ).distinct()
 
         return queryset.order_by('-published_at')

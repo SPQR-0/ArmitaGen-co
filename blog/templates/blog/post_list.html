@@ -485,9 +485,13 @@
                             </h2>
 
                             <div class="post-meta">
-{#                                <span>{{ post.author.get_full_name|default:post.author.username }}</span>#}
+                                {% if post.authors.exists %}
+                                    <span>{{ post.authors.first.name }}{% if post.authors.count > 1 %} و
+                                        {{ post.authors.count|add:"-1" }} نفر دیگر{% endif %}</span>
+                                {% else %}
+                                    <span>بدون نویسنده</span>
+                                {% endif %}
                                 <span>{{ post.published_at|date:"Y/m/d" }}</span>
-                                <span>{{ post.get_sections_count }} بخش</span>
                             </div>
 
                             {% if post.meta_description %}
@@ -507,9 +511,13 @@
                 <div class="pagination-inner">
                     {% if page_obj.has_previous %}
                         <a href="?page=1
+
+
                                 {% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
                            title="اولین صفحه">«</a>
                         <a href="?page=
+
+
                                 {{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
                            title="صفحه قبل">‹</a>
                     {% endif %}
@@ -519,10 +527,14 @@
                             <span class="page-number active">{{ page_num }}</span>
                         {% elif page_num > page_obj.number|add:'-3' and page_num < page_obj.number|add:'3' %}
                             <a href="?page=
+
+
                                     {{ page_num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
                                class="page-number">{{ page_num }}</a>
                         {% elif page_num == 1 or page_num == page_obj.paginator.num_pages %}
                             <a href="?page=
+
+
                                     {{ page_num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
                                class="page-number">{{ page_num }}</a>
                         {% elif page_num == page_obj.number|add:'-3' or page_num == page_obj.number|add:'3' %}
@@ -532,9 +544,13 @@
 
                     {% if page_obj.has_next %}
                         <a href="?page=
+
+
                                 {{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
                            title="صفحه بعد">›</a>
                         <a href="?page=
+
+
                                 {{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
                            title="آخرین صفحه">»</a>
                     {% endif %}
