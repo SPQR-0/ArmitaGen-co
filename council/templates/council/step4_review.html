@@ -1,3 +1,5 @@
+{% load price_tags %}
+
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -379,7 +381,7 @@
 
         <div class="price-section">
             <div class="price-label">قیمت کل</div>
-            <div class="price">{{ reservation.service_type.price }}<span class="price-currency"> تومان</span></div>
+            <div class="price">{{ reservation.service_type.price|toman }}<span class="price-currency"> تومان</span></div>
         </div>
 
         <form method="post">

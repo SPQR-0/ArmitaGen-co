@@ -1,3 +1,4 @@
+{% load price_tags %}
 {% load static humanize %}
 <!doctype html>
 <html lang="fa" dir="rtl">
@@ -139,7 +140,7 @@
 
     <div class="price">
         <div><b>مبلغ پرداخت‌شده</b></div>
-        <div><b>تومان {{ reservation.service_type.price|intcomma }}</b></div>
+        <div><b>تومان {{ reservation.service_type.price|toman }}</b></div>
     </div>
 </div>
 </body>
