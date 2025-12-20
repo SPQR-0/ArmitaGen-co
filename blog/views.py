@@ -25,7 +25,7 @@ class PostListView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
     """List of all published posts with filtering"""
 
     model = Post
-    template_name = 'blog/post_list.html'
+    template_name = 'blog/blog-list-sidebar.html'
     context_object_name = 'posts'
     paginate_by = 5
 
