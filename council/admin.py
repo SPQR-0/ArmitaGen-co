@@ -1072,65 +1072,56 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         if request.method == 'POST':
             try:
                 rule_id = request.POST.get('rule_id')
-                start_date = datetime.strptime(request.POST['start_date'], '%Y-%m-%d').date()
-                end_date = datetime.strptime(request.POST['end_date'], '%Y-%m-%d').date()
+                if not rule_id:
+                    messages.error(request, '❌ لطفاً یک الگو انتخاب کنید.')
+                    return redirect('admin:timeslot_generate_from_rule')
 
                 rule = SlotRule.objects.get(id=rule_id, is_active=True)
 
-                # Validate date range against rule's apply dates
-                effective_start_date = start_date
-                effective_end_date = end_date
-
-                # Check if requested range is completely outside rule's range
-                if rule.apply_from_date and end_date < rule.apply_from_date:
-                    messages.error(
-                        request,
-                        f'❌ خطا: بازه زمانی درخواستی ({start_date} تا {end_date}) '
-                        f'قبل از تاریخ شروع الگو ({rule.apply_from_date}) است.'
-                    )
-                    return redirect('admin:timeslot_generate_from_rule')
-
-                if rule.apply_to_date and start_date > rule.apply_to_date:
-                    messages.error(
-                        request,
-                        f'❌ خطا: بازه زمانی درخواستی ({start_date} تا {end_date}) '
-                        f'بعد از تاریخ پایان الگو ({rule.apply_to_date}) است.'
-                    )
-                    return redirect('admin:timeslot_generate_from_rule')
-
-                # Adjust dates to fit within rule's range
-                if rule.apply_from_date and start_date < rule.apply_from_date:
+                # ✅ اگر الگو بازه دارد، از خود الگو استفاده کن
+                if rule.apply_from_date and rule.apply_to_date:
                     effective_start_date = rule.apply_from_date
-                    messages.warning(
-                        request,
-                        f'⚠️ توجه: تاریخ شروع از {start_date} به {effective_start_date} '
-                        f'تغییر یافت (مطابق با تاریخ شروع الگو)'
-                    )
-
-                if rule.apply_to_date and end_date > rule.apply_to_date:
                     effective_end_date = rule.apply_to_date
-                    messages.warning(
-                        request,
-                        f'⚠️ توجه: تاریخ پایان از {end_date} به {effective_end_date} '
-                        f'تغییر یافت (مطابق با تاریخ پایان الگو)'
-                    )
 
+                else:
+                    # ✅ اگر الگو بازه ندارد، از کاربر بگیر (اجباری)
+                    start_date_str = request.POST.get('start_date')
+                    end_date_str = request.POST.get('end_date')
+
+                    if not start_date_str or not end_date_str:
+                        messages.error(request, '❌ این الگو بازه تاریخی ندارد؛ لطفاً تاریخ شروع و پایان را وارد کنید.')
+                        return redirect('admin:timeslot_generate_from_rule')
+
+                    start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+                    end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+
+                    if end_date < start_date:
+                        messages.error(request, '❌ تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.')
+                        return redirect('admin:timeslot_generate_from_rule')
+
+                    effective_start_date = start_date
+                    effective_end_date = end_date
+
+                    # (اختیاری) اگر فقط یکی از apply ها پر بود، می‌تونی محدود کنی:
+                    if rule.apply_from_date and effective_start_date < rule.apply_from_date:
+                        effective_start_date = rule.apply_from_date
+                        messages.warning(request, f'⚠️ تاریخ شروع به {effective_start_date} محدود شد (طبق الگو).')
+
+                    if rule.apply_to_date and effective_end_date > rule.apply_to_date:
+                        effective_end_date = rule.apply_to_date
+                        messages.warning(request, f'⚠️ تاریخ پایان به {effective_end_date} محدود شد (طبق الگو).')
+
+                # --- ادامه منطق تولید ---
                 weekdays = rule.get_weekdays_list()
                 created_count = 0
                 current_date = effective_start_date
 
                 while current_date <= effective_end_date:
-                    # Check if current weekday matches rule
                     if current_date.weekday() in weekdays:
-                        # Generate slots for this day
                         current_time = rule.start_time
-
                         while current_time < rule.end_time:
-                            slot_end = (
-                                    datetime.combine(current_date, current_time) +
-                                    timedelta(minutes=rule.slot_duration)
-                            ).time()
-
+                            slot_end = (datetime.combine(current_date, current_time) + timedelta(
+                                minutes=rule.slot_duration)).time()
                             if slot_end > rule.end_time:
                                 break
 
@@ -1146,10 +1137,8 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
                                     'created_by': request.user
                                 }
                             )
-
                             if created:
                                 created_count += 1
-
                             current_time = slot_end
 
                     current_date += timedelta(days=1)
@@ -1161,12 +1150,12 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
                         f'برای بازه {effective_start_date} تا {effective_end_date} ایجاد شد!'
                     )
                 else:
-                    messages.warning(
-                        request,
-                        f'⚠️ هیچ نوبتی ایجاد نشد. لطفاً بازه زمانی و تنظیمات الگو را بررسی کنید.'
-                    )
+                    messages.warning(request, '⚠️ هیچ نوبتی ایجاد نشد. لطفاً بازه/تنظیمات را بررسی کنید.')
+
                 return redirect('admin:council_timeslot_changelist')
 
+            except SlotRule.DoesNotExist:
+                messages.error(request, '❌ الگوی انتخاب‌شده معتبر نیست یا غیرفعال است.')
             except Exception as e:
                 messages.error(request, f'❌ خطا: {str(e)}')
 

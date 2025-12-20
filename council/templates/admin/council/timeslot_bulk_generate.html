@@ -2,346 +2,374 @@
 {% load i18n static %}
 
 {% block extrahead %}
-<style>
-    .bulk-generate-container {
-        max-width: 900px;
-        margin: 40px auto;
-        padding: 0 20px;
-    }
+    <style>
+        #service_type:invalid {
+            color: #9ca3af; /* خاکستری placeholder */
+        }
 
-    .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 12px;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
+        /* وقتی انتخاب انجام شده */
+        #service_type:valid {
+            color: #111827; /* مشکی */
+        }
 
-    .page-header h1 {
-        margin: 0;
-        font-size: 28px;
-        font-weight: 600;
-    }
+        .bulk-generate-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
 
-    .form-card {
-        background: white;
-        padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    }
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
 
-    .form-section {
-        margin-bottom: 30px;
-    }
+        .page-header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
 
-    .form-section:last-child {
-        margin-bottom: 0;
-    }
+        .form-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
 
-    .section-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #2d3748;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #e2e8f0;
-    }
+        .form-section {
+            margin-bottom: 30px;
+        }
 
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 20px;
-    }
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
 
-    .form-group label {
-        font-weight: 500;
-        color: #4a5568;
-        margin-bottom: 8px;
-        font-size: 14px;
-    }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
 
-    .form-group input,
-    .form-group select {
-        padding: 12px 15px;
-        border: 2px solid #e2e8f0;
-        border-radius: 8px;
-        font-size: 14px;
-        transition: all 0.2s;
-        background: white;
-    }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
 
-    .form-group input:focus,
-    .form-group select:focus {
-        outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
+        .form-group label {
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
 
-    .weekday-checkboxes {
-        display: flex;
-        gap: 15px;
-        flex-wrap: wrap;
-    }
+        .form-group input,
+        .form-group select {
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: white;
+        }
 
-    .weekday-checkboxes label {
-        font-weight: normal;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
 
-    .help-text {
-        font-size: 12px;
-        color: #718096;
-        margin-top: 5px;
-    }
+        .weekday-checkboxes {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
 
-    .preview-box {
-        background: linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%);
-        padding: 20px;
-        border-radius: 8px;
-        border-left: 4px solid #667eea;
-    }
+        .weekday-checkboxes label {
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
 
-    .preview-box strong {
-        color: #667eea;
-        font-size: 15px;
-    }
+        .help-text {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
 
-    .preview-box ul {
-        margin: 15px 0 0 0;
-        padding-left: 20px;
-    }
+        .preview-box {
+            background: linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
 
-    .preview-box li {
-        color: #4a5568;
-        margin: 8px 0;
-        line-height: 1.6;
-    }
+        .preview-box strong {
+            color: #667eea;
+            font-size: 15px;
+        }
 
-    .estimate-badge {
-        display: inline-block;
-        background: #48bb78;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 13px;
-        font-weight: 600;
-        margin-left: 10px;
-    }
+        .preview-box ul {
+            margin: 15px 0 0 0;
+            padding-left: 20px;
+        }
 
-    .button-group {
-        display: flex;
-        gap: 15px;
-        justify-content: flex-end;
-        margin-top: 30px;
-        padding-top: 30px;
-        border-top: 2px solid #e2e8f0;
-    }
+        .preview-box li {
+            color: #4a5568;
+            margin: 8px 0;
+            line-height: 1.6;
+        }
 
-    .btn {
-        padding: 12px 30px;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 14px;
-        text-decoration: none;
-        transition: all 0.2s;
-        cursor: pointer;
-        border: none;
-    }
-
-    .btn-cancel {
-        background: #e2e8f0;
-        color: #4a5568;
-    }
-
-    .btn-cancel:hover {
-        background: #cbd5e0;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-
-    @media (max-width: 768px) {
-        .form-grid-2,
-        .form-grid-3 {
-            grid-template-columns: 1fr;
+        .estimate-badge {
+            display: inline-block;
+            background: #48bb78;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-left: 10px;
         }
 
         .button-group {
-            flex-direction: column;
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e2e8f0;
         }
 
         .btn {
-            width: 100%;
-            text-align: center;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
         }
-    }
-</style>
+
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-cancel:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .form-group select {
+            color: #111827 !important;
+        }
+
+        .form-group select:invalid {
+            color: #9ca3af !important;
+        }
+
+        .form-group select option {
+            color: #111827;
+        }
+
+        #service_type {
+            padding: 16px 15px; /* قبلاً 12px بود */
+            min-height: 68px; /* ارتفاع واضح‌تر */
+            font-size: 15px;
+        }
+
+
+        @media (max-width: 768px) {
+            .form-grid-2,
+            .form-grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-<div class="bulk-generate-container">
-    <div class="page-header">
-        <h1>⚡ ایجاد گروهی بازه‌های زمانی</h1>
+    <div class="bulk-generate-container">
+        <div class="page-header">
+            <h1>⚡ ایجاد گروهی بازه‌های زمانی</h1>
+        </div>
+
+        <form method="post" class="form-card">
+            {% csrf_token %}
+
+            <!-- Service Type -->
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="service_type">نوع خدمت:</label>
+                    <select name="service_type" id="service_type" required>
+                        <option value="" disabled selected hidden>-- انتخاب کنید --</option>
+                        {% for service in service_types %}
+                            <option value="{{ service.id }}">{{ service.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Date Range -->
+            <div class="form-section">
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label for="start_date">تاریخ شروع</label>
+                        <input type="date" name="start_date" id="start_date" required>
+                        <span class="help-text">تاریخ شروع تولید نوبت‌ها</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="end_date">تاریخ پایان</label>
+                        <input type="date" name="end_date" id="end_date" required>
+                        <span class="help-text">تاریخ پایان تولید نوبت‌ها</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Time Configuration -->
+            <div class="form-section">
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label for="start_time">زمان شروع</label>
+                        <input type="time" name="start_time" id="start_time" value="08:00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="end_time">زمان پایان</label>
+                        <input type="time" name="end_time" id="end_time" value="12:00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="interval">فاصله زمانی (دقیقه)</label>
+                        <input type="number" name="interval" id="interval" value="60" min="15" max="240" required>
+                        <span class="help-text">فاصله بین هر نوبت به دقیقه</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weekdays -->
+            <div class="form-section">
+                <div class="section-title">📆 روزهای هفته</div>
+                <div class="weekday-checkboxes">
+                    <label><input type="checkbox" name="weekdays" value="5"> شنبه</label>
+                    <label><input type="checkbox" name="weekdays" value="6"> یکشنبه</label>
+                    <label><input type="checkbox" name="weekdays" value="0"> دوشنبه</label>
+                    <label><input type="checkbox" name="weekdays" value="1"> سه‌شنبه</label>
+                    <label><input type="checkbox" name="weekdays" value="2"> چهارشنبه</label>
+                    <label><input type="checkbox" name="weekdays" value="3"> پنج‌شنبه</label>
+                    <label><input type="checkbox" name="weekdays" value="4"> جمعه</label>
+                </div>
+                <span class="help-text">نوبت‌ها فقط در روزهای انتخاب شده ایجاد می‌شوند</span>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="form-section">
+                <div class="preview-box">
+                    <strong>📊 پیش‌نمایش ایجاد</strong>
+                    <span class="estimate-badge" id="estimate">~0 بازه</span>
+                    <ul>
+                        <li>✓ برای هر روز در بازه انتخاب‌شده بازه ایجاد می‌شود</li>
+                        <li>✓ بازه‌ها از <strong id="preview-start">09:00</strong> تا <strong
+                                id="preview-end">18:00</strong> خواهند بود
+                        </li>
+                        <li>✓ مدت هر بازه <strong id="preview-interval">60</strong> دقیقه است</li>
+                        <li>✓ تاریخ‌های مستثنا نادیده گرفته می‌شوند</li>
+                        <li>✓ بازه‌های تکراری ایجاد نخواهند شد</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-group">
+                <a href="{% url 'admin:council_timeslot_changelist' %}" class="btn btn-cancel">انصراف</a>
+                <button type="submit" class="btn btn-primary">تولید نوبت‌ها</button>
+            </div>
+        </form>
     </div>
 
-    <form method="post" class="form-card">
-        {% csrf_token %}
+    <script>
+        // Set today as minimum date
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('start_date').min = today;
+        document.getElementById('end_date').min = today;
 
-        <!-- Service Type -->
-        <div class="form-section">
-            <div class="form-group">
-                <label for="service_type">نوع خدمت:</label>
-                <select name="service_type" id="service_type" required>
-                    <option value="">-- انتخاب کنید --</option>
-                    {% for service in service_types %}
-                    <option value="{{ service.id }}">{{ service.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
+        // Real-time preview updates
+        const inputs = {
+            startDate: document.getElementById('start_date'),
+            endDate: document.getElementById('end_date'),
+            startTime: document.getElementById('start_time'),
+            endTime: document.getElementById('end_time'),
+            interval: document.getElementById('interval')
+        };
 
-        <!-- Date Range -->
-        <div class="form-section">
-            <div class="form-grid-2">
-                <div class="form-group">
-                    <label for="start_date">تاریخ شروع</label>
-                    <input type="date" name="start_date" id="start_date" required>
-                    <span class="help-text">تاریخ شروع تولید نوبت‌ها</span>
-                </div>
-                <div class="form-group">
-                    <label for="end_date">تاریخ پایان</label>
-                    <input type="date" name="end_date" id="end_date" required>
-                    <span class="help-text">تاریخ پایان تولید نوبت‌ها</span>
-                </div>
-            </div>
-        </div>
+        Object.values(inputs).forEach(input => {
+            input.addEventListener('change', updatePreview);
+            input.addEventListener('input', updatePreview);
+        });
 
-        <!-- Time Configuration -->
-        <div class="form-section">
-            <div class="form-grid-3">
-                <div class="form-group">
-                    <label for="start_time">زمان شروع</label>
-                    <input type="time" name="start_time" id="start_time" value="08:00" required>
-                </div>
-                <div class="form-group">
-                    <label for="end_time">زمان پایان</label>
-                    <input type="time" name="end_time" id="end_time" value="12:00" required>
-                </div>
-                <div class="form-group">
-                    <label for="interval">فاصله زمانی (دقیقه)</label>
-                    <input type="number" name="interval" id="interval" value="60" min="15" max="240" required>
-                    <span class="help-text">فاصله بین هر نوبت به دقیقه</span>
-                </div>
-            </div>
-        </div>
+        function updatePreview() {
+            document.getElementById('preview-start').textContent = inputs.startTime.value || '09:00';
+            document.getElementById('preview-end').textContent = inputs.endTime.value || '18:00';
+            document.getElementById('preview-interval').textContent = inputs.interval.value || '60';
 
-        <!-- Weekdays -->
-        <div class="form-section">
-            <div class="section-title">📆 روزهای هفته</div>
-            <div class="weekday-checkboxes">
-                <label><input type="checkbox" name="weekdays" value="5"> شنبه</label>
-                <label><input type="checkbox" name="weekdays" value="6"> یکشنبه</label>
-                <label><input type="checkbox" name="weekdays" value="0"> دوشنبه</label>
-                <label><input type="checkbox" name="weekdays" value="1"> سه‌شنبه</label>
-                <label><input type="checkbox" name="weekdays" value="2"> چهارشنبه</label>
-                <label><input type="checkbox" name="weekdays" value="3"> پنج‌شنبه</label>
-                <label><input type="checkbox" name="weekdays" value="4"> جمعه</label>
-            </div>
-            <span class="help-text">نوبت‌ها فقط در روزهای انتخاب شده ایجاد می‌شوند</span>
-        </div>
+            calculateEstimate();
+        }
 
-        <!-- Preview Section -->
-        <div class="form-section">
-            <div class="preview-box">
-                <strong>📊 پیش‌نمایش ایجاد</strong>
-                <span class="estimate-badge" id="estimate">~0 بازه</span>
-                <ul>
-                    <li>✓ برای هر روز در بازه انتخاب‌شده بازه ایجاد می‌شود</li>
-                    <li>✓ بازه‌ها از <strong id="preview-start">09:00</strong> تا <strong
-                            id="preview-end">18:00</strong> خواهند بود
-                    </li>
-                    <li>✓ مدت هر بازه <strong id="preview-interval">60</strong> دقیقه است</li>
-                    <li>✓ تاریخ‌های مستثنا نادیده گرفته می‌شوند</li>
-                    <li>✓ بازه‌های تکراری ایجاد نخواهند شد</li>
-                </ul>
-            </div>
-        </div>
+        function calculateEstimate() {
+            if (!inputs.startDate.value || !inputs.endDate.value) return;
 
-        <!-- Action Buttons -->
-        <div class="button-group">
-            <a href="{% url 'admin:council_timeslot_changelist' %}" class="btn btn-cancel">انصراف</a>
-            <button type="submit" class="btn btn-primary">تولید نوبت‌ها</button>
-        </div>
-    </form>
-</div>
+            const start = new Date(inputs.startDate.value);
+            const end = new Date(inputs.endDate.value);
+            const startMinutes = timeToMinutes(inputs.startTime.value || '09:00');
+            const endMinutes = timeToMinutes(inputs.endTime.value || '18:00');
+            const interval = parseInt(inputs.interval.value) || 60;
 
-<script>
-    // Set today as minimum date
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('start_date').min = today;
-    document.getElementById('end_date').min = today;
+            const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            const slotsPerDay = Math.floor((endMinutes - startMinutes) / interval);
 
-    // Real-time preview updates
-    const inputs = {
-        startDate: document.getElementById('start_date'),
-        endDate: document.getElementById('end_date'),
-        startTime: document.getElementById('start_time'),
-        endTime: document.getElementById('end_time'),
-        interval: document.getElementById('interval')
-    };
+            const totalSlots = daysDiff * slotsPerDay;
+            document.getElementById('estimate').textContent = `~${totalSlots} بازه`;
+        }
 
-    Object.values(inputs).forEach(input => {
-        input.addEventListener('change', updatePreview);
-        input.addEventListener('input', updatePreview);
-    });
+        function timeToMinutes(time) {
+            const [hours, minutes] = time.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
 
-    function updatePreview() {
-        document.getElementById('preview-start').textContent = inputs.startTime.value || '09:00';
-        document.getElementById('preview-end').textContent = inputs.endTime.value || '18:00';
-        document.getElementById('preview-interval').textContent = inputs.interval.value || '60';
-
-        calculateEstimate();
-    }
-
-    function calculateEstimate() {
-        if (!inputs.startDate.value || !inputs.endDate.value) return;
-
-        const start = new Date(inputs.startDate.value);
-        const end = new Date(inputs.endDate.value);
-        const startMinutes = timeToMinutes(inputs.startTime.value || '09:00');
-        const endMinutes = timeToMinutes(inputs.endTime.value || '18:00');
-        const interval = parseInt(inputs.interval.value) || 60;
-
-        const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-        const slotsPerDay = Math.floor((endMinutes - startMinutes) / interval);
-
-        const totalSlots = daysDiff * slotsPerDay;
-        document.getElementById('estimate').textContent = `~${totalSlots} بازه`;
-    }
-
-    function timeToMinutes(time) {
-        const [hours, minutes] = time.split(':').map(Number);
-        return hours * 60 + minutes;
-    }
-
-    function updatePreview() {
-        document.getElementById('preview-start').textContent = inputs.startTime.value || '08:00';
-        document.getElementById('preview-end').textContent = inputs.endTime.value || '12:00';
-        document.getElementById('preview-interval').textContent = inputs.interval.value || '60';
-        calculateEstimate();
-    }
+        function updatePreview() {
+            document.getElementById('preview-start').textContent = inputs.startTime.value || '08:00';
+            document.getElementById('preview-end').textContent = inputs.endTime.value || '12:00';
+            document.getElementById('preview-interval').textContent = inputs.interval.value || '60';
+            calculateEstimate();
+        }
 
 
-    updatePreview();
-</script>
+        updatePreview();
+    </script>
 {% endblock %}
