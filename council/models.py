@@ -459,6 +459,14 @@ class Reservation(models.Model):
         help_text='فایل نسخه (در صورت نیاز)'
     )
 
+    sepas_code = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        verbose_name='کد سپاس',
+        help_text='کد سامانه سپاس را وارد کنید'
+    )
+
     # Timestamps
     reserved_at = models.DateTimeField(
         auto_now_add=True,

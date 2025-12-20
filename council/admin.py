@@ -1282,6 +1282,21 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     get_payment_status.short_description = "پرداخت"
 
+class ReservationAdminForm(forms.ModelForm):
+    class Meta:
+        model = Reservation
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if "sepas_code" in self.fields:
+            self.fields["sepas_code"].widget.attrs.update({
+                "style": "font-size:16px; font-weight:800; padding:10px; border:2px solid #f59e0b; border-radius:10px;",
+                "placeholder": "کد سپاس را وارد کنید…",
+            })
+            self.fields["sepas_code"].help_text = "⚠️ ضروری: اگر خالی است حتماً وارد کنید."
+
 
 @admin.register(Reservation)
 class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
@@ -1297,6 +1312,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         'slot_info',
         'status_badge',
         'payment_badge',
+        'sepas_badge',
         'get_jalali_reserve_date',
     ]
     list_filter = [
@@ -1334,8 +1350,14 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         'export_selected_pdf_admin',
         'export_selected_pdf_user',
     ]
+    form = ReservationAdminForm
 
     fieldsets = (
+        ('🟠 کد سپاس', {
+            'fields': ('sepas_code',),
+            'description': 'اگر این فیلد خالی است، لطفاً <b>کد سپاس</b> را وارد کنید.',
+            'classes': ('wide',),  # فرم را پهن‌تر و چشمگیرتر می‌کند
+        }),
         ('اطلاعات رزرو', {
             'fields': ('tracking_code', 'service_type', 'time_slot', 'consultation_topic')
         }),
@@ -1362,6 +1384,30 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        obj = self.get_object(request, object_id)
+
+        # فقط در GET هشدار بده که هر بار Save می‌زنن دوباره تکراری نشه
+        if obj and request.method == "GET" and not getattr(obj, "sepas_code", None):
+            messages.warning(request, "⚠️ کد سپاس وارد نشده است. لطفاً کد سپاس را وارد کنید.")
+
+        return super().change_view(request, object_id, form_url, extra_context)
+
+    def sepas_badge(self, obj):
+        if obj.sepas_code:
+            return format_html(
+                '<span style="background:#16a34a;color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;">'
+                '✓ دارد'
+                '</span>'
+            )
+        return format_html(
+            '<span style="background:#dc2626;color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;">'
+            '⚠ وارد نشده'
+            '</span>'
+        )
+
+    sepas_badge.short_description = 'کد سپاس'
 
     @admin.action(description='📥 خروجی CSV رزروها')
     def export_reservations_csv(self, request, queryset):
