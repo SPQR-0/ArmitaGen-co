@@ -1504,7 +1504,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         ('🟠 کد سپاس', {
             'fields': ('sepas_code',),
             'description': 'اگر این فیلد خالی است، لطفاً <b>کد سپاس</b> را وارد کنید.',
-            'classes': ('wide',),  # فرم را پهن‌تر و چشمگیرتر می‌کند
+            'classes': ('wide',),
         }),
         ('اطلاعات رزرو', {
             'fields': ('tracking_code', 'service_type', 'time_slot', 'consultation_topic')
@@ -1727,6 +1727,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             'نام و نام خانوادگی',
             'شماره تماس',
             'کد پیگیری',
+            'کد سپاس',
             'نوع مشاوره',
             'عنوان مشاوره',
             'تاریخ نوبت',
@@ -1808,6 +1809,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
                 res.full_name or "-",
                 res.phone_number or "-",
                 res.tracking_code or "-",
+                res.sepas_code or (res.sepas_code or "-"),
                 res.service_type.name if res.service_type else "-",
                 res.consultation_topic.name if res.consultation_topic else "-",
                 jalali_date,
