@@ -24,4 +24,7 @@ urlpatterns = [
     # AJAX endpoints
     path('api/check-slot/<int:slot_id>/', views.check_slot_availability, name='check_slot_availability'),
     path('api/slots/<int:service_type_id>/', views.get_service_slots_api, name='get_service_slots_api'),
+
+    # reservation PDF
+    path("receipt/<str:tracking_code>/pdf/", views.ReservationReceiptPDFView.as_view(), name="receipt_pdf"),
 ]

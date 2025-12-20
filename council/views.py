@@ -4,12 +4,16 @@ import pytz
 from django.contrib import messages
 from django.contrib.auth import login
 from django.db import transaction
+from django.http import HttpResponse, Http404
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.text import slugify
 from django.views import View
 from django.views.decorators.http import require_http_methods
+from weasyprint import HTML
 
 from accounts.models import UserInfo
 from logs.utils import log_activity, log_error
@@ -521,6 +525,41 @@ class ReservationReceiptView(View):
             'payment': reservation.payments.filter(status='success').first()
         }
         return render(request, self.template_name, context)
+
+
+class ReservationReceiptPDFView(View):
+    template_name = "council/receipt_pdf.html"
+
+    def get(self, request, tracking_code):
+        reservation = get_object_or_404(
+            Reservation,
+            tracking_code=tracking_code,
+            deleted_at__isnull=True
+        )
+
+        payment = reservation.payments.filter(status="success").first()
+        if not payment:
+            raise Http404("پرداخت موفق برای این رزرو پیدا نشد.")
+
+        jalali_info = get_jalali_date_info(reservation.time_slot.date)
+
+        context = {
+            "reservation": reservation,
+            "jalali_date": jalali_info["jalali_date"],
+            "payment": payment,
+        }
+
+        html_string = render_to_string(self.template_name, context, request=request)
+
+        # base_url برای لود شدن static (لوگو/فونت/...)
+        base_url = request.build_absolute_uri("/")
+
+        pdf_bytes = HTML(string=html_string, base_url=base_url).write_pdf()
+
+        filename = f"receipt-{reservation.tracking_code}.pdf"
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
 
 
 # AJAX endpoint (Remains largely the same, but uses a simplified logic for time check)

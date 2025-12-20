@@ -1,0 +1,146 @@
+{% load static humanize %}
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: DejaVu Sans, Arial, sans-serif;
+            color: #111;
+            font-size: 12px;
+        }
+
+        .box {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+        }
+
+        h1 {
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .muted {
+            color: #666;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .row:first-of-type {
+            border-top: 0;
+        }
+
+        .title {
+            font-weight: 700;
+            margin: 10px 0 6px;
+        }
+
+        .code {
+            font-family: monospace;
+            direction: ltr;
+        }
+
+        .price {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f7f7ff;
+            border: 1px solid #e0e7ff;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+<div class="box">
+    <div class="header">
+        <div>
+            <h1>رسید رزرو</h1>
+            <div class="muted">رزرو تایید شد • پرداخت موفق</div>
+        </div>
+        <img class="logo" src="{% static 'img/logo.png' %}" alt="Logo">
+    </div>
+
+    <div class="muted">لطفاً این رسید را نزد خود نگه دارید.</div>
+
+    <div class="title">کد پیگیری</div>
+    <div class="row">
+        <div class="muted">Tracking Code</div>
+        <div class="code"><b>{{ reservation.tracking_code }}</b></div>
+    </div>
+    <div class="title">اطلاعات پرداخت</div>
+    <div class="row">
+        <div class="muted">وضعیت</div>
+        <div><b>{{ payment.get_status_display }}</b></div>
+    </div>
+
+    {% if payment.tracking_code %}
+        <div class="row">
+            <div class="muted">کد پیگیری بانک</div>
+            <div class="code"><b>{{ payment.tracking_code }}</b></div>
+        </div>
+    {% endif %}
+
+    {% if payment.reference_code %}
+        <div class="row">
+            <div class="muted">کد رهگیری درگاه</div>
+            <div class="code"><b>{{ payment.reference_code }}</b></div>
+        </div>
+    {% endif %}
+
+    {% if payment.paid_at %}
+        <div class="row">
+            <div class="muted">تاریخ پرداخت</div>
+            <div><b>{{ payment.paid_at|date:"Y/m/d H:i" }}</b></div>
+        </div>
+    {% endif %}
+    <div class="title">اطلاعات شخصی</div>
+    <div class="row">
+        <div class="muted">نام</div>
+        <div><b>{{ reservation.full_name }}</b></div>
+    </div>
+    <div class="row">
+        <div class="muted">شماره تلفن</div>
+        <div class="code"><b>{{ reservation.phone_number }}</b></div>
+    </div>
+
+    <div class="title">جزئیات مشاوره</div>
+    <div class="row">
+        <div class="muted">خدمت</div>
+        <div><b>{{ reservation.service_type.name }}</b></div>
+    </div>
+    <div class="row">
+        <div class="muted">تاریخ</div>
+        <div><b>{{ jalali_date|date:"Y/m/d" }}</b></div>
+    </div>
+    <div class="row">
+        <div class="muted">زمان</div>
+        <div><b>{{ reservation.time_slot.start_time|time:'H:i' }} — {{ reservation.time_slot.end_time|time:'H:i' }}</b>
+        </div>
+    </div>
+
+    <div class="price">
+        <div><b>مبلغ پرداخت‌شده</b></div>
+        <div><b>تومان {{ reservation.service_type.price|intcomma }}</b></div>
+    </div>
+</div>
+</body>
+</html>

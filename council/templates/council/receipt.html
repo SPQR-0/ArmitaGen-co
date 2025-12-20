@@ -21,6 +21,7 @@
             justify-content: center;
             padding: 20px;
         }
+
         /* Messages Container */
         .messages {
             margin: 16px 0;
@@ -68,17 +69,17 @@
             color: #ef6c00;
         }
 
-    /* Animation */
-    @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateY(-6px);
+        /* Animation */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
 
         .container {
             width: 100%;
@@ -288,87 +289,92 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <div class="success-header">
-                <div class="success-icon">✅</div>
-                <h1>رزرو شما تایید شد!</h1>
-                <p class="subtitle">پرداخت موفق انجام شد</p>
-            </div>
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags|default:'success' }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
+<div class="container">
+    <div class="card">
+        <div class="success-header">
+            <div class="success-icon">✅</div>
+            <h1>رزرو شما تایید شد!</h1>
+            <p class="subtitle">پرداخت موفق انجام شد</p>
         </div>
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'success' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
         {% endif %}
 
-            <div class="receipt-section">
-                <div class="section-title">
-                    📋 کد پیگیری
-                </div>
-                <div class="code-box" id="copy-code">
-                    <div class="code-label">برای پیگیری رزرو این کد را نگه‌دارید</div>
-                    <div class="code">{{ reservation.tracking_code }}</div>
-                </div>
+        <div class="receipt-section">
+            <div class="section-title">
+                📋 کد پیگیری
             </div>
-
-            <div class="receipt-section">
-                <div class="section-title">
-                    👤 اطلاعات شخصی
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">نام:</span>
-                    <span class="detail-value">{{ reservation.full_name }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">شماره تلفن:</span>
-                    <span class="detail-value">{{ reservation.phone_number }}</span>
-                </div>
-            </div>
-
-            <div class="receipt-section">
-                <div class="section-title">
-                    📅 جزئیات مشاوره
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">خدمت:</span>
-                    <span class="detail-value">{{ reservation.service_type.name }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">تاریخ:</span>
-                    <span class="detail-value">{{ jalali_date|date:"Y/m/d" }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">زمان:</span>
-                    <span class="detail-value">{{ reservation.time_slot.start_time|time:'H:i' }} — {{ reservation.time_slot.end_time|time:'H:i' }}</span>
-                </div>
-            </div>
-
-            <div class="price-section">
-                <div class="price-label">مبلغ پرداخت‌شده</div>
-                <div class="price"><span class="price-currency">تومان</span>{{ reservation.service_type.price|intcomma }}</div>
-            </div>
-
-            <div class="notice">
-                🔔 یادآوری: پیش از موعد مقرر، مجددا از طریق تماس با ما تایید نمایید
-            </div>
-
-            <div class="button-group">
-                <a href="{% url 'council:step1_initial' %}" class="btn-primary">🏠 صفحه اصلی</a>
+            <div class="code-box" id="copy-code">
+                <div class="code-label">برای پیگیری رزرو این کد را نگه‌دارید</div>
+                <div class="code">{{ reservation.tracking_code }}</div>
             </div>
         </div>
-    </div>
 
-    <script>
-        document.getElementById('copy-code').addEventListener('click', () => {
-            const code = '{{ reservation.tracking_code }}';
-            navigator.clipboard.writeText(code).then(() => {
-                alert('کد کپی شد!');
-            });
+        <div class="receipt-section">
+            <div class="section-title">
+                👤 اطلاعات شخصی
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">نام:</span>
+                <span class="detail-value">{{ reservation.full_name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">شماره تلفن:</span>
+                <span class="detail-value">{{ reservation.phone_number }}</span>
+            </div>
+        </div>
+
+        <div class="receipt-section">
+            <div class="section-title">
+                📅 جزئیات مشاوره
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">خدمت:</span>
+                <span class="detail-value">{{ reservation.service_type.name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">تاریخ:</span>
+                <span class="detail-value">{{ jalali_date|date:"Y/m/d" }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">زمان:</span>
+                <span class="detail-value">{{ reservation.time_slot.start_time|time:'H:i' }} — {{ reservation.time_slot.end_time|time:'H:i' }}</span>
+            </div>
+        </div>
+
+        <div class="price-section">
+            <div class="price-label">مبلغ پرداخت‌شده</div>
+            <div class="price"><span class="price-currency">تومان</span>{{ reservation.service_type.price|intcomma }}
+            </div>
+        </div>
+
+        <div class="notice">
+            🔔 یادآوری: پیش از موعد مقرر، مجددا از طریق تماس با ما تایید نمایید
+        </div>
+
+        <div class="button-group">
+            <a class="btn btn-primary" href="{% url 'council:receipt_pdf' reservation.tracking_code %}">
+                ⬇️ دانلود PDF رسید
+            </a>
+
+            <a href="{% url 'council:step1_initial' %}" class="btn-primary">🏠 صفحه اصلی</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('copy-code').addEventListener('click', () => {
+        const code = '{{ reservation.tracking_code }}';
+        navigator.clipboard.writeText(code).then(() => {
+            alert('کد کپی شد!');
         });
-    </script>
+    });
+</script>
 </body>
 </html>
