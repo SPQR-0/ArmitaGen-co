@@ -1,7 +1,9 @@
 import csv
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
+from datetime import datetime
 
 import jdatetime
+import openpyxl
 import pytz
 from django import forms
 from django.contrib import admin, messages
@@ -15,6 +17,7 @@ from django.utils.safestring import mark_safe
 from jalali_date.admin import ModelAdminJalaliMixin
 from jalali_date.fields import JalaliDateField, SplitJalaliDateTimeField
 from jalali_date.widgets import AdminJalaliDateWidget, AdminSplitJalaliDateTime
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 from council.admin_utils.csv import safe_csv
 from council.utils.pdf_generator import generate_admin_receipt_pdf, generate_user_receipt_pdf
@@ -553,6 +556,7 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         'mark_expired_slots',
         'mark_expired_slots_manual',
         'mark_active_slots_manual',
+        'export_slots_excel',
         'export_slots_csv',
     ]
     change_list_template = 'admin/council/timeslot_changelist.html'
@@ -566,6 +570,148 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             'admin/js/django_jalali.min.js',
             # 'admin/js/main_jalali.js'
         )
+
+    @admin.action(description='📗 خروجی اکسل نوبت‌ها (Excel)')
+    def export_slots_excel(self, request, queryset):
+        """
+        Export TimeSlots as styled Excel (.xlsx) including reservation+payment details
+        """
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "نوبت‌ها"
+
+        # Styles
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="3A75B8", end_color="3A75B8", fill_type="solid")
+        right_alignment = Alignment(horizontal="right", vertical="center", wrap_text=True)
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        row_colors = ["FFFFFF", "D9EAF7"]
+
+        # Headers
+        headers = [
+            'نوع مشاوره',
+            'زمان',
+            'تاریخ (جلالی)',
+            'روز هفته',
+            'وضعیت رزرو',
+            'وضعیت پرداخت',
+            'مبلغ نهایی پرداخت',
+            'کد پیگیری',
+            'رزرو کننده',
+            'شماره تماس رزرو کننده',
+            'زمان رزرو (جلالی)',
+            'زمان ایجاد نوبت (جلالی)',
+        ]
+
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = right_alignment
+            cell.border = thin_border
+
+        WEEKDAY_PERSIAN = {
+            0: "دوشنبه",
+            1: "سه‌شنبه",
+            2: "چهارشنبه",
+            3: "پنج‌شنبه",
+            4: "جمعه",
+            5: "شنبه",
+            6: "یکشنبه",
+        }
+
+        def date2jalali(date_obj):
+            if not date_obj:
+                return "-"
+            return jdatetime.date.fromgregorian(date=date_obj).strftime('%Y/%m/%d')
+
+        def datetime2jalali(dt_obj):
+            if not dt_obj:
+                return "-"
+            # dt_obj ممکنه aware باشه؛ جdatetime با datetime کار می‌کنه
+            return jdatetime.datetime.fromgregorian(datetime=dt_obj).strftime('%Y/%m/%d %H:%M:%S')
+
+        def format_time_range(start_time, end_time):
+            if not start_time or not end_time:
+                return "-"
+            return f"{start_time.strftime('%H:%M')} - {end_time.strftime('%H:%M')}"
+
+        # بهتر: select_related/prefetch_related برای سرعت
+        queryset = queryset.select_related('service_type').prefetch_related('reservations__payments').order_by('date',
+                                                                                                               'start_time')
+
+        for row_num, slot in enumerate(queryset, start=2):
+            reservation = slot.reservations.first()
+
+            weekday_fa = WEEKDAY_PERSIAN.get(slot.date.weekday(), "-") if slot.date else "-"
+            availability_status = "در دسترس" if slot.is_available else "غیر قابل دسترس"
+
+            if reservation:
+                successful_payment = reservation.payments.filter(status='success').first()
+
+                payment_status = (
+                    reservation.get_payment_status_display()
+                    if hasattr(reservation, 'get_payment_status_display')
+                    else getattr(reservation, "payment_status", "-")
+                )
+
+                final_amount = int(
+                    successful_payment.amount) if successful_payment and successful_payment.amount else "-"
+                tracking_code = reservation.tracking_code or "-"
+                reserver_name = reservation.full_name or "-"
+                reserver_phone = reservation.phone_number or "-"
+                booking_time = datetime2jalali(reservation.reserved_at)
+            else:
+                payment_status = "-"
+                final_amount = "-"
+                tracking_code = "-"
+                reserver_name = "-"
+                reserver_phone = "-"
+                booking_time = "-"
+
+            row = [
+                slot.service_type.name if slot.service_type else "-",
+                format_time_range(slot.start_time, slot.end_time),
+                date2jalali(slot.date),
+                weekday_fa,
+                availability_status,
+                payment_status,
+                final_amount,
+                tracking_code,
+                reserver_name,
+                reserver_phone,
+                booking_time,
+                datetime2jalali(slot.created_at),
+            ]
+
+            fill_color = PatternFill(
+                start_color=row_colors[(row_num - 2) % 2],
+                end_color=row_colors[(row_num - 2) % 2],
+                fill_type="solid"
+            )
+
+            for col_num, value in enumerate(row, 1):
+                cell = ws.cell(row=row_num, column=col_num, value=value)
+                cell.alignment = right_alignment
+                cell.fill = fill_color
+                cell.border = thin_border
+
+        # Adjust column widths
+        for col in ws.columns:
+            max_length = max(len(str(cell.value)) if cell.value else 0 for cell in col)
+            ws.column_dimensions[col[0].column_letter].width = min(max_length + 5, 60)  # سقف 60 برای قشنگی
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="time_slots.xlsx"'
+        wb.save(response)
+        return response
 
     @admin.action(description='📥 خروجی به فرمت CSV')
     def export_slots_csv(self, request, queryset):
@@ -1282,6 +1428,7 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     get_payment_status.short_description = "پرداخت"
 
+
 class ReservationAdminForm(forms.ModelForm):
     class Meta:
         model = Reservation
@@ -1346,6 +1493,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     actions = [
         'mark_as_completed',
         'mark_as_cancelled',
+        'export_reservations_excel',
         'export_reservations_csv',
         'export_selected_pdf_admin',
         'export_selected_pdf_user',
@@ -1384,6 +1532,162 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    @admin.action(description='📗 خروجی اکسل رزروها (Excel)')
+    def export_reservations_excel(self, request, queryset):
+        """
+        Export Reservations as styled Excel (.xlsx) including payment+slot+sepas info
+        """
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "رزروها"
+
+        # Styles
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="3A75B8", end_color="3A75B8", fill_type="solid")
+        right_alignment = Alignment(horizontal="right", vertical="center", wrap_text=True)
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        row_colors = ["FFFFFF", "D9EAF7"]
+
+        # Headers
+        headers = [
+            'شناسه',
+            'کد پیگیری',
+            'کد سپاس',
+            'نام و نام خانوادگی',
+            'شماره تماس',
+            'ایمیل',
+            'نوع مشاوره',
+            'عنوان مشاوره',
+            'تاریخ نوبت (جلالی)',
+            'روز هفته',
+            'بازه زمانی نوبت',
+            'وضعیت رزرو',
+            'وضعیت پرداخت',
+            'مبلغ پرداخت موفق',
+            'کد پیگیری بانک',
+            'کد رهگیری درگاه',
+            'تاریخ پرداخت (جلالی)',
+            'زمان رزرو (جلالی)',
+            'زمان ایجاد (جلالی)',
+        ]
+
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = right_alignment
+            cell.border = thin_border
+
+        WEEKDAY_PERSIAN = {
+            0: "دوشنبه",
+            1: "سه‌شنبه",
+            2: "چهارشنبه",
+            3: "پنج‌شنبه",
+            4: "جمعه",
+            5: "شنبه",
+            6: "یکشنبه",
+        }
+
+        def date2jalali(date_obj):
+            if not date_obj:
+                return "-"
+            return jdatetime.date.fromgregorian(date=date_obj).strftime('%Y/%m/%d')
+
+        def datetime2jalali(dt_obj):
+            if not dt_obj:
+                return "-"
+            return jdatetime.datetime.fromgregorian(datetime=dt_obj).strftime('%Y/%m/%d %H:%M:%S')
+
+        def format_time_range(slot):
+            if not slot:
+                return "-"
+            st = slot.start_time.strftime('%H:%M') if slot.start_time else "-"
+            et = slot.end_time.strftime('%H:%M') if slot.end_time else "-"
+            return f"{st} - {et}"
+
+        # برای سرعت
+        queryset = (
+            queryset
+            .select_related('service_type', 'consultation_topic', 'time_slot')
+            .prefetch_related('payments')
+            .order_by('created_at')
+        )
+
+        for row_num, res in enumerate(queryset, start=2):
+            slot = getattr(res, "time_slot", None)
+
+            # تاریخ/روز/بازه
+            jalali_slot_date = date2jalali(slot.date) if slot else "-"
+            weekday_fa = WEEKDAY_PERSIAN.get(slot.date.weekday(), "-") if slot and slot.date else "-"
+            time_range = format_time_range(slot)
+
+            # پرداخت موفق
+            success_pay = res.payments.filter(status='success').first()
+            paid_amount = int(success_pay.amount) if success_pay and success_pay.amount else "-"
+            bank_tracking = success_pay.tracking_code if success_pay and success_pay.tracking_code else "-"
+            gateway_ref = success_pay.reference_code if success_pay and success_pay.reference_code else "-"
+            paid_at = datetime2jalali(success_pay.paid_at) if success_pay and success_pay.paid_at else "-"
+
+            # وضعیت‌ها
+            status_display = res.get_status_display() if hasattr(res, "get_status_display") else getattr(res, "status",
+                                                                                                         "-")
+            payment_display = (
+                res.get_payment_status_display()
+                if hasattr(res, "get_payment_status_display")
+                else getattr(res, "payment_status", "-")
+            )
+
+            row = [
+                res.id,
+                res.tracking_code or "-",
+                getattr(res, "sepas_code", None) or "-",  # ✅ کد سپاس
+                res.full_name or "-",
+                res.phone_number or "-",
+                res.email or "-",
+                res.service_type.name if res.service_type else "-",
+                res.consultation_topic.name if getattr(res, "consultation_topic", None) else "-",
+                jalali_slot_date,
+                weekday_fa,
+                time_range,
+                status_display,
+                payment_display,
+                paid_amount,
+                bank_tracking,
+                gateway_ref,
+                paid_at,
+                datetime2jalali(getattr(res, "reserved_at", None)),
+                datetime2jalali(getattr(res, "created_at", None)),
+            ]
+
+            fill_color = PatternFill(
+                start_color=row_colors[(row_num - 2) % 2],
+                end_color=row_colors[(row_num - 2) % 2],
+                fill_type="solid"
+            )
+
+            for col_num, value in enumerate(row, 1):
+                cell = ws.cell(row=row_num, column=col_num, value=value)
+                cell.alignment = right_alignment
+                cell.fill = fill_color
+                cell.border = thin_border
+
+        # Adjust column widths
+        for col in ws.columns:
+            max_length = max(len(str(cell.value)) if cell.value else 0 for cell in col)
+            ws.column_dimensions[col[0].column_letter].width = min(max_length + 5, 60)
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="reservations.xlsx"'
+        wb.save(response)
+        return response
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         obj = self.get_object(request, object_id)
