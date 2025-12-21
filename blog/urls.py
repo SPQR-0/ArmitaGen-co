@@ -13,4 +13,5 @@ urlpatterns = [
     path('preview/<slug:slug>/', views.PostPreviewView.as_view(), name='post_preview'),
     path('<slug:slug>/', views.PostDetailView.as_view(), name='post_detail'),
     path('<slug:slug>/like/', PostLikeView.as_view(), name='post_like'),
+    path('tags/<str:slug>/', views.PostsByTagView.as_view(), name='tag_posts'),
 ]

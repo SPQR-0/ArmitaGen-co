@@ -1,6 +1,7 @@
 from django.core.cache import cache
 from django.db.models import Q
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -294,3 +295,27 @@ class PostLikeView(View):
             'likes_count': likes_count,
             'is_liked': is_liked
         })
+
+from taggit.models import Tag
+from django.views.generic import ListView
+
+class PostsByTagView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
+    model = Post
+    template_name = 'blog/posts_by_tag.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+    def get_queryset(self):
+        self.tag = get_object_or_404(Tag, slug=self.kwargs['slug'])
+        return (
+            Post.objects
+            .filter(tags=self.tag, status='published')
+            .select_related('editor')
+            .prefetch_related('authors')
+            .order_by('-published_at')
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tag'] = self.tag
+        return context

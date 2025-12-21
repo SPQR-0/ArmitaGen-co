@@ -107,6 +107,37 @@ class AuthorAdmin(admin.ModelAdmin):
     posts_count.short_description = 'تعداد پست‌ها'
 
 
+
+#
+# @admin.register(Tag)
+# class TagAdmin(admin.ModelAdmin):
+#     """ادمین تگ‌ها"""
+#
+#     list_display = [
+#         'name',
+#         'slug',
+#         'posts_count',
+#     ]
+#
+#     search_fields = ['name', 'slug']
+#
+#     readonly_fields = ['slug']
+#
+#     def posts_count(self, obj):
+#         count = obj.taggit_taggeditem_items.filter(
+#             content_type__model='post'
+#         ).count()
+#
+#         if count > 0:
+#             return format_html(
+#                 '<span style="background: #28a745; color: white; padding: 3px 10px; border-radius: 3px;">{}</span>',
+#                 count
+#             )
+#         return format_html('<span style="color: #999;">0</span>')
+#
+#     posts_count.short_description = 'تعداد پست‌ها'
+
+
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display = [
@@ -125,6 +156,7 @@ class PostAdmin(admin.ModelAdmin):
         'created_at',
         'published_at',
         'editor',
+        'tags',
     ]
 
     search_fields = [
@@ -134,6 +166,7 @@ class PostAdmin(admin.ModelAdmin):
         'editor__username',
         'editor__email',
         'authors__name',
+        'tags__name',
     ]
 
     readonly_fields = [
@@ -149,6 +182,10 @@ class PostAdmin(admin.ModelAdmin):
     fieldsets = (
         ('اطلاعات اصلی', {
             'fields': ('title', 'slug', 'authors', 'status')
+        }),
+        ('دسته‌بندی', {
+            'fields': ('tags',),
+            'description': 'تگ‌ها را با کاما از هم جدا کنید. مثال: جنگو, پایتون, برنامه‌نویسی'
         }),
         ('محتوا', {
             'fields': ('featured_image', 'featured_image_preview', 'meta_description'),
@@ -283,7 +320,10 @@ class PostAdmin(admin.ModelAdmin):
         Avoiding additional queries for author and section count.
         """
         qs = super().get_queryset(request)
-        return qs.select_related('editor').prefetch_related('authors').annotate(
+        return qs.select_related('editor').prefetch_related(
+            'authors',
+            'tags'
+        ).annotate(
             sections_count=Count('sections')
         )
 

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 style="margin-bottom: 20px;">
+        پست‌ها با برچسب: <span style="color:#555">#{{ tag.name }}</span>
+    </h1>
+
+    {% if posts %}
+        {% for post in posts %}
+            <article style="margin-bottom: 24px;">
+                <h2>
+                    <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+                </h2>
+                <p>{{ post.meta_description }}</p>
+            </article>
+        {% endfor %}
+    {% else %}
+        <p>پستی با این برچسب پیدا نشد.</p>
+    {% endif %}
+</div>
+{% endblock %}

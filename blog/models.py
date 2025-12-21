@@ -3,6 +3,8 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+from taggit.managers import TaggableManager
+
 
 User = get_user_model()
 
@@ -140,6 +142,7 @@ class Post(models.Model):
         verbose_name='تصویر شاخص',
         help_text='تصویر اصلی پست که در لیست و صفحه پست نمایش داده می‌شود'
     )
+    tags = TaggableManager(blank=True, verbose_name='تگ ها', help_text='تگ های مرتبط با پست را ثبت کنید')
 
     class Meta:
         verbose_name = 'پست'
