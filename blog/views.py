@@ -26,7 +26,7 @@ class PostListView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
     """List of all published posts with filtering"""
 
     model = Post
-    template_name = 'blog/post_list.html'
+    template_name = 'blog/blog-list-sidebar.html'
     context_object_name = 'posts'
     paginate_by = 5
 
@@ -84,7 +84,7 @@ class PostDetailView(PublishedPostMixin, DetailView):
     """Display details of a single post"""
 
     model = Post
-    template_name = 'blog/post_detail.html'
+    template_name = 'blog/blog-details.html'
     context_object_name = 'post'
     slug_field = 'slug'
     slug_url_kwarg = 'slug'
@@ -121,12 +121,11 @@ class PostDetailView(PublishedPostMixin, DetailView):
         ip_address = get_client_ip(self.request)
         context['likes_count'] = self.object.get_likes_count()
         context['is_liked'] = self.object.is_liked_by_ip(ip_address)
+
+        # Previous/Next posts
         context['previous_post'] = (
             Post.objects
-            .filter(
-                status='published',
-                published_at__lt=self.object.published_at
-            )
+            .filter(status='published', published_at__lt=self.object.published_at)
             .order_by('-published_at')
             .only('title', 'slug')
             .first()
@@ -134,25 +133,26 @@ class PostDetailView(PublishedPostMixin, DetailView):
 
         context['next_post'] = (
             Post.objects
-            .filter(
-                status='published',
-                published_at__gt=self.object.published_at
-            )
+            .filter(status='published', published_at__gt=self.object.published_at)
             .order_by('published_at')
             .only('title', 'slug')
             .first()
         )
-        available_years = cache.get('blog_available_years')
-        if available_years is None:
-            available_years = list(
+
+        # Related posts by tags (6 posts)
+        if self.object.tags.exists():
+            context['related_posts'] = (
                 Post.objects
-                .filter(status='published')
-                .dates('published_at', 'year', order='DESC')
+                .filter(tags__in=self.object.tags.all(), status='published')
+                .exclude(pk=self.object.pk)
+                .distinct()
+                .order_by('-published_at')
+                .select_related('editor')
+                .prefetch_related('authors', 'tags')
+                [:6]
             )
-            cache.set('blog_available_years', available_years, 60 * 60)  # 1 hour
 
-        context['available_years'] = available_years
-
+        # SEO Meta
         context['meta_title'] = self.object.title
         context['meta_description'] = self.object.meta_description or self.object.title
         context['meta_image'] = self.object.featured_image.url if self.object.featured_image else None
