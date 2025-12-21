@@ -25,7 +25,7 @@ class PostListView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
     """List of all published posts with filtering"""
 
     model = Post
-    template_name = 'blog/blog-list-sidebar.html'
+    template_name = 'blog/post_list.html'
     context_object_name = 'posts'
     paginate_by = 5
 
@@ -285,9 +285,12 @@ class PostLikeView(View):
             liked = True
 
         likes_count = post.get_likes_count()
+        is_liked = PostLike.objects.filter(post=post, ip_address=get_client_ip(request)).exists()
+
 
         return JsonResponse({
             'success': True,
             'liked': liked,
-            'likes_count': likes_count
+            'likes_count': likes_count,
+            'is_liked': is_liked
         })
