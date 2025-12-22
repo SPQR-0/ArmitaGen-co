@@ -51,56 +51,157 @@
 </head>
 <style>
 
-	/* Container برای دکمه واتساپ */
-	.whatsapp-float-container {
-		position: fixed; /* دکمه ثابت روی صفحه می‌ماند */
-		bottom: 20px;    /* فاصله از پایین */
-		right: 20px;     /* فاصله از راست */
-		z-index: 1000;   /* بالاتر از بقیه عناصر قرار می‌گیرد */
-	}
+    /* Container برای دکمه واتساپ */
+    .whatsapp-float-container {
+        position: fixed; /* دکمه ثابت روی صفحه می‌ماند */
+        bottom: 20px; /* فاصله از پایین */
+        right: 20px; /* فاصله از راست */
+        z-index: 1000; /* بالاتر از بقیه عناصر قرار می‌گیرد */
+    }
 
-	/* استایل دکمه واتساپ */
-	.whatsapp-float-button {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		width: 60px;
-		height: 60px;
-		background-color: #25d366; /* رنگ واتساپ */
-		color: white;
-		font-size: 30px;
-		border-radius: 50%; /* دایره‌ای کردن دکمه */
-		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-		transition: transform 0.3s ease-in-out;
-	}
+    /* استایل دکمه واتساپ */
+    .whatsapp-float-button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 60px;
+        height: 60px;
+        background-color: #25d366; /* رنگ واتساپ */
+        color: white;
+        font-size: 30px;
+        border-radius: 50%; /* دایره‌ای کردن دکمه */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease-in-out;
+    }
 
-	/* انیمیشن هنگام هاور (بردن موس روی دکمه) */
-	.whatsapp-float-button:hover {
-		transform: scale(1.1); /* دکمه کمی بزرگ می‌شود */
-	}
+    /* انیمیشن هنگام هاور (بردن موس روی دکمه) */
+    .whatsapp-float-button:hover {
+        transform: scale(1.1); /* دکمه کمی بزرگ می‌شود */
+    }
 
     /* =======================================================
     استایل های عمومی و شبکه های اجتماعی (بدون تغییر)
     ======================================================= */
-    .whatsapp-float-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
-    .whatsapp-float-button { display: flex; justify-content: center; align-items: center; width: 60px; height: 60px; background-color: #25d366; color: white; font-size: 30px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); transition: transform 0.3s ease-in-out; }
-    .whatsapp-float-button:hover { transform: scale(1.1); }
+    .whatsapp-float-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
 
-    .youtube-link { color: #ff0000; text-decoration: none; font-weight: bold; margin-left: 8px; display: inline-flex; align-items: center; gap: 6px; transition: 0.3s ease; }
-    .youtube-link i { font-size: 18px; }
-    .youtube-link:hover { color: #fff; background: #ff0000; padding: 5px 10px; border-radius: 6px; box-shadow: 0 0 12px rgba(255,0,0,0.8); transform: scale(1.05); }
+    .whatsapp-float-button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 60px;
+        height: 60px;
+        background-color: #25d366;
+        color: white;
+        font-size: 30px;
+        border-radius: 50%;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease-in-out;
+    }
 
-    .instagram-link { color: #E1306C; text-decoration: none; font-weight: bold; margin-left: 8px; display: inline-flex; align-items: center; gap: 6px; transition: 0.3s ease; }
-    .instagram-link i { font-size: 18px; }
-    .instagram-link:hover { color: #fff; background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5); padding: 5px 10px; border-radius: 6px; box-shadow: 0 0 12px rgba(226,48,108,0.8); transform: scale(1.05); }
+    .whatsapp-float-button:hover {
+        transform: scale(1.1);
+    }
 
-    .linkedin-link { color: #0077B5; text-decoration: none; font-weight: bold; margin-left: 8px; display: inline-flex; align-items: center; gap: 6px; transition: 0.3s ease; }
-    .linkedin-link i { font-size: 18px; }
-    .linkedin-link:hover { color: #fff; background: #0077B5; padding: 5px 10px; border-radius: 6px; box-shadow: 0 0 12px rgba(0,119,181,0.8); transform: scale(1.05); }
+    .youtube-link {
+        color: #ff0000;
+        text-decoration: none;
+        font-weight: bold;
+        margin-left: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: 0.3s ease;
+    }
 
-    .whatsapp-link { color: #25D366; text-decoration: none; font-weight: bold; margin-left: 8px; display: inline-flex; align-items: center; gap: 6px; transition: 0.3s ease; }
-    .whatsapp-link i { font-size: 18px; }
-    .whatsapp-link:hover { color: #fff; background: #25D366; padding: 5px 10px; border-radius: 6px; box-shadow: 0 0 12px rgba(37, 211, 102, 0.8); transform: scale(1.05); }
+    .youtube-link i {
+        font-size: 18px;
+    }
+
+    .youtube-link:hover {
+        color: #fff;
+        background: #ff0000;
+        padding: 5px 10px;
+        border-radius: 6px;
+        box-shadow: 0 0 12px rgba(255, 0, 0, 0.8);
+        transform: scale(1.05);
+    }
+
+    .instagram-link {
+        color: #E1306C;
+        text-decoration: none;
+        font-weight: bold;
+        margin-left: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: 0.3s ease;
+    }
+
+    .instagram-link i {
+        font-size: 18px;
+    }
+
+    .instagram-link:hover {
+        color: #fff;
+        background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
+        padding: 5px 10px;
+        border-radius: 6px;
+        box-shadow: 0 0 12px rgba(226, 48, 108, 0.8);
+        transform: scale(1.05);
+    }
+
+    .linkedin-link {
+        color: #0077B5;
+        text-decoration: none;
+        font-weight: bold;
+        margin-left: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: 0.3s ease;
+    }
+
+    .linkedin-link i {
+        font-size: 18px;
+    }
+
+    .linkedin-link:hover {
+        color: #fff;
+        background: #0077B5;
+        padding: 5px 10px;
+        border-radius: 6px;
+        box-shadow: 0 0 12px rgba(0, 119, 181, 0.8);
+        transform: scale(1.05);
+    }
+
+    .whatsapp-link {
+        color: #25D366;
+        text-decoration: none;
+        font-weight: bold;
+        margin-left: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: 0.3s ease;
+    }
+
+    .whatsapp-link i {
+        font-size: 18px;
+    }
+
+    .whatsapp-link:hover {
+        color: #fff;
+        background: #25D366;
+        padding: 5px 10px;
+        border-radius: 6px;
+        box-shadow: 0 0 12px rgba(37, 211, 102, 0.8);
+        transform: scale(1.05);
+    }
 
     /* =======================================================
     کدهای نهایی مگامنو (MEGA MENU) - حرفه ای، گرد و نرم
@@ -124,7 +225,7 @@
         margin-top: -1px !important;
 
         background-color: #ffffff !important;
-        border-radius: **12px** !important;
+        border-radius: **12px **!important;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 0, 0, 0.05) !important;
         padding: 35px 50px !important;
         z-index: 1050 !important;
@@ -152,6 +253,7 @@
         display: flex;
         align-items: center;
     }
+
     .mega-menu-title i {
         color: #d8a05c;
         font-size: 1.3rem;
@@ -204,11 +306,13 @@
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         border-right: 4px solid #d8a05c;
     }
+
     .mega-menu-cta-box h6 {
         color: #d8a05c !important;
         font-size: 1.2rem;
         margin-bottom: 10px;
     }
+
     .mega-menu-cta-box .btn {
         background-color: #d8a05c !important;
         border-color: #d8a05c !important;
@@ -218,6 +322,7 @@
         font-weight: 600;
         transition: all 0.3s ease;
     }
+
     .mega-menu-cta-box .btn:hover {
         background-color: #c48b4c !important;
         box-shadow: 0 5px 15px rgba(216, 160, 92, 0.4);
@@ -250,6 +355,7 @@
             border-bottom: 4px solid #d8a05c;
             margin-bottom: 20px;
         }
+
         .mega-menu-col:not(:last-child) {
             padding-left: 15px;
         }
@@ -262,7 +368,7 @@
     .nav.navbar-nav li.sub-menu-down > .sub-menu {
         /* تنظیمات جعبه زیرمنو - دسکتاپ */
         background-color: #ffffff;
-        border-radius: **10px** !important; /* گوشه‌های گرد */
+        border-radius: **10px **!important; /* گوشه‌های گرد */
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 0 5px rgba(0, 0, 0, 0.05); /* سایه حرفه‌ای */
         padding: 10px 0 !important; /* پدینگ داخل جعبه */
         border: none; /* حذف خطوط اضافی */
@@ -359,6 +465,7 @@
             border-right: none;
             border-left: 4px solid transparent;
         }
+
         .nav.navbar-nav li.sub-menu-down > .sub-menu li a:hover {
             padding-right: 30px !important; /* حذف حرکت اضافه در موبایل */
             padding-left: 20px !important;
@@ -372,69 +479,69 @@
     }
 
 
-
     /* تنظیمات کلی کانتینر اسلایدر */
-        .carousel-container {
-            max-width: 800px;
-            margin: 50px auto;
-            position: relative;
-            overflow: hidden; /* پنهان کردن اسلایدهای خارج از دید */
-        }
+    .carousel-container {
+        max-width: 800px;
+        margin: 50px auto;
+        position: relative;
+        overflow: hidden; /* پنهان کردن اسلایدهای خارج از دید */
+    }
 
-      /* ردیف اسلایدها */
-.carousel-track {
-    display: flex;
-    transition: transform 0.5s ease-in-out;
-    /* ویژگی 'left' دیگر نیازی نیست، چون ما با transform جابجا می‌شویم */
-}
+    /* ردیف اسلایدها */
+    .carousel-track {
+        display: flex;
+        transition: transform 0.5s ease-in-out;
+        /* ویژگی 'left' دیگر نیازی نیست، چون ما با transform جابجا می‌شویم */
+    }
 
-/* استایل هر اسلاید */
-.slide {
-    /* min-width را نگه می‌داریم تا عرض کامل کانتینر را بگیرد */
-    min-width: 100%;
-    box-sizing: border-box;
-    /* این خط را اگر قبلاً داشتید، حذف کنید یا مطمئن شوید که وجود ندارد */
-    /* position: absolute; */
-}
-/* ... بقیه CSS ثابت می‌ماند ... */
+    /* استایل هر اسلاید */
+    .slide {
+        /* min-width را نگه می‌داریم تا عرض کامل کانتینر را بگیرد */
+        min-width: 100%;
+        box-sizing: border-box;
+        /* این خط را اگر قبلاً داشتید، حذف کنید یا مطمئن شوید که وجود ندارد */
+        /* position: absolute; */
+    }
 
-        .slide img {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-radius: 8px; /* گوشه های گرد برای زیبایی بیشتر */
-        }
+    /* ... بقیه CSS ثابت می‌ماند ... */
 
-        /* دات‌های راهنما */
-        .carousel-nav {
-            display: flex;
-            justify-content: center;
-            padding: 10px 0;
-            position: absolute;
-            bottom: 10px;
-            width: 100%;
-            z-index: 10;
-        }
+    .slide img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 8px; /* گوشه های گرد برای زیبایی بیشتر */
+    }
 
-        .indicator {
-            border: none;
-            padding: 0;
-            width: 12px;
-            height: 12px;
-            background: #bbb;
-            border-radius: 50%;
-            margin: 0 5px;
-            cursor: pointer;
-            opacity: 0.7;
-            transition: background-color 0.3s;
-        }
+    /* دات‌های راهنما */
+    .carousel-nav {
+        display: flex;
+        justify-content: center;
+        padding: 10px 0;
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        z-index: 10;
+    }
 
-        /* استایل دات فعال */
-        .indicator.current-slide {
-            background: #ffffff;
-            opacity: 1;
-        }
-    </style>
+    .indicator {
+        border: none;
+        padding: 0;
+        width: 12px;
+        height: 12px;
+        background: #bbb;
+        border-radius: 50%;
+        margin: 0 5px;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: background-color 0.3s;
+    }
+
+    /* استایل دات فعال */
+    .indicator.current-slide {
+        background: #ffffff;
+        opacity: 1;
+    }
+</style>
 
 <body id="bg">
 <div class="page-wraper">
@@ -454,365 +561,389 @@
         </div>
     </div>
 
-		<!-- Header Star -->
-	<header class="site-header header style-1">
+    <!-- Header Star -->
+    <header class="site-header header style-1">
 
-		<!-- <div class="header-info-bar d-none d-xxl-block">
-			<div class="container-fluid">
-				<div class="row">
-					<div class="col">
-						<div class="icon-bx-wraper style-5">
-							<div class="icon-bx">
-								<span class="icon-cell">
-									<img src="images/svg/icon1.svg" alt="">
-								</span>
-							</div>
-							<div class="icon-content">
-								<h2 class="dz-title text-primary">تماس با ما</h2>
-								<p><a href="tel:+11234567890" class="text-secondary">+1 123 456 7890</a></p>
-							</div>
-						</div>
-					</div>
-					<div class="col">
-						<div class="icon-bx-wraper style-5">
-							<div class="icon-bx">
-								<span class="icon-cell">
-									<img src="images/svg/icon2.svg" alt="">
-								</span>
-							</div>
-							<div class="icon-content">
-								<h2 class="dz-title text-primary">پشتیبانی ایمیل</h2>
-								<p><a href="mailto:email@domain.com" class="text-secondary">email@domain.com</a></p>
-							</div>
-						</div>
-					</div>
-					<div class="col">
-						<div class="icon-bx-wraper style-5">
-							<div class="icon-bx">
-								<span class="icon-cell">
-									<img src="images/svg/icon3.svg" alt="">
-								</span>
-							</div>
-							<div class="icon-content">
-								<h2 class="dz-title text-primary">نوبت آنلاین </h2>
-								<p>رزرو<i class="feather icon-arrow-left"></i></p>
-							</div>
-						</div>
-					</div>
-					<div class="col">
-						<div class="icon-bx-wraper style-5">
-							<div class="icon-bx">
-								<span class="icon-cell">
-									<img src="images/svg/icon4.svg" alt="">
-								</span>
-							</div>
-							<div class="icon-content">
-								<h2 class="dz-title text-primary">پشتیبانی</h2>
-								<p>24x7 پشتیبانی</p>
-							</div>
-						</div>
-					</div>
-					<div class="col">
-						<div class="icon-bx-wraper style-5">
-							<div class="icon-bx">
-								<span class="icon-cell">
-									<img src="images/svg/icon5.svg" alt="">
-								</span>
-							</div>
-							<div class="icon-content">
-								<h2 class="dz-title text-primary">پرداخت</h2>
-								<p>پرداخت آنلاین <i class="feather icon-arrow-left"></i></p>
-							</div>
-						</div>
-					</div>
-					<div class="col">
-						<div class="icon-bx-wraper style-5">
-							<div class="icon-bx">
-								<span class="icon-cell">
-									<img src="images/svg/icon6.svg" alt="">
-								</span>
-							</div>
-							<div class="icon-content">
-								<h2 class="dz-title text-primary">سبد خرید</h2>
-								<p>2 مورد</p>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div> -->
+        <!-- <div class="header-info-bar d-none d-xxl-block">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col">
+                        <div class="icon-bx-wraper style-5">
+                            <div class="icon-bx">
+                                <span class="icon-cell">
+                                    <img src="images/svg/icon1.svg" alt="">
+                                </span>
+                            </div>
+                            <div class="icon-content">
+                                <h2 class="dz-title text-primary">تماس با ما</h2>
+                                <p><a href="tel:+11234567890" class="text-secondary">+1 123 456 7890</a></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="icon-bx-wraper style-5">
+                            <div class="icon-bx">
+                                <span class="icon-cell">
+                                    <img src="images/svg/icon2.svg" alt="">
+                                </span>
+                            </div>
+                            <div class="icon-content">
+                                <h2 class="dz-title text-primary">پشتیبانی ایمیل</h2>
+                                <p><a href="mailto:email@domain.com" class="text-secondary">email@domain.com</a></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="icon-bx-wraper style-5">
+                            <div class="icon-bx">
+                                <span class="icon-cell">
+                                    <img src="images/svg/icon3.svg" alt="">
+                                </span>
+                            </div>
+                            <div class="icon-content">
+                                <h2 class="dz-title text-primary">نوبت آنلاین </h2>
+                                <p>رزرو<i class="feather icon-arrow-left"></i></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="icon-bx-wraper style-5">
+                            <div class="icon-bx">
+                                <span class="icon-cell">
+                                    <img src="images/svg/icon4.svg" alt="">
+                                </span>
+                            </div>
+                            <div class="icon-content">
+                                <h2 class="dz-title text-primary">پشتیبانی</h2>
+                                <p>24x7 پشتیبانی</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="icon-bx-wraper style-5">
+                            <div class="icon-bx">
+                                <span class="icon-cell">
+                                    <img src="images/svg/icon5.svg" alt="">
+                                </span>
+                            </div>
+                            <div class="icon-content">
+                                <h2 class="dz-title text-primary">پرداخت</h2>
+                                <p>پرداخت آنلاین <i class="feather icon-arrow-left"></i></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="icon-bx-wraper style-5">
+                            <div class="icon-bx">
+                                <span class="icon-cell">
+                                    <img src="images/svg/icon6.svg" alt="">
+                                </span>
+                            </div>
+                            <div class="icon-content">
+                                <h2 class="dz-title text-primary">سبد خرید</h2>
+                                <p>2 مورد</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> -->
 
-		<!-- Main Header -->
-		<div class="sticky-header main-bar-wraper">
-			<div class="main-bar clearfix bg-secondary text-white" dir="ltr">
-				<div class="container-fluid clearfix inner-bar">
+        <!-- Main Header -->
+        <div class="sticky-header main-bar-wraper">
+            <div class="main-bar clearfix bg-secondary text-white" dir="ltr">
+                <div class="container-fluid clearfix inner-bar">
 
-					<!-- Website Logo -->
-					<div class="logo-header logo-dark">
-						<a href="{% url 'home:index' %}"><img src="{% static 'assets/images/logo/Armita2.png' %}" alt="logo"></a>
-					</div>
+                    <!-- Website Logo -->
+                    <div class="logo-header logo-dark">
+                        <a href="{% url 'home:index' %}"><img src="{% static 'assets/images/logo/Armita2.png' %}"
+                                                              alt="logo"></a>
+                    </div>
 
-					<!-- Nav Toggle Button -->
-					<button class="w3menu-toggler navicon" type="button" data-target="#W3Menu">
-						<span></span>
-						<span></span>
-						<span></span>
-					</button>
+                    <!-- Nav Toggle Button -->
+                    <button class="w3menu-toggler navicon" type="button" data-target="#W3Menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
 
-					<!-- Main Nav -->
-					<div class="menu-close fade-overlay"></div>
-					<div class="header-nav w3menu w3menu-end mo-left" id="W3Menu">
-						<div class="logo-header logo-dark">
-							<a href="{% url 'home:index' %}"><img src="{% static 'assets/images/logo/ArmitaGen-logo-white.png' %}" alt=""></a>
-						</div>
-						<ul class="nav navbar-nav">
-							<li class="sub-menu-down">
-								<a href="javascript:void(0);"><span>ارتباط با ما</span> <i class="fas fa-chevron-down tabindex"></i></a>
-								<ul class="sub-menu">
-									<li><a href="{% url 'team:about-us' %}">درباره ما</a></li>
-									<!-- <li><a href="blog-list-sidebar.html"></a></li> -->
-									<li><a href="#">تماس با ما</a></li>
-									<li><a href="#">تیم ما</a></li>
-								</ul>
-							</li>
-							<li class="sub-menu-down">
-								<a href="javascript:void(0);"><span>راهنمای مراجعین</span> <i class="fas fa-chevron-down tabindex"></i></a>
-								<ul class="sub-menu">
-									<li><a href="#">ساعت کاری آزمایشگاه</a></li>
-									<li><a href="#">مشاهده تمامی خدمات</a></li>
-									<!-- <li><a href="blog-list-sidebar.html"></a></li> -->
-									<li class="has-submenu">
-										<a href="#">خدمات غیر حضوری</a>
-										<ul class="sub-menu">
-											<li><a href="#">مشاوره آنلاین</a></li>
-											<li><a href="#">نمونه گیری در محل</a></li>
-											<li><a href="#">جواب دهی آنلاین</a></li>
-										</ul>
-									</li>
-								</ul>
-							</li>
-							<li class="sub-menu-down">
-								<a href="javascript:void(0);"><span>آرمیتابلاگ</span> <i class="fas fa-chevron-down tabindex"></i></a>
-								<ul class="sub-menu">
-									<li><a href="#">وبلاگ علمی</a></li>
-									<!-- <li><a href="blog-list-sidebar.html"></a></li> -->
-									<li><a href="#">اخبار ژنتیکی</a></li>
-								</ul>
-							</li>
-							<li>
-								<a href="javascript:void(0);"><span>آکادمی ژنتیک</span></a>
-							</li>
-							<li>
-								<a href="{% url 'council:con' %}"><span>مشاوره ژنتیک</span></a>
-							</li>
-							<li class="sub-menu-down mega-menu-item" dir="rtl">
-								<a href="javascript:void(0);"><span>خدمات آزمایشگاهی</span> <i class="fas fa-chevron-down tabindex"></i></a>
-
-								<div class="mega-menu-panel">
-									<div class="row">
-
-										<div class="col-lg-3 col-md-6 mb-4 mb-lg-0 mega-menu-col">
-											<h6 class="mega-menu-title"><i class="fas fa-briefcase-medical"></i>آزمایشات سرطان</h6>
-											<ul class="mega-menu-list">
-												<li><a href="{% url 'home:brca' %}">بررسی ژن های <span class="no-translate-num">BRCA1</span> و <span class="no-translate-num">BRCA2</span></a></li>
-												<li><a href="{% url 'home:cancer' %}">تشخیص سرطان های ارثی</a></li>
-												<li><a href="{% url 'home:hrd' %}">آزمایش HRD</a></li>
-												<li><a href="{% url 'home:tmb' %}">آزمایش TMB</a></li>
-												<li><a href="#">بررسی کامل ژنتیکی و هیستولوژیک نمونه تومور</a></li>
-											</ul>
-										</div>
-										<style>
-											.no-translate-num {
-												font-family: Arial, sans-serif !important;
-												direction: ltr; /* جهت رو هم اجباری کنید */
-											}
-										</style>
-
-										<div class="col-lg-3 col-md-6 mb-4 mb-lg-0 mega-menu-col">
-											<h6 class="mega-menu-title"><i class="fas fa-baby"></i>آزمایشگاه سلامت مادر و جنین</h6>
-											<ul class="mega-menu-list">
-												<li><a href="{% url 'home:nipt' %}">آزمایش سل فری (NIPT)</a></li>
-												<li><a href="{% url 'home:pgd' %}">تشخیص پیش از لانه گزینی (PGD)</a></li>
-												<li><a href="{% url 'home:pnd' %}">تشخیص پیش از تولد (PND)</a></li>
-												<li><a href="{% url 'home:panelT' %}">پنل ترومبوفیلی</a></li>
-											</ul>
-
-										</div>
-
-										<div class="col-lg-3 col-md-6 mb-4 mb-md-0 mega-menu-col">
-											<h6 class="mega-menu-title"><i class="fas fa-flask"></i>ژنتیک مولکولی</h6>
-											<ul class="mega-menu-list">
-												<li><a href="{% url 'home:ngs' %}">توالی یابی نسل جدید(NGS)</a></li>
-												<li><a href="{% url 'home:syndromx' %}">سندروم X شکننده</a></li>
-												<li><a href="{% url 'home:azo' %}">آزو اسپرمی</a></li>
-												<li><a href="{% url 'home:sma' %}">آتروفی نخاعی-عضلانی (SMA)</a></li>
-											</ul>
-										</div>
-
-										<div class="col-lg-3 col-md-6 mb-4 mb-md-0 mega-menu-col">
-											<h6 class="mega-menu-title"><i class="fas fa-cogs"></i>سایر خدمات</h6>
-											<ul class="mega-menu-list">
-												<li><a href="{% url 'home:bcs' %}">تشخیص کم خونی های ارثی (تالاسمی)</a></li>
-												<li><a href="{% url 'home:Cytogenetic' %}">آزمایشات سیتوژنتیکی</a></li>
-												<li><a href="{% url 'home:Microbiome' %}">آنالیز میکروبیوم</a></li>
-												<li><a href="{% url 'home:talent' %}">پنل استعداد یابی</a></li>
-											</ul>
-										</div>
-
-										<div class="col-lg-3 col-md-6 mega-menu-col">
-											<div class="mega-menu-cta-box">
-												<i class="fas fa-headset" style="font-size: 3.5rem; color: #d8a05c; margin-bottom: 20px;"></i>
-												<h6>مشاوره تخصصی ژنتیک</h6>
-												<p class="fs-6 mb-3 text-dark" style="font-size: 0.95rem; line-height: 1.8;">برای دریافت دقیق‌ترین راهنمایی‌ها در زمینه خدمات آزمایشگاهی، همین امروز مشاوره خود را رزرو کنید.</p>
-												<a href="{% url 'council:con' %}" class="btn btn-sm btn-primary btn-hover1">رزرو وقت آنلاین</a>
-											</div>
-										</div>
-
-									</div>
-								</div>
-								</li>
+                    <!-- Main Nav -->
+                    <div class="menu-close fade-overlay"></div>
+                    <div class="header-nav w3menu w3menu-end mo-left" id="W3Menu">
+                        <div class="logo-header logo-dark">
+                            <a href="{% url 'home:index' %}"><img
+                                    src="{% static 'assets/images/logo/ArmitaGen-logo-white.png' %}" alt=""></a>
+                        </div>
+                        <ul class="nav navbar-nav">
+                            <li class="sub-menu-down">
+                                <a href="javascript:void(0);"><span>ارتباط با ما</span> <i
+                                        class="fas fa-chevron-down tabindex"></i></a>
+                                <ul class="sub-menu">
+                                    <li><a href="{% url 'team:about-us' %}">درباره ما</a></li>
+                                    <!-- <li><a href="blog-list-sidebar.html"></a></li> -->
+                                    <li><a href="#">تماس با ما</a></li>
+                                    <li><a href="#">تیم ما</a></li>
+                                </ul>
+                            </li>
+                            <li class="sub-menu-down">
+                                <a href="javascript:void(0);"><span>راهنمای مراجعین</span> <i
+                                        class="fas fa-chevron-down tabindex"></i></a>
+                                <ul class="sub-menu">
+                                    <li><a href="#">ساعت کاری آزمایشگاه</a></li>
+                                    <li><a href="#">مشاهده تمامی خدمات</a></li>
+                                    <!-- <li><a href="blog-list-sidebar.html"></a></li> -->
+                                    <li class="has-submenu">
+                                        <a href="#">خدمات غیر حضوری</a>
+                                        <ul class="sub-menu">
+                                            <li><a href="#">مشاوره آنلاین</a></li>
+                                            <li><a href="#">نمونه گیری در محل</a></li>
+                                            <li><a href="#">جواب دهی آنلاین</a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="sub-menu-down">
+                                <a href="javascript:void(0);"><span>آرمیتابلاگ</span> <i
+                                        class="fas fa-chevron-down tabindex"></i></a>
+                                <ul class="sub-menu">
+                                    <li><a href="#">وبلاگ علمی</a></li>
+                                    <!-- <li><a href="blog-list-sidebar.html"></a></li> -->
+                                    <li><a href="#">اخبار ژنتیکی</a></li>
+                                </ul>
+                            </li>
                             <li>
-						</ul>
+                                <a href="javascript:void(0);"><span>آکادمی ژنتیک</span></a>
+                            </li>
+                            <li>
+                                <a href="{% url 'council:con' %}"><span>مشاوره ژنتیک</span></a>
+                            </li>
+                            <li class="sub-menu-down mega-menu-item" dir="rtl">
+                                <a href="javascript:void(0);"><span>خدمات آزمایشگاهی</span> <i
+                                        class="fas fa-chevron-down tabindex"></i></a>
 
-						<div class="dz-social-icon">
-							<ul>
-								<li>
-									<a href="https://www.facebook.com" target="_blank">
-										<i class="fa-brands fa-facebook-f"></i>
-									</a>
-								</li>
-								<li>
-									<a href="https://twitter.com" target="_blank">
-										<i class="fa-brands fa-x-twitter"></i>
-									</a>
-								</li>
-								<li>
-									<a href="https://www.linkedin.com" target="_blank">
-										<i class="fa-brands fa-linkedin"></i>
-									</a>
-								</li>
-								<li>
-									<a href="https://www.instagram.com" target="_blank">
-										<i class="fa-brands fa-instagram"></i>
-									</a>
-								</li>
-							</ul>
-						</div>
-					</div>
+                                <div class="mega-menu-panel">
+                                    <div class="row">
 
-					<!-- EXTRA NAV -->
-					<div class="extra-nav">
-						<div class="extra-cell">
-							<ul class="header-right">
-								<li class="nav-item">
-									<a href="#" class="btn btn-primary btn-hover1" data-wow-delay="0.6s"
-                                        data-wow-duration="0.8s"
+                                        <div class="col-lg-3 col-md-6 mb-4 mb-lg-0 mega-menu-col">
+                                            <h6 class="mega-menu-title"><i class="fas fa-briefcase-medical"></i>آزمایشات
+                                                سرطان</h6>
+                                            <ul class="mega-menu-list">
+                                                <li><a href="{% url 'home:brca' %}">بررسی ژن های <span
+                                                        class="no-translate-num">BRCA1</span> و <span
+                                                        class="no-translate-num">BRCA2</span></a></li>
+                                                <li><a href="{% url 'home:cancer' %}">تشخیص سرطان های ارثی</a></li>
+                                                <li><a href="{% url 'home:hrd' %}">آزمایش HRD</a></li>
+                                                <li><a href="{% url 'home:tmb' %}">آزمایش TMB</a></li>
+                                                <li><a href="#">بررسی کامل ژنتیکی و هیستولوژیک نمونه تومور</a></li>
+                                            </ul>
+                                        </div>
+                                        <style>
+                                            .no-translate-num {
+                                                font-family: Arial, sans-serif !important;
+                                                direction: ltr; /* جهت رو هم اجباری کنید */
+                                            }
+                                        </style>
 
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#armitagenAppointmentModal"
+                                        <div class="col-lg-3 col-md-6 mb-4 mb-lg-0 mega-menu-col">
+                                            <h6 class="mega-menu-title"><i class="fas fa-baby"></i>آزمایشگاه سلامت مادر
+                                                و جنین</h6>
+                                            <ul class="mega-menu-list">
+                                                <li><a href="{% url 'home:nipt' %}">آزمایش سل فری (NIPT)</a></li>
+                                                <li><a href="{% url 'home:pgd' %}">تشخیص پیش از لانه گزینی (PGD)</a>
+                                                </li>
+                                                <li><a href="{% url 'home:pnd' %}">تشخیص پیش از تولد (PND)</a></li>
+                                                <li><a href="{% url 'home:panelT' %}">پنل ترومبوفیلی</a></li>
+                                            </ul>
 
-                                        style="cursor: pointer;">
-										نوبت‌دهی
-									</a>
-								</li>
-								<li class="nav-item">
-									<button type="button" class="toggle-nav-btn" data-bs-toggle="offcanvas" data-bs-target="#headerSidebar" aria-controls="offcanvasLeft">
-										<span></span>
-										<span></span>
-										<span></span>
-									</button>
-								</li>
-							</ul>
-						</div>
-					</div>
+                                        </div>
 
-				</div>
-			</div>
-		</div>
-		<!-- Main Header End -->
+                                        <div class="col-lg-3 col-md-6 mb-4 mb-md-0 mega-menu-col">
+                                            <h6 class="mega-menu-title"><i class="fas fa-flask"></i>ژنتیک مولکولی</h6>
+                                            <ul class="mega-menu-list">
+                                                <li><a href="{% url 'home:ngs' %}">توالی یابی نسل جدید(NGS)</a></li>
+                                                <li><a href="{% url 'home:syndromx' %}">سندروم X شکننده</a></li>
+                                                <li><a href="{% url 'home:azo' %}">آزو اسپرمی</a></li>
+                                                <li><a href="{% url 'home:sma' %}">آتروفی نخاعی-عضلانی (SMA)</a></li>
+                                            </ul>
+                                        </div>
 
-		<!-- Sidebar -->
-		<div class="offcanvas dz-offcanvas offcanvas offcanvas-end" tabindex="-1" id="headerSidebar">
-			<button type="button" class="btn-close m-t10 m-l10" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-			<div class="offcanvas-body">
-				<div class="widget">
-					<div class="sidebar-header m-b20">
-						<a href="{% url 'home:index' %}"><img src="{% static 'assets/images/logo/Armita2.png' %}" alt="/"></a>
-					</div>
-					<p style="text-align: justify;">در آرمیتاژن، ما با قدرت دانش و فناوری‌های جدید در حوزه‌های مختلف پزشکی باور داریم و مفتخریم در خط مقدم این حوزه با عنوان پیشگام در حوزه پزشکی فرادقیق (Precision Medicine) در حال خدمت رسانی به انسانها می‌باشیم. با شما در کشف اطلاعات ژنتیکی مورد نیاز برای آینده‌ای سالم‌تر همراه خواهیم بود.</p>
-				</div>
+                                        <div class="col-lg-3 col-md-6 mb-4 mb-md-0 mega-menu-col">
+                                            <h6 class="mega-menu-title"><i class="fas fa-cogs"></i>سایر خدمات</h6>
+                                            <ul class="mega-menu-list">
+                                                <li><a href="{% url 'home:bcs' %}">تشخیص کم خونی های ارثی (تالاسمی)</a>
+                                                </li>
+                                                <li><a href="{% url 'home:Cytogenetic' %}">آزمایشات سیتوژنتیکی</a></li>
+                                                <li><a href="{% url 'home:Microbiome' %}">آنالیز میکروبیوم</a></li>
+                                                <li><a href="{% url 'home:talent' %}">پنل استعداد یابی</a></li>
+                                            </ul>
+                                        </div>
 
-				<div class="widget">
-					<div class="widget-title">
-						<h4 class="title">ارتباط با ما</h4>
-					</div>
-					<ul class="list-check">
-						<li>تهران، بلوار کشاورز، خیابان نادری، بعد از خیابان ایتالیا، پلاک 2، طبقه اول، واحد 105</li>
-						<li><a href="mailto:email@domain.ir" class="text-body">info@armitagen.ir</a></li>
-						<li><a href="tel:02188985291" class="text-body" dir="ltr">+98 (21) 8898 5291-3</a></li>
-						<li><a href="tel:+989108622597" class="text-body" dir="ltr">+98  910 862 2597</a></li>
-					</ul>
-				</div>
+                                        <div class="col-lg-3 col-md-6 mega-menu-col">
+                                            <div class="mega-menu-cta-box">
+                                                <i class="fas fa-headset"
+                                                   style="font-size: 3.5rem; color: #d8a05c; margin-bottom: 20px;"></i>
+                                                <h6>مشاوره تخصصی ژنتیک</h6>
+                                                <p class="fs-6 mb-3 text-dark"
+                                                   style="font-size: 0.95rem; line-height: 1.8;">برای دریافت دقیق‌ترین
+                                                    راهنمایی‌ها در زمینه خدمات آزمایشگاهی، همین امروز مشاوره خود را رزرو
+                                                    کنید.</p>
+                                                <a href="{% url 'council:con' %}"
+                                                   class="btn btn-sm btn-primary btn-hover1">رزرو وقت آنلاین</a>
+                                            </div>
+                                        </div>
 
-				<div class="widget">
-					<div class="widget-title">
-						<h4 class="title">خبرنامه</h4>
-					</div>
-					<form class="dzSubscribe style-2" action="{% static 'assets/script/mailchimp.php' %}" method="post">
-						<div class="dzSubscribeMsg"></div>
-						<div class="form-group">
-							<div class="input-group mb-0">
-								<input name="dzEmail" required="required" type="email" class="form-control" placeholder="آدرس ایمیل">
-								<div class="input-group-addon">
-									<button name="submit" value="Submit" type="submit" class="btn text-primary btn-transparent p-2">
-										<i class="fa-solid fa-paper-plane"></i>
-									</button>
-								</div>
-							</div>
-						</div>
-					</form>
-				</div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                        </ul>
 
-				<div class="widget">
-					<div class="widget-title">
-						<h4 class="title">دنبال کردن ما</h4>
-					</div>
-					<div class="dz-social-icon style-1">
-						<ul>
-							<li>
-								<a href="https://www.linkedin.com" target="_blank">
-									<i class="fa-brands fa-linkedin"></i>
-								</a>
-							</li>
-							<li>
-								<a href="https://www.instagram.com" target="_blank">
-									<i class="fa-brands fa-instagram"></i>
-								</a>
-							</li>
-							<li>
-								<a href="https://www.facebook.com" target="_blank">
-									<i class="fa-brands fa-facebook-f"></i>
-								</a>
-							</li>
-							<li>
-								<a href="https://twitter.com" target="_blank">
-									<i class="fa-brands fa-x-twitter"></i>
-								</a>
-							</li>
-							<li>
-								<a href="https://www.youtube.com" target="_blank">
-									<i class="fa-brands fa-youtube"></i>
-								</a>
-							</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!-- Sidebar -->
+                        <div class="dz-social-icon">
+                            <ul>
+                                <li>
+                                    <a href="https://www.facebook.com" target="_blank">
+                                        <i class="fa-brands fa-facebook-f"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://twitter.com" target="_blank">
+                                        <i class="fa-brands fa-x-twitter"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://www.linkedin.com" target="_blank">
+                                        <i class="fa-brands fa-linkedin"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://www.instagram.com" target="_blank">
+                                        <i class="fa-brands fa-instagram"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
 
-	</header>
-	<!-- Header End -->
+                    <!-- EXTRA NAV -->
+                    <div class="extra-nav">
+                        <div class="extra-cell">
+                            <ul class="header-right">
+                                <li class="nav-item">
+                                    <a href="#" class="btn btn-primary btn-hover1" data-wow-delay="0.6s"
+                                       data-wow-duration="0.8s"
+
+                                       data-bs-toggle="modal"
+                                       data-bs-target="#armitagenAppointmentModal"
+
+                                       style="cursor: pointer;">
+                                        نوبت‌دهی
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <button type="button" class="toggle-nav-btn" data-bs-toggle="offcanvas"
+                                            data-bs-target="#headerSidebar" aria-controls="offcanvasLeft">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- Main Header End -->
+
+        <!-- Sidebar -->
+        <div class="offcanvas dz-offcanvas offcanvas offcanvas-end" tabindex="-1" id="headerSidebar">
+            <button type="button" class="btn-close m-t10 m-l10" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            <div class="offcanvas-body">
+                <div class="widget">
+                    <div class="sidebar-header m-b20">
+                        <a href="{% url 'home:index' %}"><img src="{% static 'assets/images/logo/Armita2.png' %}"
+                                                              alt="/"></a>
+                    </div>
+                    <p style="text-align: justify;">در آرمیتاژن، ما با قدرت دانش و فناوری‌های جدید در حوزه‌های مختلف
+                        پزشکی باور داریم و مفتخریم در خط مقدم این حوزه با عنوان پیشگام در حوزه پزشکی فرادقیق (Precision
+                        Medicine) در حال خدمت رسانی به انسانها می‌باشیم. با شما در کشف اطلاعات ژنتیکی مورد نیاز برای
+                        آینده‌ای سالم‌تر همراه خواهیم بود.</p>
+                </div>
+
+                <div class="widget">
+                    <div class="widget-title">
+                        <h4 class="title">ارتباط با ما</h4>
+                    </div>
+                    <ul class="list-check">
+                        <li>تهران، بلوار کشاورز، خیابان نادری، بعد از خیابان ایتالیا، پلاک 2، طبقه اول، واحد 105</li>
+                        <li><a href="mailto:email@domain.ir" class="text-body">info@armitagen.ir</a></li>
+                        <li><a href="tel:02188985291" class="text-body" dir="ltr">+98 (21) 8898 5291-3</a></li>
+                        <li><a href="tel:+989108622597" class="text-body" dir="ltr">+98 910 862 2597</a></li>
+                    </ul>
+                </div>
+
+                <div class="widget">
+                    <div class="widget-title">
+                        <h4 class="title">خبرنامه</h4>
+                    </div>
+                    <form class="dzSubscribe style-2" action="{% static 'assets/script/mailchimp.php' %}" method="post">
+                        <div class="dzSubscribeMsg"></div>
+                        <div class="form-group">
+                            <div class="input-group mb-0">
+                                <input name="dzEmail" required="required" type="email" class="form-control"
+                                       placeholder="آدرس ایمیل">
+                                <div class="input-group-addon">
+                                    <button name="submit" value="Submit" type="submit"
+                                            class="btn text-primary btn-transparent p-2">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="widget">
+                    <div class="widget-title">
+                        <h4 class="title">دنبال کردن ما</h4>
+                    </div>
+                    <div class="dz-social-icon style-1">
+                        <ul>
+                            <li>
+                                <a href="https://www.linkedin.com" target="_blank">
+                                    <i class="fa-brands fa-linkedin"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.instagram.com" target="_blank">
+                                    <i class="fa-brands fa-instagram"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.facebook.com" target="_blank">
+                                    <i class="fa-brands fa-facebook-f"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://twitter.com" target="_blank">
+                                    <i class="fa-brands fa-x-twitter"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.youtube.com" target="_blank">
+                                    <i class="fa-brands fa-youtube"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Sidebar -->
+
+    </header>
+    <!-- Header End -->
 
     <main class="page-content">
 
@@ -824,7 +955,7 @@
                     <nav aria-label="breadcrumb" class="breadcrumb-row wow fadeInUp" data-wow-delay="0.4s"
                          data-wow-duration="0.8s">
                         <ul class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="index.html">خانه</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'home:index' %}">خانه</a></li>
                             <li class="breadcrumb-item">لیست بلاگ سایدبار</li>
                         </ul>
                     </nav>
@@ -868,31 +999,44 @@
             <div class="container">
                 <div class="row">
                     <div class="col-xl-9 col-lg-12 m-b30 pe-xl-5">
-                        <div class="loadmore-content">
-                            <div class="dz-card style-2 blog-half m-b35 wow fadeInUp" data-wow-delay="0.1s"
-                                 data-wow-duration="0.5s">
-                                <div class="dz-media">
-                                    <img src="{% static 'assets/images/blog/grid/img1.webp' %}" alt="">
-                                </div>
-                                <div class="dz-info">
-                                    <div class="dz-meta">
-                                        <ul>
-                                            <li class="post-date">5 دی ، 1403</li>
-                                            <li class="post-author">توسط <a href="javascript:void(0);">کلینیک مستر</a>
-                                            </li>
-                                            <li class="post-comments">2 نظر</li>
-                                        </ul>
+                        {% for post in posts %}
+                            <div class="loadmore-content">
+                                <div class="dz-card style-2 blog-half m-b35 wow fadeInUp" data-wow-delay="0.1s"
+                                     data-wow-duration="0.5s">
+                                    {% if post.featured_image %}
+                                        <div class="dz-media">
+                                            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
+                                        </div>
+                                    {% endif %}
+                                    <div class="dz-info">
+                                        <div class="dz-meta">
+                                            <ul>
+                                                <li class="post-date">{{ post.published_at|date:"Y/m/d" }}</li>
+                                                {% if post.authors.exists %}
+                                                    <li class="post-author">توسط <a href="">
+                                                        {{ post.authors.first.name }}{% if post.authors.count > 1 %} و
+                                                            {{ post.authors.count|add:"-1" }} نفر دیگر{% endif %}</a>
+                                                    </li>
+                                                {% else %}
+                                                    <span>بدون نویسنده</span>
+                                                {% endif %}
+
+                                                <li class="post-comments">{{ post.comments.count }} نظر</li>
+                                            </ul>
+                                        </div>
+                                        <h3 class="dz-title"><a
+                                                href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a></h3>
+                                        {% if post.meta_description %}
+                                            <p>{{ post.meta_description|truncatewords:25 }}</p>
+                                        {% endif %}
+                                        <a href="{% url 'blog:post_detail' post.slug %}"
+                                           class="btn icon-link-hover-end btn-primary radius-sm">
+                                            بیشتر بخوانید <i class="feather icon-arrow-left"></i>
+                                        </a>
                                     </div>
-                                    <h3 class="dz-title"><a href="blog-details.html"> هنر مدیریت تجارت و مراقبت از
-                                        بیمار </a></h3>
-                                    <p>این یک واقعیت خیلی جالب و طولانی است که یک خواننده هنگام نگاه به طرح آن ، از
-                                        محتوای قابل خواندن طولانی در یک صفحه منحرف می شود.</p>
-                                    <a href="blog-details.html" class="btn icon-link-hover-end btn-primary radius-sm">
-                                        بیشتر بخوانید <i class="feather icon-arrow-left"></i>
-                                    </a>
                                 </div>
                             </div>
-                        </div>
+                        {% endfor %}
                         {#						<div class="text-center m-t30 m-lg-t0 wow fadeInUp" data-wow-delay="0.7s" data-wow-duration="0.5s">#}
                         {#							<a href="javascript:void(0);" class="btn btn-lg btn-icon btn-primary dz-load-more" rel="ajax/blog-list.html">#}
                         {#								بارگذاری بیشتر#}
