@@ -83,7 +83,7 @@
                         پاسخ مدیر سایت
                         {% if comment.replied_by %}
                             <span style="font-weight: 400; color: #1565c0;">
-                                ({{ comment.replied_by.get_full_name|default:comment.replied_by.username }})
+                                ({{ comment.replied_by.full_name }})
                             </span>
                         {% endif %}
                     </div>

@@ -3,8 +3,9 @@ from django import forms
 from django.contrib import admin
 from django.db.models import Count
 from django.urls import reverse
-from django.utils.html import format_html
 from django.utils import timezone
+from django.utils.html import format_html
+
 from .models import Post, Author, PostSection, Media, Layout, Comment
 
 
@@ -47,8 +48,6 @@ class MediaInline(admin.TabularInline):
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
-    """ادمین پنل نویسندگان"""
-
     list_display = [
         'name',
         'avatar_preview',
@@ -109,35 +108,6 @@ class AuthorAdmin(admin.ModelAdmin):
     posts_count.short_description = 'تعداد پست‌ها'
 
 
-#
-# @admin.register(Tag)
-# class TagAdmin(admin.ModelAdmin):
-#     """ادمین تگ‌ها"""
-#
-#     list_display = [
-#         'name',
-#         'slug',
-#         'posts_count',
-#     ]
-#
-#     search_fields = ['name', 'slug']
-#
-#     readonly_fields = ['slug']
-#
-#     def posts_count(self, obj):
-#         count = obj.taggit_taggeditem_items.filter(
-#             content_type__model='post'
-#         ).count()
-#
-#         if count > 0:
-#             return format_html(
-#                 '<span style="background: #28a745; color: white; padding: 3px 10px; border-radius: 3px;">{}</span>',
-#                 count
-#             )
-#         return format_html('<span style="color: #999;">0</span>')
-#
-#     posts_count.short_description = 'تعداد پست‌ها'
-
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
@@ -149,7 +119,8 @@ class PostAdmin(admin.ModelAdmin):
         'get_sections_count',
         'jalali_published_at',
         'jalali_created_at',
-        'featured_image_preview'
+        'featured_image_preview',
+        'tag_list'
     ]
 
     list_filter = [
@@ -207,6 +178,10 @@ class PostAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
 
     actions = ['publish_posts', 'draft_posts', 'archive_posts']
+
+    def tag_list(self, obj):
+        return u", ".join(o.name for o in obj.tags.all())
+    tag_list.short_description = 'لیست تگ ها'
 
     def save_model(self, request, obj, form, change):
         """Automatically get the author from the current user"""
@@ -581,10 +556,8 @@ class AdminReplyInlineForm(forms.ModelForm):
         fields = []
 
 
-# ==================== Comment Inline (برای نمایش در پست) ====================
-
 class CommentInline(admin.TabularInline):
-    """نمایش کامنت‌ها در پنل ادمین پست"""
+    """Show comments in the post admin panel"""
     model = Comment
     extra = 0
     fields = ['get_author_display', 'content_preview', 'is_approved', 'is_admin_reply', 'created_at']
@@ -704,10 +677,10 @@ class CommentAdmin(admin.ModelAdmin):
     list_per_page = 25
     date_hierarchy = 'created_at'
 
-    # ==================== Display Methods ====================
+    # Display Methods 
 
     def get_author_badge(self, obj):
-        """نمایش badge نویسنده"""
+        """Show author badge"""
         if obj.is_anonymous():
             return format_html(
                 '<span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); '
@@ -725,7 +698,7 @@ class CommentAdmin(admin.ModelAdmin):
     get_author_badge.short_description = 'نویسنده'
 
     def get_post_link(self, obj):
-        """لینک به پست"""
+        """Link to post"""
         url = reverse('admin:blog_post_change', args=[obj.post.pk])
         return format_html(
             '<a href="{}" style="color: #667eea; font-weight: 600;">📄 {}</a>',
@@ -736,7 +709,7 @@ class CommentAdmin(admin.ModelAdmin):
     get_post_link.short_description = 'پست'
 
     def content_preview(self, obj):
-        """پیش‌نمایش محتوا"""
+        """Content Preview"""
         content = obj.content[:80] + '...' if len(obj.content) > 80 else obj.content
         return format_html(
             '<div style="max-width: 300px; line-height: 1.5;">{}</div>',
@@ -746,7 +719,7 @@ class CommentAdmin(admin.ModelAdmin):
     content_preview.short_description = 'متن کامنت'
 
     def get_status_badge(self, obj):
-        """نمایش وضعیت تایید"""
+        """Show approval status"""
         if obj.is_approved:
             return format_html(
                 '<span style="background: #4caf50; color: white; padding: 4px 10px; '
@@ -763,7 +736,7 @@ class CommentAdmin(admin.ModelAdmin):
     get_status_badge.short_description = 'وضعیت'
 
     def get_admin_reply_badge(self, obj):
-        """نمایش وضعیت پاسخ ادمین"""
+        """Show admin response status"""
         if obj.answered_by_admin and obj.admin_reply:
             return format_html(
                 '<span style="background: #2196f3; color: white; padding: 4px 10px; '
@@ -774,13 +747,13 @@ class CommentAdmin(admin.ModelAdmin):
             return format_html(
                 '<span style="background: #ffecb3; color: #f57c00; padding: 4px 10px; '
                 'border-radius: 12px; font-size: 11px; font-weight: 600;">'
-                '⚠ نیاز به پاسخ</span>'
+                '⚠ پاسخ داده نشده</span>'
             )
 
     get_admin_reply_badge.short_description = 'پاسخ ادمین'
 
     def get_replies_count(self, obj):
-        """تعداد پاسخ‌های کاربران"""
+        """Number of user responses"""
         count = obj.get_replies_count()
         if count > 0:
             return format_html(
@@ -794,16 +767,14 @@ class CommentAdmin(admin.ModelAdmin):
     get_replies_count.short_description = 'پاسخ‌ها'
 
     def created_at_jalali(self, obj):
-        """تاریخ فارسی"""
         return obj.created_at.strftime('%Y/%m/%d - %H:%M')
 
     created_at_jalali.short_description = 'تاریخ ثبت'
     created_at_jalali.admin_order_field = 'created_at'
 
-    # ==================== Readonly Display ====================
-
+    #  Readonly Display
     def get_author_info(self, obj):
-        """نمایش کامل اطلاعات نویسنده"""
+        """Show full author information"""
         info = f'<div style="background: #f5f5f5; padding: 15px; border-radius: 8px;">'
 
         if obj.is_anonymous():
@@ -821,7 +792,7 @@ class CommentAdmin(admin.ModelAdmin):
     get_author_info.short_description = 'اطلاعات نویسنده'
 
     def get_post_info(self, obj):
-        """نمایش اطلاعات پست"""
+        """Show Post Information"""
         url = reverse('admin:blog_post_change', args=[obj.post.pk])
         view_url = obj.post.get_absolute_url() if obj.post.is_published() else None
 
@@ -838,7 +809,7 @@ class CommentAdmin(admin.ModelAdmin):
     get_post_info.short_description = 'پست مربوطه'
 
     def get_parent_info(self, obj):
-        """نمایش کامنت والد"""
+        """Show parent comment"""
         if obj.parent:
             url = reverse('admin:blog_comment_change', args=[obj.parent.pk])
             return format_html(
@@ -855,7 +826,7 @@ class CommentAdmin(admin.ModelAdmin):
     get_parent_info.short_description = 'کامنت والد'
 
     def get_replies_display(self, obj):
-        """لیست پاسخ‌های کاربران"""
+        """List of user responses"""
         replies = obj.replies.all()
         if not replies:
             return format_html('<p style="color: #999;">هیچ پاسخی از کاربران ثبت نشده است</p>')
@@ -877,74 +848,60 @@ class CommentAdmin(admin.ModelAdmin):
 
     get_replies_display.short_description = 'پاسخ‌های کاربران'
 
-    # ==================== Actions ====================
-
+    #  Actions
     def approve_comments(self, request, queryset):
-        """تایید کامنت‌ها"""
         updated = queryset.update(is_approved=True)
         self.message_user(request, f'{updated} کامنت تایید شد.', 'success')
 
     approve_comments.short_description = '✅ تایید کامنت‌های انتخاب شده'
 
     def disapprove_comments(self, request, queryset):
-        """رد کامنت‌ها"""
         updated = queryset.update(is_approved=False)
         self.message_user(request, f'{updated} کامنت رد شد.', 'warning')
 
     disapprove_comments.short_description = '❌ رد کامنت‌های انتخاب شده'
 
     def mark_as_answered(self, request, queryset):
-        """علامت‌گذاری به عنوان پاسخ داده شده"""
         updated = queryset.update(answered_by_admin=True)
         self.message_user(request, f'{updated} کامنت به عنوان "پاسخ داده شده" علامت‌گذاری شد.')
 
     mark_as_answered.short_description = '✓ علامت به عنوان "پاسخ داده شده"'
 
     def mark_as_unanswered(self, request, queryset):
-        """علامت‌گذاری به عنوان پاسخ داده نشده"""
         updated = queryset.update(answered_by_admin=False)
         self.message_user(request, f'{updated} کامنت به عنوان "پاسخ داده نشده" علامت‌گذاری شد.')
 
     mark_as_unanswered.short_description = '⚠ علامت به عنوان "نیاز به پاسخ"'
 
-    # ==================== Custom Save ====================
-
+    #  Custom Save
     def save_model(self, request, obj, form, change):
         """
-        ذخیره با آپدیت خودکار answered_by_admin
+        Save with auto-update answered_by_admin
         """
-        # چک کنیم admin_reply پر شده یا نه
+        # Check if admin_reply is filled or not
         if 'admin_reply' in form.changed_data:
             if obj.admin_reply and obj.admin_reply.strip():
-                # ادمین پاسخ داده
                 obj.answered_by_admin = True
 
-                # اگه اولین بار پاسخ میده، زمان رو ثبت کن
                 if not obj.admin_replied_at:
                     obj.admin_replied_at = timezone.now()
                     obj.replied_by = request.user
             else:
-                # ادمین پاسخ رو پاک کرده
                 obj.answered_by_admin = False
                 obj.admin_replied_at = None
                 obj.replied_by = None
 
         super().save_model(request, obj, form, change)
 
-    # ==================== Query Optimization ====================
-
+    #  Query Optimization
     def get_queryset(self, request):
-        """بهینه‌سازی query"""
         qs = super().get_queryset(request)
         return qs.select_related('post', 'parent', 'replied_by').prefetch_related('replies')
 
-    # ==================== Form Customization ====================
-
+    #  Form Customization
     def get_form(self, request, obj=None, **kwargs):
-        """سفارشی‌سازی فرم"""
         form = super().get_form(request, obj, **kwargs)
 
-        # تنظیم widget برای admin_reply
         if 'admin_reply' in form.base_fields:
             form.base_fields['admin_reply'].widget = forms.Textarea(attrs={
                 'rows': 6,
