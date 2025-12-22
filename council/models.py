@@ -36,7 +36,6 @@ class ConsultationTopic(models.Model):
     slug = models.SlugField(
         max_length=200,
         unique=True,
-        db_index=True,
         verbose_name='شناسه URL'
     )
     description = models.TextField(
@@ -88,7 +87,6 @@ class ServiceType(models.Model):
     slug = models.SlugField(
         max_length=100,
         unique=True,
-        db_index=True,
         verbose_name='شناسه URL'
     )
     description = models.TextField(
@@ -112,7 +110,6 @@ class ServiceType(models.Model):
     )
     is_active = models.BooleanField(
         default=True,
-        db_index=True,
         verbose_name='فعال'
     )
     order = models.PositiveIntegerField(
@@ -136,7 +133,6 @@ class ServiceType(models.Model):
         verbose_name_plural = 'انواع سرویس ها'
         ordering = ['order', 'name']
         indexes = [
-            models.Index(fields=['slug'], name='idx_service_slug'),
             models.Index(fields=['is_active'], name='idx_service_active'),
         ]
 
@@ -245,7 +241,6 @@ class TimeSlot(models.Model):
         verbose_name='نوع مشاوره'
     )
     date = models.DateField(
-        db_index=True,
         verbose_name='تاریخ'
     )
     start_time = models.TimeField(
@@ -256,13 +251,11 @@ class TimeSlot(models.Model):
     )
     is_available = models.BooleanField(
         default=True,
-        db_index=True,
         verbose_name='در دسترس',
         help_text='آیا این نوبت قابل رزرو است؟'
     )
     is_expired = models.BooleanField(
         default=False,
-        db_index=True,
         verbose_name='منقضی شده',
         help_text='آیا زمان این نوبت گذشته است؟'
     )
@@ -306,7 +299,6 @@ class TimeSlot(models.Model):
             models.Index(fields=['date'], name='idx_slot_date'),
             models.Index(fields=['date', 'start_time'], name='idx_time_lookup'),
             models.Index(fields=['date', 'is_available'], name='idx_available_slots'),
-            models.Index(fields=['service_type'], name='idx_slot_service'),
             models.Index(fields=['is_expired'], name='idx_slot_expired'),
         ]
         constraints = [
@@ -371,7 +363,6 @@ class Reservation(models.Model):
     tracking_code = models.CharField(
         max_length=20,
         unique=True,
-        db_index=True,
         verbose_name='کد پیگیری',
         help_text='کد یکتای رزرو برای پیگیری'
     )
@@ -415,7 +406,6 @@ class Reservation(models.Model):
     )
     phone_number = models.CharField(
         max_length=15,
-        db_index=True,
         verbose_name='شماره تلفن'
     )
     email = models.EmailField(
@@ -429,7 +419,6 @@ class Reservation(models.Model):
         max_length=20,
         choices=STATUS_CHOICES,
         default='pending',
-        db_index=True,
         verbose_name='وضعیت'
     )
     payment_status = models.CharField(
@@ -492,9 +481,7 @@ class Reservation(models.Model):
         verbose_name_plural = 'رزروها'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['user'], name='idx_reservation_user'),
             models.Index(fields=['status'], name='idx_reservation_status'),
-            models.Index(fields=['tracking_code'], name='idx_tracking_code'),
             models.Index(fields=['phone_number'], name='idx_reservation_phone'),
         ]
 

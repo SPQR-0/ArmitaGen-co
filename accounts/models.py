@@ -44,7 +44,7 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     """Custom User model with phone-first authentication"""
 
-    phone = models.CharField(max_length=15, unique=True, db_index=True, verbose_name='تلفن')
+    phone = models.CharField(max_length=15, unique=True, verbose_name='تلفن')
     email = models.EmailField(unique=False, null=True, blank=True, verbose_name='ایمیل')
     full_name = models.CharField(max_length=50, verbose_name='نام و نام خانوادگی')
     otp_verified = models.BooleanField(default=False, verbose_name='تایید کد پیامکی')
@@ -60,9 +60,6 @@ class User(AbstractUser):
         db_table = 'users'
         verbose_name = 'کاربر'
         verbose_name_plural = 'کاربران'
-        indexes = [
-            models.Index(fields=['phone'], name='idx_phone'),
-        ]
 
     def __str__(self):
         return f"{self.full_name} ({self.phone})"
@@ -71,7 +68,7 @@ class User(AbstractUser):
 class OTP(models.Model):
     """One-Time Password for phone verification"""
 
-    phone = models.CharField(max_length=15, db_index=True, verbose_name='شماره تلفن')
+    phone = models.CharField(max_length=15, verbose_name='شماره تلفن')
     code = models.CharField(max_length=6, verbose_name='کد')
     is_used = models.BooleanField(default=False, verbose_name='استفاده شده')
     verified_user = models.ForeignKey(
@@ -89,11 +86,10 @@ class OTP(models.Model):
         db_table = 'otps'
         verbose_name = 'OTP'
         verbose_name_plural = 'OTP ها'
+        ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['phone'], name='idx_otp_phone'),
             models.Index(fields=['phone', 'code'], name='idx_otp_verify'),
         ]
-        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.phone} - {self.code}"
@@ -141,7 +137,6 @@ class UserInfo(models.Model):
     )
     phone = models.CharField(
         max_length=15,
-        db_index=True,
         verbose_name='شماره تلفن'
     )
     email = models.EmailField(
@@ -153,7 +148,6 @@ class UserInfo(models.Model):
     # Verification Status
     is_otp_verified = models.BooleanField(
         default=False,
-        db_index=True,
         verbose_name='تایید شماره با OTP'
     )
 

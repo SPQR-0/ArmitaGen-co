@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from django.contrib import messages
 from django.core.cache import cache
 from django.db.models import Q, Count
@@ -28,57 +30,56 @@ class PostListView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
     """List of all published posts with filtering"""
 
     model = Post
-    template_name = 'blog/blog-list-sidebar.html'
+    template_name = 'blog/post_list.html'
     context_object_name = 'posts'
     paginate_by = 5
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        qs = super().get_queryset()
+        qs = qs.filter(status='published', published_at__isnull=False)
+        pprint(qs)
 
-        # Filter by author
-        author = self.request.GET.get('editor')
+        # Filter by author (real authors)
+        author = self.request.GET.get('author')
         if author:
-            queryset = queryset.filter(author__username=author)
+            qs = qs.filter(authors__name=author)
 
         # Filter by year
         year = self.request.GET.get('year')
         if year and year.isdigit():
-            queryset = queryset.filter(published_at__year=year)
+            qs = qs.filter(published_at__year=int(year))
 
         # Filter by month
         month = self.request.GET.get('month')
         if month and month.isdigit():
-            queryset = queryset.filter(published_at__month=month)
+            qs = qs.filter(published_at__month=int(month))
 
         # Ordering
         sort = self.request.GET.get('sort', '-published_at')
-        allowed_sorts = ['-published_at', 'published_at', 'title', '-title', '-created_at']
+        allowed_sorts = {'-published_at', 'published_at', 'title', '-title', '-created_at', 'created_at'}
         if sort in allowed_sorts:
-            queryset = queryset.order_by(sort)
+            qs = qs.order_by(sort)
 
-        return queryset
+        return qs.distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Add filter params to context for display in template
         context['current_author'] = self.request.GET.get('author', '')
         context['current_year'] = self.request.GET.get('year', '')
         context['current_month'] = self.request.GET.get('month', '')
         context['current_sort'] = self.request.GET.get('sort', '-published_at')
 
-        # Cache available years for 1 hour
         available_years = cache.get('blog_available_years')
         if available_years is None:
             available_years = list(
                 Post.objects
-                .filter(status='published')
+                .filter(status='published', published_at__isnull=False)
                 .dates('published_at', 'year', order='DESC')
             )
             cache.set('blog_available_years', available_years, 60 * 60)
 
         context['available_years'] = available_years
-
         return context
 
 
@@ -87,6 +88,7 @@ class PostDetailView(PublishedPostMixin, DetailView):
 
     model = Post
     template_name = 'blog/post_detail.html'
+    # template_name = 'blog/blog-details.html'
     context_object_name = 'post'
     slug_field = 'slug'
     slug_url_kwarg = 'slug'

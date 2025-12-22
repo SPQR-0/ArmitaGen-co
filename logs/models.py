@@ -51,7 +51,6 @@ class UserActivity(models.Model):
         max_length=40,
         null=True,
         blank=True,
-        db_index=True,
         verbose_name='کلید Session',
         help_text='برای کاربران مهمان (غیر لاگین)'
     )
@@ -60,14 +59,12 @@ class UserActivity(models.Model):
     action_type = models.CharField(
         max_length=50,
         choices=ACTION_TYPES,
-        db_index=True,
         verbose_name='نوع عملیات'
     )
     severity = models.CharField(
         max_length=20,
         choices=SEVERITY_LEVELS,
         default='info',
-        db_index=True,
         verbose_name='سطح اهمیت'
     )
     description = models.TextField(
@@ -133,7 +130,6 @@ class UserActivity(models.Model):
     # Timestamp
     created_at = models.DateTimeField(
         auto_now_add=True,
-        db_index=True,
         verbose_name='تاریخ ایجاد'
     )
 
@@ -399,7 +395,6 @@ class PaymentLog(models.Model):
     transaction_type = models.CharField(
         max_length=30,
         choices=TRANSACTION_TYPES,
-        db_index=True,
         verbose_name='نوع تراکنش'
     )
 
@@ -466,7 +461,6 @@ class PaymentLog(models.Model):
 
     created_at = models.DateTimeField(
         auto_now_add=True,
-        db_index=True,
         verbose_name='تاریخ تراکنش'
     )
 
@@ -503,7 +497,6 @@ class ErrorLog(models.Model):
     error_type = models.CharField(
         max_length=30,
         choices=ERROR_TYPES,
-        db_index=True,
         verbose_name='نوع خطا'
     )
     error_message = models.TextField(
@@ -564,7 +557,6 @@ class ErrorLog(models.Model):
     # Status
     is_resolved = models.BooleanField(
         default=False,
-        db_index=True,
         verbose_name='برطرف شده'
     )
     resolved_at = models.DateTimeField(

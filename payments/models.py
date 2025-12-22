@@ -23,7 +23,6 @@ class Payment(models.Model):
         max_length=20,
         choices=STATUS_CHOICES,
         default='pending',
-        db_index=True
     )
 
     reference_code = models.CharField(
@@ -31,7 +30,6 @@ class Payment(models.Model):
         unique=True,
         null=True,
         blank=True,
-        db_index=True,
         help_text='کد رهگیری درگاه پرداخت'
     )
 

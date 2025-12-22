@@ -610,7 +610,6 @@ class Comment(models.Model):
         default=False,
         verbose_name='تایید شده',
         help_text='آیا این نظر توسط ادمین تایید شده است؟',
-        db_index=True
     )
 
     # Admin Direct Reply (پاسخ مستقیم ادمین)
@@ -624,7 +623,6 @@ class Comment(models.Model):
         default=False,
         verbose_name='پاسخ داده شده توسط ادمین',
         help_text='آیا ادمین به این کامنت پاسخ داده است؟',
-        db_index=True
     )
 
     admin_replied_at = models.DateTimeField(
