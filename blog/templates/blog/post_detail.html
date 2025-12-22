@@ -1,3 +1,4 @@
+{% load comment_tags %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -643,16 +644,46 @@
         </div>
     {% endif %}
 
-    <!-- Comments Section (Placeholder) -->
-    <div style="background: white; padding: 40px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); margin-bottom: 30px;">
-        <h3 style="font-size: 18px; font-weight: 600; color: #222; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #f0f0f0;">
-            💬 نظرات
-        </h3>
-        <div style="text-align: center; padding: 60px 20px; background: #fafafa; border-radius: 8px;">
-            <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
-            <p style="color: #999; font-size: 15px;">بخش نظرات به زودی فعال می‌شود</p>
-        </div>
-    </div>
+        {% include 'blog/comments_section.html' %}
+
+    <script>
+        function toggleReplyForm(commentId) {
+            const form = document.getElementById('reply-form-' + commentId);
+            if (form.style.display === 'none' || form.style.display === '') {
+                form.style.display = 'block';
+                form.scrollIntoView({behavior: 'smooth', block: 'center'});
+            } else {
+                form.style.display = 'none';
+            }
+        }
+    </script>
+
+    <style>
+        .comment-input, .comment-textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .comment-input:focus, .comment-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .comment-textarea {
+            resize: vertical;
+        }
+
+        @media (max-width: 768px) {
+            div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
 
     <!-- Related Posts Section -->
     {% if related_posts %}

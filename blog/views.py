@@ -1,15 +1,17 @@
+from django.contrib import messages
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, DetailView
+from taggit.models import Tag
 
+from .forms import CommentForm, ReplyForm
 from .mixins import *
-from .models import Post
-from .models import PostLike
+from .models import Post, PostLike, Comment
 
 
 def get_client_ip(request):
@@ -122,6 +124,12 @@ class PostDetailView(PublishedPostMixin, DetailView):
         context['likes_count'] = self.object.get_likes_count()
         context['is_liked'] = self.object.is_liked_by_ip(ip_address)
 
+        # Comments
+        context['comments'] = self.object.get_approved_comments()
+        context['comments_count'] = self.object.get_approved_comments_count()
+        context['comment_form'] = CommentForm()
+        context['reply_form'] = ReplyForm()
+
         # Previous/Next posts
         context['previous_post'] = (
             Post.objects
@@ -139,18 +147,21 @@ class PostDetailView(PublishedPostMixin, DetailView):
             .first()
         )
 
-        # Related posts by tags (6 posts)
+        # Related posts by tags (6 posts) - sorted by number of shared tags
         if self.object.tags.exists():
-            context['related_posts'] = (
+            # Get posts with shared tags and count the number of matching tags
+            related_posts = (
                 Post.objects
                 .filter(tags__in=self.object.tags.all(), status='published')
                 .exclude(pk=self.object.pk)
+                .annotate(same_tags=Count('tags'))
                 .distinct()
-                .order_by('-published_at')
+                .order_by('-same_tags', '-published_at')  # Sort by number of shared tags, then by date
                 .select_related('editor')
                 .prefetch_related('authors', 'tags')
                 [:6]
             )
+            context['related_posts'] = related_posts
 
         # SEO Meta
         context['meta_title'] = self.object.title
@@ -159,6 +170,61 @@ class PostDetailView(PublishedPostMixin, DetailView):
         context['canonical_url'] = self.request.build_absolute_uri(self.object.get_absolute_url())
 
         return context
+
+
+class PostCommentView(View):
+    """Handle comment submission"""
+
+    def post(self, request, slug):
+        post = get_object_or_404(Post, slug=slug, status='published')
+        form = CommentForm(request.POST)
+
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.ip_address = get_client_ip(request)
+            comment.is_approved = False  # Requires admin approval
+            comment.save()
+
+            messages.success(
+                request,
+                'نظر شما با موفقیت ثبت شد و پس از تایید ادمین نمایش داده خواهد شد.'
+            )
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
+
+        return redirect('blog:post_detail', slug=slug)
+
+
+class PostCommentReplyView(View):
+    """Handle comment reply submission"""
+
+    def post(self, request, slug, comment_id):
+        post = get_object_or_404(Post, slug=slug, status='published')
+        parent_comment = get_object_or_404(Comment, id=comment_id, post=post, is_approved=True)
+
+        form = ReplyForm(request.POST)
+
+        if form.is_valid():
+            reply = form.save(commit=False)
+            reply.post = post
+            reply.parent = parent_comment
+            reply.ip_address = get_client_ip(request)
+            reply.is_approved = False  # Requires admin approval
+            reply.save()
+
+            messages.success(
+                request,
+                'پاسخ شما با موفقیت ثبت شد و پس از تایید ادمین نمایش داده خواهد شد.'
+            )
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
+
+        return redirect('blog:post_detail', slug=slug)
 
 
 class PostSearchView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
@@ -288,7 +354,6 @@ class PostLikeView(View):
         likes_count = post.get_likes_count()
         is_liked = PostLike.objects.filter(post=post, ip_address=get_client_ip(request)).exists()
 
-
         return JsonResponse({
             'success': True,
             'liked': liked,
@@ -296,8 +361,6 @@ class PostLikeView(View):
             'is_liked': is_liked
         })
 
-from taggit.models import Tag
-from django.views.generic import ListView
 
 class PostsByTagView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
     model = Post

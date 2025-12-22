@@ -188,6 +188,14 @@ class Post(models.Model):
         """Check if this IP has liked it?"""
         return self.likes.filter(ip_address=ip_address).exists()
 
+    def get_approved_comments_count(self):
+        """Number of approved comments (root comments only)"""
+        return self.comments.filter(is_approved=True, parent__isnull=True).count()
+
+    def get_approved_comments(self):
+        """Get all approved root comments (without parent)"""
+        return self.comments.filter(is_approved=True, parent__isnull=True).order_by('-created_at')
+
 
 class PostSection(models.Model):
     """Different sections within each post"""
@@ -548,3 +556,134 @@ class PostLike(models.Model):
 
     def __str__(self):
         return f"{self.post.title} - {self.ip_address}"
+
+
+class Comment(models.Model):
+    """Post Comments Model with threading support"""
+
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='پست',
+        help_text='پستی که این کامنت به آن تعلق دارد'
+    )
+
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        related_name='replies',
+        null=True,
+        blank=True,
+        verbose_name='والد',
+        help_text='کامنت والد (برای پاسخ‌ها)'
+    )
+
+    # User information (optional for anonymous)
+    name = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='نام',
+        help_text='نام کامل (اختیاری - برای کامنت ناشناس خالی بگذارید)'
+    )
+
+    email = models.EmailField(
+        blank=True,
+        verbose_name='ایمیل',
+        help_text='آدرس ایمیل (اختیاری)'
+    )
+
+    # Comment content
+    content = models.TextField(
+        verbose_name='متن نظر',
+        help_text='محتوای نظر'
+    )
+
+    # IP address for moderation
+    ip_address = models.GenericIPAddressField(
+        verbose_name='آی‌پی',
+        help_text='آدرس IP برای مدیریت'
+    )
+
+    # Moderation
+    is_approved = models.BooleanField(
+        default=False,
+        verbose_name='تایید شده',
+        help_text='آیا این نظر توسط ادمین تایید شده است؟',
+        db_index=True
+    )
+
+    # Admin Direct Reply (پاسخ مستقیم ادمین)
+    admin_reply = models.TextField(
+        blank=True,
+        verbose_name='پاسخ ادمین',
+        help_text='پاسخ مستقیم ادمین به این کامنت'
+    )
+
+    answered_by_admin = models.BooleanField(
+        default=False,
+        verbose_name='پاسخ داده شده توسط ادمین',
+        help_text='آیا ادمین به این کامنت پاسخ داده است؟',
+        db_index=True
+    )
+
+    admin_replied_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='زمان پاسخ ادمین',
+        help_text='زمانی که ادمین پاسخ داده'
+    )
+
+    replied_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='admin_comment_replies',
+        verbose_name='پاسخ داده شده توسط',
+        help_text='ادمینی که به این کامنت پاسخ داده'
+    )
+
+    # Timestamps
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='تاریخ ایجاد',
+        db_index=True
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='تاریخ بروزرسانی'
+    )
+
+    class Meta:
+        verbose_name = 'نظر'
+        verbose_name_plural = 'نظرات'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['post', 'is_approved', '-created_at'], name='comment_post_approved_idx'),
+            models.Index(fields=['parent', '-created_at'], name='comment_parent_idx'),
+            models.Index(fields=['answered_by_admin'], name='comment_answered_idx'),
+        ]
+
+    def __str__(self):
+        author = self.get_display_name()
+        return f"{author} - {self.post.title}"
+
+    def get_display_name(self):
+        """Get display name for the comment author"""
+        if self.name:
+            return self.name
+        return "کاربر ناشناس"
+
+    def is_anonymous(self):
+        """Check if comment is anonymous"""
+        return not self.name
+
+    def get_replies(self):
+        """Get all approved replies"""
+        return self.replies.filter(is_approved=True).order_by('created_at')
+
+    def get_replies_count(self):
+        """Count approved replies"""
+        return self.replies.filter(is_approved=True).count()

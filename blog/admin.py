@@ -1,9 +1,11 @@
 import jdatetime
+from django import forms
 from django.contrib import admin
 from django.db.models import Count
+from django.urls import reverse
 from django.utils.html import format_html
-
-from .models import Post, PostSection, Media, Layout, Author
+from django.utils import timezone
+from .models import Post, Author, PostSection, Media, Layout, Comment
 
 
 def datetime2jalali(date_time):
@@ -105,7 +107,6 @@ class AuthorAdmin(admin.ModelAdmin):
         return obj.posts.count()
 
     posts_count.short_description = 'تعداد پست‌ها'
-
 
 
 #
@@ -559,6 +560,401 @@ class LayoutAdmin(admin.ModelAdmin):
 
     jalali_created_at.short_description = 'تاریخ ایجاد'
     jalali_created_at.admin_order_field = 'created_at'
+
+
+class AdminReplyInlineForm(forms.ModelForm):
+    """فرم inline برای ریپلای ادمین"""
+
+    admin_reply_text = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'rows': 3,
+            'cols': 80,
+            'placeholder': 'پاسخ شما به این کامنت...',
+            'style': 'width: 100%; font-family: Tahoma, Arial; direction: rtl;'
+        }),
+        required=False,
+        label='پاسخ ادمین'
+    )
+
+    class Meta:
+        model = Comment
+        fields = []
+
+
+# ==================== Comment Inline (برای نمایش در پست) ====================
+
+class CommentInline(admin.TabularInline):
+    """نمایش کامنت‌ها در پنل ادمین پست"""
+    model = Comment
+    extra = 0
+    fields = ['get_author_display', 'content_preview', 'is_approved', 'is_admin_reply', 'created_at']
+    readonly_fields = ['get_author_display', 'content_preview', 'created_at']
+    can_delete = False
+
+    def get_author_display(self, obj):
+        if obj.is_admin_reply:
+            return format_html('<strong style="color: #1976d2;">🛡️ {}</strong>',
+                               obj.replied_by.get_full_name() or obj.replied_by.username)
+        return obj.get_display_name()
+
+    get_author_display.short_description = 'نویسنده'
+
+    def content_preview(self, obj):
+        return obj.content[:80] + '...' if len(obj.content) > 80 else obj.content
+
+    content_preview.short_description = 'متن'
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = [
+        'id',
+        'get_author_badge',
+        'get_post_link',
+        'content_preview',
+        'get_status_badge',
+        'get_admin_reply_badge',
+        'get_replies_count',
+        'created_at_jalali',
+    ]
+
+    list_filter = [
+        'is_approved',
+        'answered_by_admin',
+        ('created_at', admin.DateFieldListFilter),
+        'post',
+        ('parent', admin.EmptyFieldListFilter),
+    ]
+
+    search_fields = [
+        'name',
+        'email',
+        'content',
+        'post__title',
+        'ip_address',
+        'admin_reply',
+    ]
+
+    readonly_fields = [
+        'get_author_info',
+        'ip_address',
+        'created_at',
+        'updated_at',
+        'get_post_info',
+        'get_parent_info',
+        'get_replies_display',
+        'admin_replied_at',
+        'replied_by',
+    ]
+
+    fieldsets = (
+        ('📝 اطلاعات کامنت', {
+            'fields': (
+                'get_post_info',
+                'get_parent_info',
+                'get_author_info',
+                'content',
+            )
+        }),
+        ('✅ وضعیت', {
+            'fields': (
+                'is_approved',
+                'answered_by_admin',
+            )
+        }),
+        ('💬 پاسخ ادمین', {
+            'fields': (
+                'admin_reply',
+                'admin_replied_at',
+                'replied_by',
+            ),
+            'description': 'در این بخش می‌توانید مستقیماً به کامنت کاربر پاسخ دهید. پاسخ شما در زیر کامنت اصلی نمایش داده خواهد شد.'
+        }),
+        ('🔐 اطلاعات امنیتی', {
+            'fields': (
+                'ip_address',
+            ),
+            'classes': ('collapse',)
+        }),
+        ('🕐 تاریخ و زمان', {
+            'fields': (
+                'created_at',
+                'updated_at',
+            ),
+            'classes': ('collapse',)
+        }),
+        ('💭 پاسخ‌های کاربران', {
+            'fields': (
+                'get_replies_display',
+            ),
+            'classes': ('collapse',)
+        }),
+    )
+
+    actions = [
+        'approve_comments',
+        'disapprove_comments',
+        'mark_as_answered',
+        'mark_as_unanswered',
+    ]
+
+    list_per_page = 25
+    date_hierarchy = 'created_at'
+
+    # ==================== Display Methods ====================
+
+    def get_author_badge(self, obj):
+        """نمایش badge نویسنده"""
+        if obj.is_anonymous():
+            return format_html(
+                '<span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); '
+                'color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;">'
+                '👤 ناشناس</span>'
+            )
+        else:
+            return format_html(
+                '<span style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); '
+                'color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;">'
+                '👤 {}</span>',
+                obj.name
+            )
+
+    get_author_badge.short_description = 'نویسنده'
+
+    def get_post_link(self, obj):
+        """لینک به پست"""
+        url = reverse('admin:blog_post_change', args=[obj.post.pk])
+        return format_html(
+            '<a href="{}" style="color: #667eea; font-weight: 600;">📄 {}</a>',
+            url,
+            obj.post.title[:40] + '...' if len(obj.post.title) > 40 else obj.post.title
+        )
+
+    get_post_link.short_description = 'پست'
+
+    def content_preview(self, obj):
+        """پیش‌نمایش محتوا"""
+        content = obj.content[:80] + '...' if len(obj.content) > 80 else obj.content
+        return format_html(
+            '<div style="max-width: 300px; line-height: 1.5;">{}</div>',
+            content
+        )
+
+    content_preview.short_description = 'متن کامنت'
+
+    def get_status_badge(self, obj):
+        """نمایش وضعیت تایید"""
+        if obj.is_approved:
+            return format_html(
+                '<span style="background: #4caf50; color: white; padding: 4px 10px; '
+                'border-radius: 12px; font-size: 11px; font-weight: 600;">'
+                '✅ تایید شده</span>'
+            )
+        else:
+            return format_html(
+                '<span style="background: #ff9800; color: white; padding: 4px 10px; '
+                'border-radius: 12px; font-size: 11px; font-weight: 600;">'
+                '⏳ در انتظار</span>'
+            )
+
+    get_status_badge.short_description = 'وضعیت'
+
+    def get_admin_reply_badge(self, obj):
+        """نمایش وضعیت پاسخ ادمین"""
+        if obj.answered_by_admin and obj.admin_reply:
+            return format_html(
+                '<span style="background: #2196f3; color: white; padding: 4px 10px; '
+                'border-radius: 12px; font-size: 11px; font-weight: 600;">'
+                '✓ پاسخ داده شده</span>'
+            )
+        else:
+            return format_html(
+                '<span style="background: #ffecb3; color: #f57c00; padding: 4px 10px; '
+                'border-radius: 12px; font-size: 11px; font-weight: 600;">'
+                '⚠ نیاز به پاسخ</span>'
+            )
+
+    get_admin_reply_badge.short_description = 'پاسخ ادمین'
+
+    def get_replies_count(self, obj):
+        """تعداد پاسخ‌های کاربران"""
+        count = obj.get_replies_count()
+        if count > 0:
+            return format_html(
+                '<span style="background: #e3f2fd; color: #1976d2; padding: 3px 10px; '
+                'border-radius: 10px; font-size: 12px; font-weight: 600;">'
+                '💬 {}</span>',
+                count
+            )
+        return format_html('<span style="color: #999;">-</span>')
+
+    get_replies_count.short_description = 'پاسخ‌ها'
+
+    def created_at_jalali(self, obj):
+        """تاریخ فارسی"""
+        return obj.created_at.strftime('%Y/%m/%d - %H:%M')
+
+    created_at_jalali.short_description = 'تاریخ ثبت'
+    created_at_jalali.admin_order_field = 'created_at'
+
+    # ==================== Readonly Display ====================
+
+    def get_author_info(self, obj):
+        """نمایش کامل اطلاعات نویسنده"""
+        info = f'<div style="background: #f5f5f5; padding: 15px; border-radius: 8px;">'
+
+        if obj.is_anonymous():
+            info += f'<p><strong>نوع:</strong> <span style="color: #667eea;">👤 کاربر ناشناس</span></p>'
+        else:
+            info += f'<p><strong>نام:</strong> {obj.name}</p>'
+            if obj.email:
+                info += f'<p><strong>ایمیل:</strong> <a href="mailto:{obj.email}">{obj.email}</a></p>'
+
+        info += f'<p><strong>IP:</strong> <code>{obj.ip_address}</code></p>'
+        info += f'</div>'
+
+        return format_html(info)
+
+    get_author_info.short_description = 'اطلاعات نویسنده'
+
+    def get_post_info(self, obj):
+        """نمایش اطلاعات پست"""
+        url = reverse('admin:blog_post_change', args=[obj.post.pk])
+        view_url = obj.post.get_absolute_url() if obj.post.is_published() else None
+
+        html = f'<div style="background: #f5f5f5; padding: 15px; border-radius: 8px;">'
+        html += f'<p><strong>پست:</strong> <a href="{url}" target="_blank" style="font-size: 16px; color: #667eea;">{obj.post.title}</a></p>'
+        html += f'<p><strong>تعداد کل کامنت‌ها:</strong> {obj.post.comments.filter(is_approved=True).count()}</p>'
+
+        if view_url:
+            html += f'<p><a href="{view_url}#comment-{obj.id}" target="_blank" style="color: #2196f3;">🔗 مشاهده در سایت</a></p>'
+
+        html += f'</div>'
+        return format_html(html)
+
+    get_post_info.short_description = 'پست مربوطه'
+
+    def get_parent_info(self, obj):
+        """نمایش کامنت والد"""
+        if obj.parent:
+            url = reverse('admin:blog_comment_change', args=[obj.parent.pk])
+            return format_html(
+                '<div style="background: #e3f2fd; padding: 10px; border-radius: 6px; border-right: 3px solid #2196f3;">'
+                '<p><strong>پاسخ به:</strong> <a href="{}" target="_blank">{}</a></p>'
+                '<p style="margin: 5px 0 0 0; color: #666;">{}</p>'
+                '</div>',
+                url,
+                obj.parent.get_display_name(),
+                obj.parent.content[:100] + '...' if len(obj.parent.content) > 100 else obj.parent.content
+            )
+        return format_html('<span style="color: #999;">این یک کامنت اصلی است</span>')
+
+    get_parent_info.short_description = 'کامنت والد'
+
+    def get_replies_display(self, obj):
+        """لیست پاسخ‌های کاربران"""
+        replies = obj.replies.all()
+        if not replies:
+            return format_html('<p style="color: #999;">هیچ پاسخی از کاربران ثبت نشده است</p>')
+
+        html = '<div style="background: #f5f5f5; padding: 15px; border-radius: 8px;">'
+        for reply in replies:
+            url = reverse('admin:blog_comment_change', args=[reply.pk])
+
+            html += f'''
+            <div style="background: white; padding: 10px; margin-bottom: 10px; border-radius: 6px; border-right: 3px solid #2196f3;">
+                <p><strong><a href="{url}" target="_blank">{reply.get_display_name()}</a></strong> 
+                <small style="color: #999;">- {reply.created_at.strftime('%Y/%m/%d %H:%M')}</small></p>
+                <p style="margin: 5px 0 0 0; color: #666;">{reply.content[:150]}{'...' if len(reply.content) > 150 else ''}</p>
+            </div>
+            '''
+        html += '</div>'
+
+        return format_html(html)
+
+    get_replies_display.short_description = 'پاسخ‌های کاربران'
+
+    # ==================== Actions ====================
+
+    def approve_comments(self, request, queryset):
+        """تایید کامنت‌ها"""
+        updated = queryset.update(is_approved=True)
+        self.message_user(request, f'{updated} کامنت تایید شد.', 'success')
+
+    approve_comments.short_description = '✅ تایید کامنت‌های انتخاب شده'
+
+    def disapprove_comments(self, request, queryset):
+        """رد کامنت‌ها"""
+        updated = queryset.update(is_approved=False)
+        self.message_user(request, f'{updated} کامنت رد شد.', 'warning')
+
+    disapprove_comments.short_description = '❌ رد کامنت‌های انتخاب شده'
+
+    def mark_as_answered(self, request, queryset):
+        """علامت‌گذاری به عنوان پاسخ داده شده"""
+        updated = queryset.update(answered_by_admin=True)
+        self.message_user(request, f'{updated} کامنت به عنوان "پاسخ داده شده" علامت‌گذاری شد.')
+
+    mark_as_answered.short_description = '✓ علامت به عنوان "پاسخ داده شده"'
+
+    def mark_as_unanswered(self, request, queryset):
+        """علامت‌گذاری به عنوان پاسخ داده نشده"""
+        updated = queryset.update(answered_by_admin=False)
+        self.message_user(request, f'{updated} کامنت به عنوان "پاسخ داده نشده" علامت‌گذاری شد.')
+
+    mark_as_unanswered.short_description = '⚠ علامت به عنوان "نیاز به پاسخ"'
+
+    # ==================== Custom Save ====================
+
+    def save_model(self, request, obj, form, change):
+        """
+        ذخیره با آپدیت خودکار answered_by_admin
+        """
+        # چک کنیم admin_reply پر شده یا نه
+        if 'admin_reply' in form.changed_data:
+            if obj.admin_reply and obj.admin_reply.strip():
+                # ادمین پاسخ داده
+                obj.answered_by_admin = True
+
+                # اگه اولین بار پاسخ میده، زمان رو ثبت کن
+                if not obj.admin_replied_at:
+                    obj.admin_replied_at = timezone.now()
+                    obj.replied_by = request.user
+            else:
+                # ادمین پاسخ رو پاک کرده
+                obj.answered_by_admin = False
+                obj.admin_replied_at = None
+                obj.replied_by = None
+
+        super().save_model(request, obj, form, change)
+
+    # ==================== Query Optimization ====================
+
+    def get_queryset(self, request):
+        """بهینه‌سازی query"""
+        qs = super().get_queryset(request)
+        return qs.select_related('post', 'parent', 'replied_by').prefetch_related('replies')
+
+    # ==================== Form Customization ====================
+
+    def get_form(self, request, obj=None, **kwargs):
+        """سفارشی‌سازی فرم"""
+        form = super().get_form(request, obj, **kwargs)
+
+        # تنظیم widget برای admin_reply
+        if 'admin_reply' in form.base_fields:
+            form.base_fields['admin_reply'].widget = forms.Textarea(attrs={
+                'rows': 6,
+                'cols': 80,
+                'style': 'width: 100%; font-family: Tahoma, Arial; direction: rtl;',
+                'placeholder': 'پاسخ خود را به این کامنت بنویسید...\n\nپس از ذخیره، پاسخ شما در زیر کامنت کاربر در سایت نمایش داده خواهد شد.'
+            })
+
+        return form
+
 # Admin panel appearance settings
 # admin.site.site_header = 'پنل مدیریت بلاگ'
 # admin.site.site_title = 'ادمین بلاگ'
