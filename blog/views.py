@@ -5,6 +5,7 @@ from django.core.cache import cache
 from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -37,6 +38,7 @@ class PostListView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
     def get_queryset(self):
         qs = super().get_queryset()
         qs = qs.filter(status='published', published_at__isnull=False)
+
         pprint(qs)
 
         # Filter by author (real authors)

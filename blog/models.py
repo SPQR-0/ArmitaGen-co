@@ -1,10 +1,11 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 from taggit.managers import TaggableManager
-
 
 User = get_user_model()
 
@@ -159,6 +160,10 @@ class Post(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title, allow_unicode=True)
+
+        if self.status == 'published' and self.published_at is None:
+            self.published_at = datetime.now()
+
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):

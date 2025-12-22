@@ -1,6 +1,7 @@
+from datetime import datetime
+
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Prefetch
-from django.utils import timezone
 
 from .models import PostSection, Media
 
@@ -12,7 +13,8 @@ class PublishedPostMixin:
         queryset = super().get_queryset()
         return queryset.filter(
             status='published',
-            published_at__lte=timezone.now()
+            published_at__isnull=False,
+            # published_at__lte=datetime.now()
         )
 
 
