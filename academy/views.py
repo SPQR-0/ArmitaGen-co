@@ -20,3 +20,12 @@ class TestView(View):
     
     def post(self, request):
         return render(request, self.temp)
+    
+class MeetView(View):
+    temp = 'academy/meet.html'
+
+    def get(self, request):
+        return render(request, self.temp)
+    
+    def post(self, request):
+        return render(request, self.temp)

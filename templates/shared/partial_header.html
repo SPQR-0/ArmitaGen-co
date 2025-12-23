@@ -1,66 +1,217 @@
 {% load static %}
 
+<style>
+/* =========================================
+   1. استایل‌های اصلی بنر (دسکتاپ)
+   ========================================= */
+.top-promo-banner {
+    background-color: #3171ff;
+    /* موج‌های رنگی */
+    background-image: 
+        radial-gradient(circle at 92% 160%, #5f387c 22%, transparent 22.5%),
+        radial-gradient(circle at 65% -60%, #10B981 18%, transparent 18.5%);
+    
+    color: #fff;
+    direction: ltr;
+    position: relative;
+    z-index: 10000;
+    /* ارتفاع ثابت را حذف کردیم و min-height دادیم */
+    min-height: 50px; 
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.promo-content-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 5px 20px; /* کمی پدینگ عمودی برای امنیت */
+}
+
+.promo-center-content {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap; /* اجازه می‌دهد در سایزهای خاص بشکنند */
+}
+
+/* متن */
+.promo-text {
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* دکمه */
+.promo-btn {
+    background-color: #111827 !important;
+    color: #ffffff !important;
+    border-radius: 6px;
+    padding: 5px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid rgba(255,255,255,0.1);
+    white-space: nowrap;
+    transition: transform 0.2s;
+}
+
+.promo-btn:hover {
+    background-color: #000 !important;
+    transform: translateY(-1px);
+}
+
+/* دکمه بستن (X) */
+.close-banner-icon {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    opacity: 0.8;
+    padding: 0 10px;
+    line-height: 1;
+    z-index: 2;
+}
+
+/* فضای خالی تعادل */
+.spacer-placeholder {
+    width: 40px; 
+    display: block;
+}
+
+/* =========================================
+   2. اصلاحات مخصوص موبایل (Mobile Responsive)
+   ========================================= */
+@media (max-width: 768px) {
+    .top-promo-banner {
+        padding: 2px 0; /* ارتفاع بیشتر می‌شود پس پدینگ می‌دهیم */
+    }
+
+    .promo-content-wrapper {
+        padding: 0 15px;
+        position: relative; /* برای پوزیشن‌دهی دکمه بستن */
+    }
+
+    .promo-center-content {
+        flex-direction: column; /* چیدمان ستونی: اول متن، بعد دکمه */
+        gap: 8px; /* فاصله بین متن و دکمه */
+        padding: 0 30px; /* از چپ و راست فاصله میدهیم تا روی دکمه X نرود */
+    }
+
+    .promo-text {
+        font-size: 13px; /* متن کمی کوچکتر */
+        white-space: normal; /* اجازه شکستن متن به خط بعد */
+        line-height: 1.6;
+    }
+
+    .promo-btn {
+        width: 100%; /* دکمه تمام عرض در موبایل زیباتر است */
+        max-width: 200px; /* اما خیلی هم پهن نشود */
+        padding: 4px 15px;
+    }
+
+    /* دکمه بستن را به گوشه می‌بریم تا جا نگیرد */
+    .close-banner-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 5px;
+    }
+    
+    .spacer-placeholder {
+        display: none; /* در موبایل نیازی به این نیست */
+    }
+}
+
+/* استایل هدر وقتی بنر فعال است (توسط JS کنترل می‌شود) */
+header.site-header {
+    transition: top 0.3s ease;
+}
+</style>
+
+<div id="top-promo-banner" class="top-promo-banner">
+    <div class="container-fluid">
+        <div class="promo-content-wrapper">
+            
+            <button id="close-banner-btn" class="close-banner-icon">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="promo-center-content">
+                <span class="promo-text">
+                    دریافت مبلغ ویزیت از طریق تلفن کلینیک
+                </span>
+                <a href="{% url 'home:index' %}" class="btn btn-sm promo-btn">
+                    ورود به سایت
+                </a>
+            </div>
+
+            <div class="spacer-placeholder"></div>
+            
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const banner = document.getElementById('top-promo-banner');
+    const closeBtn = document.getElementById('close-banner-btn');
+    const header = document.querySelector('header.site-header');
+    const storageKey = 'armitaBannerHidden_v2'; 
+
+    // تابع برای تنظیم فاصله هدر بر اساس ارتفاع واقعی بنر
+    function adjustHeaderPosition() {
+        if (banner && banner.style.display !== 'none' && header) {
+            const bannerHeight = banner.offsetHeight; // ارتفاع دقیق بنر را می‌گیرد
+            header.style.top = bannerHeight + 'px';
+        } else if (header) {
+            header.style.top = '0px';
+        }
+    }
+
+    // بررسی وضعیت نمایش اولیه
+    if (!localStorage.getItem(storageKey)) {
+        if(banner) {
+            banner.style.display = 'flex';
+            adjustHeaderPosition(); // تنظیم فاصله اولیه
+        }
+    } else {
+        if(banner) banner.style.display = 'none';
+        if(header) header.style.top = '0px';
+    }
+
+    // عملکرد دکمه بستن
+    if (closeBtn && banner) {
+        closeBtn.addEventListener('click', function() {
+            banner.style.display = 'none';
+            if(header) header.style.top = '0px'; // هدر برمی‌گردد بالا
+            localStorage.setItem(storageKey, 'true');
+        });
+    }
+
+    // اگر سایز صفحه تغییر کرد (مثلاً چرخش گوشی)، ارتفاع دوباره محاسبه شود
+    window.addEventListener('resize', adjustHeaderPosition);
+});
+</script>
+
+
 <header class="site-header header header-transparent box-header style-1">
 
     <div class="top-bar">
         <div class="container">
-            <!-- <div class="dz-topbar-inner d-flex justify-content-between align-items-center">
-                <div class="dz-topbar-left">
-                    <ul>
-                        <li><a href="tel:+11234567890"><i class="feather icon-phone-call text-primary"></i> +1 123 456 7890</a></li>
-                        <li><a href="mailto:info@example.com"><i class="feather icon-mail text-primary"></i> info@example.com</a></li>
-                    </ul>
-                </div>
-                <div class="dz-topbar-right">
-                    <ul class="text-secondary">
-                        <li>
-                            <a href="https://www.linkedin.com" target="_blank">
-                                <i class="fa-brands fa-linkedin"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="https://www.instagram.com" target="_blank">
-                                <i class="fa-brands fa-instagram"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="https://www.facebook.com" target="_blank">
-                                <i class="fa-brands fa-facebook-f"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="https://twitter.com" target="_blank">
-                                <i class="fa-brands fa-x-twitter"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="https://www.youtube.com" target="_blank">
-                                <i class="fa-brands fa-youtube"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div> -->
         </div>
     </div>
-
+    
     <!-- Main Header -->
     <div class="sticky-header main-bar-wraper">
         <div class="main-bar clearfix">
             <div class="container clearfix inner-bar text-white">
-
-                <!-- EXTRA NAV -->
-                <!-- <div class="extra-nav">
-                    <div class="extra-cell">
-                        <ul class="header-right">
-                            <li class="nav-item">
-                                <a href="appointment.html" class="btn btn-primary btn-hover1">
-                                    نوبت‌دهی
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div> -->
 
                 <!-- Nav Toggle Button -->
                 <button class="w3menu-toggler navicon" type="button" data-target="#W3Menu">
@@ -171,7 +322,7 @@
                                                style="font-size: 0.95rem; line-height: 1.8;">برای دریافت دقیق‌ترین
                                                 راهنمایی‌ها در زمینه خدمات آزمایشگاهی، همین امروز مشاوره خود را رزرو
                                                 کنید.</p>
-                                            <a href="{% url 'council:con' %}"
+                                            <a href="{% url 'council:info' %}"
                                                class="btn btn-sm btn-primary btn-hover1">رزرو وقت آنلاین</a>
                                         </div>
                                     </div>
@@ -180,30 +331,9 @@
                             </div>
                         </li>
                         <li>
-                            <a href="{% url 'council:con' %}"><span>مشاوره ژنتیک</span></a>
+                            <a href="{% url 'council:info' %}"><span>مشاوره ژنتیک</span></a>
                         </li>
-                        <!-- <li class="sub-menu-down">
-                            <a href="javascript:void(0);"><span>مشاوره ژنتیک</span> <i class="fas fa-chevron-down tabindex"></i></a>
-                            <ul class="sub-menu">
-                                <li><a href="about-us.html">توالی یابی Sanger</a></li>
-                                <li><a href="about-us-2.html">توالی یابی کل ژنوم</a></li>
-                                <li><a href="appointment.html">توالی یابی کل اگزوم</a></li>
-                                <li><a href="pricing-table.html">آنالیز میکروبیوم</a></li>
-                                <li><a href="testimonial.html">پنل استعدادیابی</a></li>
-                                <li><a href="faqs.html">سیتوژنتیک</a></li>
-                                <li><a href="error-404.html">خدمات مولکولی</a></li>
-                            </ul>
-                        </li> -->
-
-                        <!-- <li class="sub-menu-down">
-                            <a href="javascript:void(0);"><span>خدمات</span> <i class="fas fa-chevron-down tabindex"></i></a>
-                            <ul class="sub-menu">
-                                <li><a href="services.html">خدمات</a></li>
-                                <li><a href="services-2.html">خدمات 2</a></li>
-                                <li><a href="service-detail.html">جزییات خدمات</a></li>
-                                <li><a href="service-detail-2.html">جزییات خدمات 2</a></li>
-                            </ul>
-                        </li> -->
+                    
                         <li>
                             <a href="javascript:void(0);"><span>آکادمی ژنتیک</span></a>
                         </li>
@@ -233,7 +363,7 @@
                                     <ul class="sub-menu">
                                         <li><a href="about-us.html">مشاوره آنلاین</a></li>
                                         <li><a href="about-us-2.html">نمونه گیری در محل</a></li>
-                                        <li><a href="{% url 'council:con' %}">جواب دهی آنلاین</a></li>
+                                        <li><a href="{% url 'council:info' %}">جواب دهی آنلاین</a></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -279,11 +409,9 @@
 
                 <!-- Website Logo -->
                 <div class="logo-header logo-dark">
-                    <a href="{% url 'home:index' %}"><img src="{% static 'assets/images/logo/Armita2.png' %}"
-                                                          alt="logo"></a>
-                </div>
-
-{#                <div class="3"></div>#}
+                    <a href="{% url 'home:index' %}"><img src="{% static 'assets/images/logo/Armita2.png' %}"alt="logo"></a>
+                </div> 
+                <div class="3"></div>
             </div>
         </div>
     </div>

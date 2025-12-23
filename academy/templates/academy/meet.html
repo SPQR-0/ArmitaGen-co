@@ -1,0 +1,15 @@
+<div id="meet"></div>
+<script src="https://meet.jit.si/external_api.js"></script>
+<script>
+    const domain = 'meet.jit.si'; // یا سرور شخصی خودت
+    const options = {
+        roomName: 'Consultation_{{ appointment.uuid }}', // لینک اختصاصی بر اساس شناسه نوبت
+        width: '100%',
+        height: 800,
+        parentNode: document.querySelector('#meet'),
+        userInfo: {
+            displayName: '{{ request.user.get_full_name }}'
+        }
+    };  
+    const api = new JitsiMeetExternalAPI(domain, options);
+</script>
