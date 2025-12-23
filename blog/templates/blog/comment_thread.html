@@ -1,5 +1,5 @@
 {% load comment_tags %}
-
+{% load jalali %}
 <!-- Single Comment with Recursive Replies -->
 <div id="comment-{{ comment.id }}"
      style="border-radius: 8px;
@@ -39,11 +39,11 @@
                 {% endif %}
             </div>
             <div style="font-size: 12px; color: #888;">
-                {{ comment.created_at|date:"Y/m/d - H:i" }}
+                {{ comment.created_at|jalali:"%Y/%m/%d - %H:%M" }}
             </div>
         </div>
         <button onclick="toggleReplyForm({{ comment.id }})"
-                style="padding: {% if depth == 0 %}8px 16px{% else %}6px 14px{% endif %};
+                style="padding: {% if depth == 0 %}8px 16px{% else %} 6px 14px{% endif %};
                        background: #f5f5f5;
                        color: #666;
                        border: 1px solid #e0e0e0;
@@ -81,15 +81,15 @@
                 <div>
                     <div style="font-weight: 600; color: #1976d2; font-size: 14px;">
                         پاسخ مدیر سایت
-                        {% if comment.replied_by %}
-                            <span style="font-weight: 400; color: #1565c0;">
-                                ({{ comment.replied_by.full_name }})
-                            </span>
-                        {% endif %}
+{#                        {% if comment.replied_by %}#}
+{#                            <span style="font-weight: 400; color: #1565c0;">#}
+{#                                ({{ comment.replied_by.full_name }})#}
+{#                            </span>#}
+{#                        {% endif %}#}
                     </div>
                     {% if comment.admin_replied_at %}
                         <div style="font-size: 12px; color: #1976d2; opacity: 0.8;">
-                            {{ comment.admin_replied_at|date:"Y/m/d - H:i" }}
+                            {{ comment.admin_replied_at|jalali:"%Y/%m/%d - %H:%M" }}
                         </div>
                     {% endif %}
                 </div>

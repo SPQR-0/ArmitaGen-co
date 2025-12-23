@@ -1,3 +1,4 @@
+{% load jalali %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -426,9 +427,9 @@
                 <select name="year">
                     <option value="">همه</option>
                     {% for year in available_years %}
-                        <option value="{{ year.year }}"
-                                {% if current_year == year.year|stringformat:"s" %}selected{% endif %}>
-                            {{ year.year }}
+                        <option value="{{ year }}"
+                                {% if current_year == year|stringformat:"s" %}selected{% endif %}>
+                            {{ year }}
                         </option>
                     {% endfor %}
                 </select>
@@ -438,10 +439,10 @@
                 <label>ماه</label>
                 <select name="month">
                     <option value="">همه</option>
-                    {% for i in "123456789012" %}
-                        <option value="{{ forloop.counter }}"
-                                {% if current_month == forloop.counter|stringformat:"s" %}selected{% endif %}>
-                            {{ forloop.counter }}
+                    {% for m in jalali_months %}
+                        <option value="{{ m.value }}"
+                                {% if current_month == m.value|stringformat:"s" %}selected{% endif %}>
+                            {{ m.label }}
                         </option>
                     {% endfor %}
                 </select>
@@ -491,7 +492,7 @@
                                 {% else %}
                                     <span>بدون نویسنده</span>
                                 {% endif %}
-                                <span>{{ post.published_at|date:"Y/m/d" }}</span>
+                                <span>{{ post.published_at|jalali:"%Y/%m/%d" }}</span>
                             </div>
 
                             {% if post.meta_description %}
@@ -513,9 +514,13 @@
                         <a href="?page=1
 
 
+
+
                                 {% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
                            title="اولین صفحه">«</a>
                         <a href="?page=
+
+
 
 
                                 {{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
@@ -529,10 +534,14 @@
                             <a href="?page=
 
 
+
+
                                     {{ page_num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
                                class="page-number">{{ page_num }}</a>
                         {% elif page_num == 1 or page_num == page_obj.paginator.num_pages %}
                             <a href="?page=
+
+
 
 
                                     {{ page_num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
@@ -546,9 +555,13 @@
                         <a href="?page=
 
 
+
+
                                 {{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
                            title="صفحه بعد">›</a>
                         <a href="?page=
+
+
 
 
                                 {{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"

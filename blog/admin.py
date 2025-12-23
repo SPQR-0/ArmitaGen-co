@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 
-from .models import Post, Author, PostSection, Media, Layout, Comment
+from .models import Post, Author, PostSection, Media, Layout, Comment, CommenterIP
 
 
 def datetime2jalali(date_time):
@@ -108,7 +108,6 @@ class AuthorAdmin(admin.ModelAdmin):
     posts_count.short_description = 'تعداد پست‌ها'
 
 
-
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display = [
@@ -181,6 +180,7 @@ class PostAdmin(admin.ModelAdmin):
 
     def tag_list(self, obj):
         return u", ".join(o.name for o in obj.tags.all())
+
     tag_list.short_description = 'لیست تگ ها'
 
     def save_model(self, request, obj, form, change):
@@ -911,6 +911,263 @@ class CommentAdmin(admin.ModelAdmin):
             })
 
         return form
+
+
+class CommenterInline(admin.TabularInline):
+    model = Comment
+    extra = 0
+    fields = ("post_link", "parent_preview", "content_preview", "status_badge", "jalali_created_at")
+    readonly_fields = ("post_link", "parent_preview", "content_preview", "status_badge", "jalali_created_at")
+    ordering = ("-created_at",)
+    show_change_link = True
+    can_delete = False
+
+    def post_link(self, obj):
+        """لینک به پست"""
+        if obj.post:
+            return format_html(
+                '<a href="/admin/blog/post/{}/change/" style="color: #0077b5; font-weight: 500;">{}</a>',
+                obj.post.id,
+                obj.post.title[:50]
+            )
+        return '—'
+
+    post_link.short_description = 'پست'
+
+    def parent_preview(self, obj):
+        """پیش‌نمایش کامنت والد"""
+        if obj.parent:
+            return format_html(
+                '<span style="color: #666; font-size: 12px;">پاسخ به: {}</span>',
+                obj.parent.content[:30] + '...' if len(obj.parent.content) > 30 else obj.parent.content
+            )
+        return format_html('<span style="color: #999;">—</span>')
+
+    parent_preview.short_description = 'پاسخ به'
+
+    def content_preview(self, obj):
+        """پیش‌نمایش محتوا"""
+        preview = obj.content[:60] + '...' if len(obj.content) > 60 else obj.content
+        return format_html('<span style="color: #333;">{}</span>', preview)
+
+    content_preview.short_description = 'محتوا'
+
+    def status_badge(self, obj):
+        """وضعیت تایید"""
+        if obj.is_approved:
+            return format_html(
+                '<span style="background: #28a745; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px;">✓ تایید شده</span>'
+            )
+        return format_html(
+            '<span style="background: #ffc107; color: #333; padding: 3px 10px; border-radius: 12px; font-size: 11px;">⏳ در انتظار</span>'
+        )
+
+    status_badge.short_description = 'وضعیت'
+
+    def jalali_created_at(self, obj):
+        """تاریخ شمسی"""
+        return datetime2jalali(obj.created_at)
+
+    jalali_created_at.short_description = 'تاریخ'
+
+
+@admin.register(CommenterIP)
+class CommenterIPAdmin(admin.ModelAdmin):
+    list_display = (
+        'ip_badge',
+        'comments_count',
+        'is_blocked',
+        'status_badge',
+        'last_activity',
+        'jalali_created_at',
+    )
+    list_editable = ('is_blocked',)
+    list_filter = ('is_blocked', 'created_at')
+
+    search_fields = ('ip_address',)
+
+    readonly_fields = (
+        'ip_address',
+        'created_at',
+        'last_seen_at',
+        'comments_count_detail',
+        'last_comment_preview'
+    )
+
+    fieldsets = (
+        ('اطلاعات IP', {
+            'fields': ('ip_address', 'is_blocked')
+        }),
+        ('آمار و فعالیت', {
+            'fields': ('comments_count_detail', 'last_comment_preview'),
+            'classes': ('collapse',)
+        }),
+        ('زمان‌بندی', {
+            'fields': ('created_at', 'last_seen_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    inlines = [CommenterInline]
+
+    actions = ['block_ips', 'unblock_ips']
+
+    date_hierarchy = 'created_at'
+
+    def ip_badge(self, obj):
+        """نمایش IP با آیکون"""
+        return format_html(
+            '<span style="font-family: monospace; background: #f5f5f5; padding: 5px 12px; border-radius: 6px; font-size: 13px;">'
+            '<i class="fas fa-network-wired" style="color: #0077b5; margin-left: 5px;"></i>{}'
+            '</span>',
+            obj.ip_address
+        )
+
+    ip_badge.short_description = 'آدرس IP'
+    ip_badge.admin_order_field = 'ip_address'
+
+    def comments_count(self, obj):
+        """تعداد کامنت‌ها با بج رنگی"""
+        count = obj.comments.count()
+
+        if count == 0:
+            color = '#999'
+        elif count < 5:
+            color = '#28a745'
+        elif count < 10:
+            color = '#ffc107'
+        else:
+            color = '#dc3545'
+
+        return format_html(
+            '<span style="background: {}; color: white; padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 12px;">{}</span>',
+            color,
+            count
+        )
+
+    comments_count.short_description = 'تعداد کامنت'
+
+    def status_badge(self, obj):
+        """وضعیت مسدودی"""
+        if obj.is_blocked:
+            return format_html(
+                '<span style="background: #dc3545; color: white; padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 600;">'
+                '<i class="fas fa-ban" style="margin-left: 5px;"></i>مسدود'
+                '</span>'
+            )
+        return format_html(
+            '<span style="background: #28a745; color: white; padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 600;">'
+            '<i class="fas fa-check" style="margin-left: 5px;"></i>فعال'
+            '</span>'
+        )
+
+    status_badge.short_description = 'وضعیت'
+    status_badge.admin_order_field = 'is_blocked'
+
+    def last_activity(self, obj):
+        """آخرین فعالیت"""
+        if not obj.last_seen_at:
+            return format_html('<span style="color: #999;">هرگز</span>')
+
+        # محاسبه اختلاف زمان
+        now = timezone.now()
+        diff = now - obj.last_seen_at
+
+        if diff.days > 30:
+            return format_html(
+                '<span style="color: #999;">{} روز پیش</span>',
+                diff.days
+            )
+        elif diff.days > 0:
+            return format_html(
+                '<span style="color: #666;">{} روز پیش</span>',
+                diff.days
+            )
+        elif diff.seconds > 3600:
+            return format_html(
+                '<span style="color: #333;">{} ساعت پیش</span>',
+                diff.seconds // 3600
+            )
+        else:
+            return format_html(
+                '<span style="color: #28a745; font-weight: 600;">همین الان</span>'
+            )
+
+    last_activity.short_description = 'آخرین فعالیت'
+    last_activity.admin_order_field = 'last_seen_at'
+
+    def jalali_created_at(self, obj):
+        """تاریخ شمسی"""
+        return datetime2jalali(obj.created_at)
+
+    jalali_created_at.short_description = 'تاریخ ثبت'
+    jalali_created_at.admin_order_field = 'created_at'
+
+    def quick_actions(self, obj):
+        """اکشن‌های سریع"""
+        if obj.is_blocked:
+            return format_html(
+                '<a class="button" href="#" onclick="return confirm(\'آزاد شود؟\');" style="background: #28a745; color: white; padding: 5px 12px; border-radius: 4px; text-decoration: none; font-size: 11px;">رفع مسدودیت</a>'
+            )
+        return format_html(
+            '<a class="button" href="#" onclick="return confirm(\'مسدود شود؟\');" style="background: #dc3545; color: white; padding: 5px 12px; border-radius: 4px; text-decoration: none; font-size: 11px;">مسدود کردن</a>'
+        )
+
+    quick_actions.short_description = 'عملیات'
+
+    def comments_count_detail(self, obj):
+        """تعداد کامنت‌ها با جزئیات"""
+        total = obj.comments.count()
+        approved = obj.comments.filter(is_approved=True).count()
+        pending = total - approved
+
+        return format_html(
+            '<div style="line-height: 2;">'
+            '<div>کل کامنت‌ها: <strong>{}</strong></div>'
+            '<div style="color: #28a745;">✓ تایید شده: <strong>{}</strong></div>'
+            '<div style="color: #ffc107;">⏳ در انتظار: <strong>{}</strong></div>'
+            '</div>',
+            total, approved, pending
+        )
+
+    comments_count_detail.short_description = 'آمار کامنت‌ها'
+
+    def last_comment_preview(self, obj):
+        """پیش‌نمایش آخرین کامنت"""
+        last_comment = obj.comments.order_by('-created_at').first()
+
+        if not last_comment:
+            return format_html('<span style="color: #999;">کامنتی وجود ندارد</span>')
+
+        return format_html(
+            '<div style="background: #f8f9fa; padding: 12px; border-right: 3px solid #d8a05c; border-radius: 4px;">'
+            '<div style="color: #666; font-size: 11px; margin-bottom: 5px;">{}</div>'
+            '<div style="color: #333;">{}</div>'
+            '</div>',
+            datetime2jalali(last_comment.created_at),
+            last_comment.content[:100] + '...' if len(last_comment.content) > 100 else last_comment.content
+        )
+
+    last_comment_preview.short_description = 'آخرین کامنت'
+
+    def block_ips(self, request, queryset):
+        """اکشن: مسدود کردن IPها"""
+        updated = queryset.update(is_blocked=True)
+        self.message_user(request, f'{updated} آی‌پی مسدود شد.', 'success')
+
+    block_ips.short_description = '🚫 مسدود کردن IP های انتخابی'
+
+    def unblock_ips(self, request, queryset):
+        """اکشن: رفع مسدودی IPها"""
+        updated = queryset.update(is_blocked=False)
+        self.message_user(request, f'مسدودیت {updated} آی‌پی برداشته شد.', 'success')
+
+    unblock_ips.short_description = '✓ رفع مسدودیت IP های انتخابی'
+
+    def get_queryset(self, request):
+        """بهینه‌سازی کوئری"""
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('comments')
 
 # Admin panel appearance settings
 # admin.site.site_header = 'پنل مدیریت بلاگ'

@@ -563,6 +563,21 @@ class PostLike(models.Model):
         return f"{self.post.title} - {self.ip_address}"
 
 
+class CommenterIP(models.Model):
+    ip_address = models.GenericIPAddressField(unique=True, db_index=True, verbose_name="IP")
+    is_blocked = models.BooleanField(default=False, db_index=True, verbose_name="بلاک شده؟")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="اولین بار دیده شد")
+    last_seen_at = models.DateTimeField(auto_now=True, verbose_name="آخرین بار دیده شد")
+
+    class Meta:
+        verbose_name = "IP کامنت‌گذار"
+        verbose_name_plural = "IPهای کامنت‌گذار"
+        ordering = ["-last_seen_at"]
+
+    def __str__(self):
+        return self.ip_address
+
+
 class Comment(models.Model):
     """Post Comments Model with threading support"""
 
@@ -608,6 +623,14 @@ class Comment(models.Model):
     ip_address = models.GenericIPAddressField(
         verbose_name='آی‌پی',
         help_text='آدرس IP برای مدیریت'
+    )
+    commenter_ip = models.ForeignKey(
+        "CommenterIP",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="comments",
+        verbose_name="IP مرجع"
     )
 
     # Moderation

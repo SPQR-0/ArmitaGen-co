@@ -221,6 +221,15 @@ else:
 SESSION_COOKIE_AGE = 60 * 60 * 24  # default session duration: 24h
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "blog-rate-limit",
+    }
+}
+
+
 # OTP Conf
 KAVENEGAR_API_KEY = env('KAVENEGAR_API_KEY')
 KAVENEGAR_SENDER = env('KAVENEGAR_SENDER')

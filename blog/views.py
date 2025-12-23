@@ -1,20 +1,24 @@
-from pprint import pprint
-
 from django.contrib import messages
-from django.core.cache import cache
+from django.db.models import Min, Max
 from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, DetailView
+from django_ratelimit.decorators import ratelimit
 from taggit.models import Tag
 
+from blog.utils.jalali_filters import (
+    filter_qs_by_jalali_year,
+    filter_qs_by_jalali_month,
+    jalali_month_choices, jalali_year_choices_from_min_max,
+)
 from .forms import CommentForm, ReplyForm
 from .mixins import *
 from .models import Post, PostLike, Comment
+from .utils.comment_ip import get_or_create_commenter_ip
 
 
 def get_client_ip(request):
@@ -25,6 +29,10 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+
+def real_ip(group, request):
+    return request.META.get("REMOTE_ADDR")
 
 
 class PostListView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
@@ -39,24 +47,23 @@ class PostListView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
         qs = super().get_queryset()
         qs = qs.filter(status='published', published_at__isnull=False)
 
-        pprint(qs)
-
-        # Filter by author (real authors)
         author = self.request.GET.get('author')
         if author:
             qs = qs.filter(authors__name=author)
 
-        # Filter by year
+        # Jalali year/month filters (minimal changes)
         year = self.request.GET.get('year')
-        if year and year.isdigit():
-            qs = qs.filter(published_at__year=int(year))
-
-        # Filter by month
         month = self.request.GET.get('month')
-        if month and month.isdigit():
-            qs = qs.filter(published_at__month=int(month))
 
-        # Ordering
+        if year and year.isdigit():
+            jy = int(year)
+            if month and month.isdigit():
+                jm = int(month)
+                if 1 <= jm <= 12:
+                    qs = filter_qs_by_jalali_month(qs, jy, jm, field="published_at")
+            else:
+                qs = filter_qs_by_jalali_year(qs, jy, field="published_at")
+
         sort = self.request.GET.get('sort', '-published_at')
         allowed_sorts = {'-published_at', 'published_at', 'title', '-title', '-created_at', 'created_at'}
         if sort in allowed_sorts:
@@ -72,14 +79,23 @@ class PostListView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
         context['current_month'] = self.request.GET.get('month', '')
         context['current_sort'] = self.request.GET.get('sort', '-published_at')
 
-        available_years = cache.get('blog_available_years')
-        if available_years is None:
-            available_years = list(
-                Post.objects
-                .filter(status='published', published_at__isnull=False)
-                .dates('published_at', 'year', order='DESC')
+        # months dropdown with Persian labels
+        context['jalali_months'] = jalali_month_choices()
+
+        # Jalali available years based on min/max published_at
+        agg = (
+            Post.objects
+            .filter(status='published', published_at__isnull=False)
+            .aggregate(
+                min_dt=Min("published_at"),
+                max_dt=Max("published_at"),
             )
-            cache.set('blog_available_years', available_years, 60 * 60)
+        )
+
+        available_years = jalali_year_choices_from_min_max(
+            agg.get("min_dt"),
+            agg.get("max_dt"),
+        )
 
         context['available_years'] = available_years
         return context
@@ -176,38 +192,79 @@ class PostDetailView(PublishedPostMixin, DetailView):
         return context
 
 
+@method_decorator(
+    ratelimit(key=real_ip, rate="5/d", method="POST", block=False),
+    name="post",
+)
 class PostCommentView(View):
     """Handle comment submission"""
 
     def post(self, request, slug):
-        post = get_object_or_404(Post, slug=slug, status='published')
+        if getattr(request, "limited", False):
+            messages.error(
+                request,
+                "شما بیش از حد مجاز نظر ثبت کرده‌اید (حداکثر ۵ نظر در روز)."
+            )
+            return redirect("blog:post_detail", slug=slug)
+
+        post = get_object_or_404(Post, slug=slug, status="published")
+
+        ip = get_client_ip(request)
+        commenter_ip = get_or_create_commenter_ip(ip)
+
+        # Block check
+        if commenter_ip.is_blocked:
+            messages.error(request, "دسترسی شما به ثبت نظر توسط ادمین مسدود شده است.")
+            return redirect("blog:post_detail", slug=slug)
+
         form = CommentForm(request.POST)
 
         if form.is_valid():
             comment = form.save(commit=False)
             comment.post = post
-            comment.ip_address = get_client_ip(request)
-            comment.is_approved = False  # Requires admin approval
+            comment.ip_address = ip
+            comment.commenter_ip = commenter_ip
+            comment.is_approved = False
             comment.save()
 
             messages.success(
                 request,
-                'نظر شما با موفقیت ثبت شد و پس از تایید ادمین نمایش داده خواهد شد.'
+                "نظر شما ثبت شد و پس از تایید ادمین نمایش داده خواهد شد."
             )
         else:
-            for field, errors in form.errors.items():
+            for errors in form.errors.values():
                 for error in errors:
                     messages.error(request, error)
 
-        return redirect('blog:post_detail', slug=slug)
+        return redirect("blog:post_detail", slug=slug)
 
 
+@method_decorator(
+    ratelimit(key=real_ip, rate="5/d", method="POST", block=False),
+    name="post",
+)
 class PostCommentReplyView(View):
     """Handle comment reply submission"""
 
     def post(self, request, slug, comment_id):
-        post = get_object_or_404(Post, slug=slug, status='published')
-        parent_comment = get_object_or_404(Comment, id=comment_id, post=post, is_approved=True)
+        if getattr(request, "limited", False):
+            messages.error(
+                request,
+                "شما بیش از حد مجاز پاسخ ثبت کرده‌اید (حداکثر ۵ پاسخ در روز)."
+            )
+            return redirect("blog:post_detail", slug=slug)
+
+        post = get_object_or_404(Post, slug=slug, status="published")
+        parent_comment = get_object_or_404(
+            Comment, id=comment_id, post=post, is_approved=True
+        )
+
+        ip = get_client_ip(request)
+        commenter_ip = get_or_create_commenter_ip(ip)
+
+        if commenter_ip.is_blocked:
+            messages.error(request, "دسترسی شما به ثبت پاسخ توسط ادمین مسدود شده است.")
+            return redirect("blog:post_detail", slug=slug)
 
         form = ReplyForm(request.POST)
 
@@ -215,20 +272,21 @@ class PostCommentReplyView(View):
             reply = form.save(commit=False)
             reply.post = post
             reply.parent = parent_comment
-            reply.ip_address = get_client_ip(request)
-            reply.is_approved = False  # Requires admin approval
+            reply.ip_address = ip
+            reply.commenter_ip = commenter_ip
+            reply.is_approved = False
             reply.save()
 
             messages.success(
                 request,
-                'پاسخ شما با موفقیت ثبت شد و پس از تایید ادمین نمایش داده خواهد شد.'
+                "پاسخ شما ثبت شد و پس از تایید ادمین نمایش داده خواهد شد."
             )
         else:
-            for field, errors in form.errors.items():
+            for errors in form.errors.values():
                 for error in errors:
                     messages.error(request, error)
 
-        return redirect('blog:post_detail', slug=slug)
+        return redirect("blog:post_detail", slug=slug)
 
 
 class PostSearchView(PublishedPostMixin, OptimizedQuerysetMixin, ListView):
