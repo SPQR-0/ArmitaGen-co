@@ -1429,7 +1429,7 @@ class ReservationAdminForm(forms.ModelForm):
         if "sepas_code" in self.fields:
             self.fields["sepas_code"].widget.attrs.update({
                 "style": "font-size:16px; font-weight:800; padding:10px; border:2px solid #f59e0b; border-radius:10px;",
-                "placeholder": "کد سپاس را وارد کنید…",
+                "placeholder": "کد پرونده را وارد کنید…",
             })
             self.fields["sepas_code"].help_text = "⚠️ ضروری: اگر خالی است حتماً وارد کنید."
 
@@ -1490,9 +1490,9 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     form = ReservationAdminForm
 
     fieldsets = (
-        ('🟠 کد سپاس', {
+        ('🟠 کد پرونده', {
             'fields': ('sepas_code',),
-            'description': 'اگر این فیلد خالی است، لطفاً <b>کد سپاس</b> را وارد کنید.',
+            'description': 'اگر این فیلد خالی است، لطفاً <b>کد پرونده</b> را وارد کنید.',
             'classes': ('wide',),
         }),
         ('اطلاعات رزرو', {
@@ -1547,7 +1547,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         headers = [
             'شناسه',
             'کد پیگیری',
-            'کد سپاس',
+            'کد پرونده',
             'نام و نام خانوادگی',
             'شماره تماس',
             'ایمیل',
@@ -1635,7 +1635,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             row = [
                 res.id,
                 res.tracking_code or "-",
-                getattr(res, "sepas_code", None) or "-",  # ✅ کد سپاس
+                getattr(res, "sepas_code", None) or "-",
                 res.full_name or "-",
                 res.phone_number or "-",
                 res.email or "-",
@@ -1683,7 +1683,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
         # فقط در GET هشدار بده که هر بار Save می‌زنن دوباره تکراری نشه
         if obj and request.method == "GET" and not getattr(obj, "sepas_code", None):
-            messages.warning(request, "⚠️ کد سپاس وارد نشده است. لطفاً کد سپاس را وارد کنید.")
+            messages.warning(request, "⚠️ کد پرونده وارد نشده است. لطفاً کد را وارد کنید.")
 
         return super().change_view(request, object_id, form_url, extra_context)
 
@@ -1700,7 +1700,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             '</span>'
         )
 
-    sepas_badge.short_description = 'کد سپاس'
+    sepas_badge.short_description = 'کد پرونده'
 
     @admin.action(description='📥 خروجی CSV رزروها')
     def export_reservations_csv(self, request, queryset):
@@ -1716,7 +1716,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             'نام و نام خانوادگی',
             'شماره تماس',
             'کد پیگیری',
-            'کد سپاس',
+            'کد پرونده',
             'نوع مشاوره',
             'عنوان مشاوره',
             'تاریخ نوبت',

@@ -452,8 +452,8 @@ class Reservation(models.Model):
         max_length=50,
         null=True,
         blank=True,
-        verbose_name='کد سپاس',
-        help_text='کد سامانه سپاس را وارد کنید'
+        verbose_name='کد پرونده',
+        help_text='کد پرونده را وارد کنید'
     )
 
     # Timestamps
