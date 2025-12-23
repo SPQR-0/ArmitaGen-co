@@ -767,7 +767,7 @@ class CommentAdmin(admin.ModelAdmin):
     get_replies_count.short_description = 'پاسخ‌ها'
 
     def created_at_jalali(self, obj):
-        return obj.created_at.strftime('%Y/%m/%d - %H:%M')
+        return datetime2jalali(obj.created_at)
 
     created_at_jalali.short_description = 'تاریخ ثبت'
     created_at_jalali.admin_order_field = 'created_at'
@@ -838,7 +838,7 @@ class CommentAdmin(admin.ModelAdmin):
             html += f'''
             <div style="background: white; padding: 10px; margin-bottom: 10px; border-radius: 6px; border-right: 3px solid #2196f3;">
                 <p><strong><a href="{url}" target="_blank">{reply.get_display_name()}</a></strong> 
-                <small style="color: #999;">- {reply.created_at.strftime('%Y/%m/%d %H:%M')}</small></p>
+                <small style="color: #999;">- {datetime2jalali(reply.created_at)}</small></p>
                 <p style="margin: 5px 0 0 0; color: #666;">{reply.content[:150]}{'...' if len(reply.content) > 150 else ''}</p>
             </div>
             '''

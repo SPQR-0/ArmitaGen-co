@@ -27,6 +27,15 @@ from .models import (ConsultationTopic, Reservation, ServiceType, SlotRule,
                      TimeSlot, ReservationSettings)
 from .widgets import ModernTimePickerWidget
 
+WEEKDAY_PERSIAN = {
+    0: "شنبه",
+    1: "یکشنبه",
+    2: "دوشنبه",
+    3: "سه‌شنبه",
+    4: "چهارشنبه",
+    5: "پنج‌شنبه",
+    6: "جمعه",
+}
 
 # Helper Function
 def datetime2jalali(date_time):
@@ -615,16 +624,6 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             cell.alignment = right_alignment
             cell.border = thin_border
 
-        WEEKDAY_PERSIAN = {
-            0: "دوشنبه",
-            1: "سه‌شنبه",
-            2: "چهارشنبه",
-            3: "پنج‌شنبه",
-            4: "جمعه",
-            5: "شنبه",
-            6: "یکشنبه",
-        }
-
         def date2jalali(date_obj):
             if not date_obj:
                 return "-"
@@ -736,17 +735,6 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             'زمان رزرو',
             'زمان ایجاد نوبت'
         ])
-
-        # Persian weekday mapping
-        WEEKDAY_PERSIAN = {
-            0: "دوشنبه",  # Monday
-            1: "سه‌شنبه",  # Tuesday
-            2: "چهارشنبه",  # Wednesday
-            3: "پنج‌شنبه",  # Thursday
-            4: "جمعه",  # Friday
-            5: "شنبه",  # Saturday
-            6: "یکشنبه",  # Sunday
-        }
 
         def convert_to_jalali_date(date_obj):
             """Convert Gregorian date to Jalali format (YYYY/MM/DD)"""
@@ -959,19 +947,23 @@ class TimeSlotAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     def get_weekday_fa(self, obj):
         """Return weekday in Persian for the given date"""
+        # Python's weekday: Monday=0, Sunday=6
+        # Iranian week: Saturday=0, Friday=6
+
+        python_weekday = obj.date.weekday()
+        iranian_weekday = (python_weekday + 2) % 7  # Saturday=0
+
         weekday_map = {
             0: "شنبه",
             1: "یکشنبه",
             2: "دوشنبه",
             3: "سه‌شنبه",
             4: "چهارشنبه",
-            5: "پنجشنبه",
+            5: "پنج‌شنبه",
             6: "جمعه",
         }
 
-        # weekday() بر اساس Monday=0 تا Sunday=6
-        week_day_index = obj.date.weekday()
-        return weekday_map.get(week_day_index, "-")
+        return weekday_map.get(iranian_weekday, "-")
 
     get_weekday_fa.short_description = 'روز هفته'
     get_weekday_fa.admin_order_field = 'date'
@@ -1466,6 +1458,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         'phone_number',
         'full_name',
         'email',
+        'sepas_code',
         'user__phone',
         'user__full_name'
     ]
@@ -1490,10 +1483,9 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     form = ReservationAdminForm
 
     fieldsets = (
-        ('🟠 کد پرونده', {
+        ('کد پرونده', {
             'fields': ('sepas_code',),
-            'description': 'اگر این فیلد خالی است، لطفاً <b>کد پرونده</b> را وارد کنید.',
-            'classes': ('wide',),
+            'description': '<strong style="color: #FF9130;">⚠️ مهم: کد پرونده را وارد کنید</strong>',
         }),
         ('اطلاعات رزرو', {
             'fields': ('tracking_code', 'service_type', 'time_slot', 'consultation_topic')
@@ -1524,9 +1516,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     @admin.action(description='📗 خروجی اکسل رزروها (Excel)')
     def export_reservations_excel(self, request, queryset):
-        """
-        Export Reservations as styled Excel (.xlsx) including payment+slot+sepas info
-        """
+        """Export Reservations as styled Excel (.xlsx) including payment+slot+sepas info"""
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = "رزروها"
@@ -1573,16 +1563,6 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             cell.alignment = right_alignment
             cell.border = thin_border
 
-        WEEKDAY_PERSIAN = {
-            0: "دوشنبه",
-            1: "سه‌شنبه",
-            2: "چهارشنبه",
-            3: "پنج‌شنبه",
-            4: "جمعه",
-            5: "شنبه",
-            6: "یکشنبه",
-        }
-
         def date2jalali(date_obj):
             if not date_obj:
                 return "-"
@@ -1600,7 +1580,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             et = slot.end_time.strftime('%H:%M') if slot.end_time else "-"
             return f"{st} - {et}"
 
-        # برای سرعت
+        # Optimize query
         queryset = (
             queryset
             .select_related('service_type', 'consultation_topic', 'time_slot')
@@ -1611,21 +1591,20 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         for row_num, res in enumerate(queryset, start=2):
             slot = getattr(res, "time_slot", None)
 
-            # تاریخ/روز/بازه
+            # Date/weekday/time range
             jalali_slot_date = date2jalali(slot.date) if slot else "-"
             weekday_fa = WEEKDAY_PERSIAN.get(slot.date.weekday(), "-") if slot and slot.date else "-"
             time_range = format_time_range(slot)
 
-            # پرداخت موفق
+            # Payment info
             success_pay = res.payments.filter(status='success').first()
             paid_amount = int(success_pay.amount) if success_pay and success_pay.amount else "-"
             bank_tracking = success_pay.tracking_code if success_pay and success_pay.tracking_code else "-"
             gateway_ref = success_pay.reference_code if success_pay and success_pay.reference_code else "-"
             paid_at = datetime2jalali(success_pay.paid_at) if success_pay and success_pay.paid_at else "-"
 
-            # وضعیت‌ها
-            status_display = res.get_status_display() if hasattr(res, "get_status_display") else getattr(res, "status",
-                                                                                                         "-")
+            # Status displays
+            status_display = res.get_status_display() if hasattr(res, "get_status_display") else getattr(res, "status", "-")
             payment_display = (
                 res.get_payment_status_display()
                 if hasattr(res, "get_payment_status_display")
@@ -1681,24 +1660,20 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     def change_view(self, request, object_id, form_url='', extra_context=None):
         obj = self.get_object(request, object_id)
 
-        # فقط در GET هشدار بده که هر بار Save می‌زنن دوباره تکراری نشه
+        # Only show warning on GET to avoid repeated messages
         if obj and request.method == "GET" and not getattr(obj, "sepas_code", None):
             messages.warning(request, "⚠️ کد پرونده وارد نشده است. لطفاً کد را وارد کنید.")
 
         return super().change_view(request, object_id, form_url, extra_context)
 
     def sepas_badge(self, obj):
+        """Display sepas code or dash"""
         if obj.sepas_code:
             return format_html(
-                '<span style="background:#16a34a;color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;">'
-                '✓ دارد'
-                '</span>'
+                '<code style="font-size: 13px; background: #f5f5f5; padding: 4px 10px; border-radius: 4px; border: 1px solid #FF9130; color: #333;">{}</code>',
+                obj.sepas_code
             )
-        return format_html(
-            '<span style="background:#dc2626;color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;">'
-            '⚠ وارد نشده'
-            '</span>'
-        )
+        return format_html('<span style="color: #999;">—</span>')
 
     sepas_badge.short_description = 'کد پرونده'
 
@@ -1726,42 +1701,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             'تاریخ و زمان رزرو نوبت',
         ])
 
-        WEEKDAY_PERSIAN = {
-            0: "شنبه",
-            1: "یکشنبه",
-            2: "دوشنبه",
-            3: "سه‌شنبه",
-            4: "چهارشنبه",
-            5: "پنج‌شنبه",
-            6: "جمعه",
-        }
 
-        def prescription_status(self, obj):
-            """Show prescription status in list view"""
-            if not obj.prescription:
-                return format_html('<span style="color: #999;">—</span>')
-
-            file_ext = obj.prescription.name.split('.')[-1].lower()
-            icons = {
-                'pdf': '📄',
-                'jpg': '🖼️',
-                'jpeg': '🖼️',
-                'png': '🖼️',
-                'gif': '🖼️',
-                'webp': '🖼️',
-            }
-            icon = icons.get(file_ext, '📎')
-
-            return format_html(
-                '<a href="{}" target="_blank" '
-                'style="background: #28a745; color: white; padding: 2px 8px; '
-                'border-radius: 4px; text-decoration: none; font-size: 11px;">'
-                '{} دارد'
-                '</a>',
-                obj.prescription.url, icon
-            )
-
-        prescription_status.short_description = 'نسخه'
 
         def date2jalali(date_obj):
             if not date_obj:
@@ -1789,8 +1729,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
                 time_range = "-"
                 weekday = "-"
 
-            payment_status = res.get_payment_status_display() if hasattr(res,
-                                                                         'get_payment_status_display') else res.payment_status
+            payment_status = res.get_payment_status_display() if hasattr(res, 'get_payment_status_display') else res.payment_status
             booking_time = datetime2jalali(res.reserved_at)
 
             writer.writerow([
@@ -1798,7 +1737,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
                 res.full_name or "-",
                 res.phone_number or "-",
                 res.tracking_code or "-",
-                res.sepas_code or (res.sepas_code or "-"),
+                res.sepas_code or "-",
                 res.service_type.name if res.service_type else "-",
                 res.consultation_topic.name if res.consultation_topic else "-",
                 jalali_date,
@@ -1849,7 +1788,6 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         if obj.time_slot:
             week_day_en = obj.time_slot.date.strftime('%A')
             week_day_fa = weekday_map.get(week_day_en, week_day_en)
-
             g_date = obj.time_slot.date.strftime('%Y-%m-%d')
 
             return format_html(
@@ -2136,39 +2074,26 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     mark_as_cancelled.short_description = 'لغو رزرو'
 
-    # ========== PDF Export (Admin) ==========
     @admin.action(description='📄 خروجی PDF ادمین (همه رزروها)')
     def export_selected_pdf_admin(self, request, queryset):
-        """
-        Export selected reservations as admin PDF reports
-        """
+        """Export selected reservations as admin PDF reports"""
         if queryset.count() == 1:
-            # تک رزرو - یک PDF
             reservation = queryset.first()
             return generate_admin_receipt_pdf(reservation)
         else:
-            # چند رزرو - ZIP فایل
             return self._export_multiple_pdf_admin(request, queryset)
 
-    # ========== PDF Export (User) ==========
     @admin.action(description='📄 خروجی PDF کاربر (برای ارسال)')
     def export_selected_pdf_user(self, request, queryset):
-        """
-        Export selected reservations as user-friendly PDF receipts
-        """
+        """Export selected reservations as user-friendly PDF receipts"""
         if queryset.count() == 1:
-            # تک رزرو - یک PDF
             reservation = queryset.first()
             return generate_user_receipt_pdf(reservation)
         else:
-            # چند رزرو - ZIP فایل
             return self._export_multiple_pdf_user(request, queryset)
 
-    # ========== Helper: Multiple PDFs as ZIP ==========
     def _export_multiple_pdf_admin(self, request, queryset):
-        """
-        Export multiple reservations as ZIP of admin PDFs
-        """
+        """Export multiple reservations as ZIP of admin PDFs"""
         import zipfile
         from io import BytesIO
 
@@ -2176,11 +2101,8 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
             for reservation in queryset:
-                # Generate PDF
                 pdf_response = generate_admin_receipt_pdf(reservation)
                 pdf_content = pdf_response.content
-
-                # Add to ZIP
                 filename = f"admin_{reservation.tracking_code}.pdf"
                 zip_file.writestr(filename, pdf_content)
 
@@ -2191,9 +2113,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         return response
 
     def _export_multiple_pdf_user(self, request, queryset):
-        """
-        Export multiple reservations as ZIP of user PDFs
-        """
+        """Export multiple reservations as ZIP of user PDFs"""
         import zipfile
         from io import BytesIO
 
@@ -2201,11 +2121,8 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
             for reservation in queryset:
-                # Generate PDF
                 pdf_response = generate_user_receipt_pdf(reservation)
                 pdf_content = pdf_response.content
-
-                # Add to ZIP
                 filename = f"receipt_{reservation.tracking_code}.pdf"
                 zip_file.writestr(filename, pdf_content)
 
@@ -2214,7 +2131,6 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         response = HttpResponse(zip_buffer, content_type='application/zip')
         response['Content-Disposition'] = f'attachment; filename="user_receipts_{queryset.count()}.zip"'
         return response
-
 
 @admin.register(ReservationSettings)
 class ReservationSettingsAdmin(admin.ModelAdmin):
