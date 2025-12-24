@@ -5,6 +5,10 @@
 # Ignore Python bytecode
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.venv/
+
 *.py[cod]
 # IDE
 .IDE
