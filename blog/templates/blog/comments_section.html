@@ -1,3 +1,4 @@
+{% comment %}
 {% load comment_tags %}
 
 <!-- Comments Section -->
@@ -69,4 +70,275 @@
             <p style="color: #999; font-size: 15px;">هنوز نظری ثبت نشده است. اولین نفر باشید!</p>
         </div>
     {% endif %}
+</div>{% endcomment %}
+
+
+{% comment %}
+
+{% load static %}
+{% load jalali %}
+{% load comment_tags %}
+
+<div class="clear" id="comment-list">
+    <div class="post-comments comments-area style-1 clearfix bg-white p-a30 radius-sm shadow-sm">
+
+        <h4 class="comments-title mb-2" style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-comments text-primary"></i>
+            نظرات ({{ post.get_approved_comments_count }})
+        </h4>
+        <p class="dz-title-text m-b30">نظرات و دیدگاه‌های خود را در مورد این مطلب با ما به اشتراک بگذارید.</p>
+
+        <div class="default-form comment-respond style-1 m-b30" id="respond">
+            <div class="alert alert-info border-0 radius-sm m-b20"
+                 style="background-color: #f0f7ff; border-right: 4px solid #d8a05c !important;">
+                <span class="text-primary"><i class="fa-solid fa-circle-info m-l5"></i></span>
+                <strong>نکته:</strong> می‌توانید بدون نوشتن نام، نظر خود را به صورت ناشناس ثبت کنید.
+            </div>
+
+
+            <form method="post" action="{% url 'blog:post_comment' post.slug %}" id="comments_form"
+                  class="comment-form">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 col-sm-6">
+                        <p class="comment-form-author">
+                            <input type="text" name="name" placeholder="نام شما (اختیاری)" class="form-control"
+                                   style="background: #fafafa;">
+                        </p>
+                    </div>
+                    <div class="col-md-6 col-sm-6">
+                        <p class="comment-form-email">
+                            <input type="email" name="email" placeholder="ایمیل شما (اختیاری)" class="form-control"
+                                   style="background: #fafafa;">
+                        </p>
+                    </div>
+                    <div class="col-md-12">
+                        <p class="comment-form-comment">
+                            <textarea name="content" placeholder="نظر خود را بنویسید..." rows="5" class="form-control"
+                                      required style="background: #fafafa;"></textarea>
+                        </p>
+                    </div>
+                    <div class="col-md-12">
+                        <p class="form-submit m-b0">
+                            <button type="submit" class="btn btn-primary btn-lg filled btn-hover1">
+                                <span class="btn-text">ارسال نظر</span>
+                                <span class="btn-icon"><i class="fa-solid fa-paper-plane"></i></span>
+                            </button>
+                        </p>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div id="comment">
+            {% if comments %}
+                <ol class="comment-list">
+                    {% for comment in comments %}
+                        {% render_comment comment 0 %}
+                    {% endfor %}
+                </ol>
+            {% else %}
+                <div class="text-center p-a50 bg-light radius-sm">
+                    <div class="m-b20">
+                        <i class="fa-regular fa-message text-muted" style="font-size: 50px; opacity: 0.3;"></i>
+                    </div>
+                    <p class="text-muted">هنوز نظری برای این مطلب ثبت نشده است. اولین نفر باشید!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
+
+<style>
+    .comment-form .form-control {
+        border: 1px solid #eee;
+        transition: all 0.3s ease;
+    }
+
+    .comment-form .form-control:focus {
+        border-color: #d8a05c;
+        box-shadow: none;
+        background: #fff !important;
+    }
+
+    .border-right-primary {
+        border-right: 4px solid #d8a05c !important;
+    }
+
+    /* استایل برای سیستم درختی (Hierarchy) */
+    .comment-list ol.children {
+        margin-right: 40px; /* فاصله برای پاسخ‌ها در حالت RTL */
+        list-style: none;
+        border-right: 2px solid #f0f0f0;
+        padding-right: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .comment-list ol.children {
+            margin-right: 15px;
+            padding-right: 10px;
+        }
+    }
+</style>{% endcomment %}
+
+
+{% load static %}
+{% load jalali %}
+{% load comment_tags %}
+
+<div class="clear" id="comment-list">
+    <div class="post-comments comments-area style-1 clearfix bg-white p-a30 radius-sm shadow-sm">
+
+        <h4 class="comments-title mb-2" style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-comments text-primary"></i>
+            نظرات ({{ post.get_approved_comments_count }})
+        </h4>
+        <p class="dz-title-text m-b30">نظرات و دیدگاه‌های خود را در مورد این مطلب با ما به اشتراک بگذارید.</p>
+
+        <!-- فرم ثبت نظر اصلی -->
+        <div class="default-form comment-respond style-1 m-b30" id="respond">
+            <div class="alert alert-info border-0 radius-sm m-b20"
+                 style="background-color: #f0f7ff; border-right: 4px solid #d8a05c !important;">
+                <span class="text-primary"><i class="fa-solid fa-circle-info m-l5"></i></span>
+                <strong>نکته:</strong> می‌توانید بدون نوشتن نام، نظر خود را به صورت ناشناس ثبت کنید.
+            </div>
+
+            <form method="post" action="{% url 'blog:post_comment' post.slug %}" id="comments_form"
+                  class="comment-form">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 col-sm-6">
+                        <p class="comment-form-author">
+                            <input type="text" name="name" placeholder="نام شما (اختیاری)" class="form-control"
+                                   style="background: #fafafa;">
+                        </p>
+                    </div>
+                    <div class="col-md-6 col-sm-6">
+                        <p class="comment-form-email">
+                            <input type="email" name="email" placeholder="ایمیل شما (اختیاری)" class="form-control"
+                                   style="background: #fafafa;">
+                        </p>
+                    </div>
+                    <div class="col-md-12">
+                        <p class="comment-form-comment">
+                            <textarea name="content" placeholder="نظر خود را بنویسید..." rows="5" class="form-control"
+                                      required style="background: #fafafa;"></textarea>
+                        </p>
+                    </div>
+                    <div class="col-md-12">
+                        <p class="form-submit m-b0">
+                            <button type="submit" class="btn btn-primary btn-lg filled btn-hover1">
+                                <span class="btn-text">ارسال نظر</span>
+                                <span class="btn-icon"><i class="fa-solid fa-paper-plane"></i></span>
+                            </button>
+                        </p>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- لیست نظرات -->
+        <div id="comment">
+            {% if comments %}
+                <ol class="comment-list" style="list-style: none; padding: 0;">
+                    {% for comment in comments %}
+                        {% render_comment comment 0 %}
+                    {% endfor %}
+                </ol>
+            {% else %}
+                <div class="text-center p-a50 bg-light radius-sm">
+                    <div class="m-b20">
+                        <i class="fa-regular fa-message text-muted" style="font-size: 50px; opacity: 0.3;"></i>
+                    </div>
+                    <p class="text-muted">هنوز نظری برای این مطلب ثبت نشده است. اولین نفر باشید!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* استایل‌های فرم */
+    .comment-form .form-control {
+        border: 1px solid #eee;
+        transition: all 0.3s ease;
+        border-radius: 8px;
+        padding: 12px 16px;
+    }
+
+    .comment-form .form-control:focus {
+        border-color: #d8a05c;
+        box-shadow: 0 0 0 0.2rem rgba(216, 160, 92, 0.15);
+        background: #fff !important;
+    }
+
+    .comment-form textarea.form-control {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .comment-form .btn-hover1 {
+        transition: all 0.3s ease;
+    }
+
+    .comment-form .btn-hover1:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(216, 160, 92, 0.3);
+    }
+
+    /* استایل لیست نظرات */
+    .comment-list {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* حذف استایل پیش‌فرض li */
+    .comment-list li {
+        list-style: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* استایل children (پاسخ‌ها) */
+    .comment-list .children {
+        list-style: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+</style>
+
+<script>
+    // تابع باز و بسته کردن فرم پاسخ
+    function toggleReplyForm(commentId) {
+        const replyForm = document.getElementById('reply-form-' + commentId);
+        if (replyForm) {
+            if (replyForm.style.display === 'none' || replyForm.style.display === '') {
+                // بستن تمام فرم‌های باز
+                document.querySelectorAll('[id^="reply-form-"]').forEach(form => {
+                    form.style.display = 'none';
+                });
+                // باز کردن فرم فعلی
+                replyForm.style.display = 'block';
+                // اسکرول به فرم
+                replyForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                replyForm.style.display = 'none';
+            }
+        }
+    }
+
+    // پیشگیری از ارسال فرم‌های خالی
+    document.addEventListener('DOMContentLoaded', function() {
+        const forms = document.querySelectorAll('form[action*="post_comment"]');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const textarea = form.querySelector('textarea[name="content"]');
+                if (textarea && !textarea.value.trim()) {
+                    e.preventDefault();
+                    alert('لطفاً متن نظر خود را وارد کنید.');
+                    textarea.focus();
+                }
+            });
+        });
+    });
+</script>
