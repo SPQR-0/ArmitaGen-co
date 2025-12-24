@@ -110,7 +110,7 @@ WSGI_APPLICATION = 'armitagen.wsgi.application'
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'armitagen',
+#         'NAME': 'ArmitaGen',
 #         'USER': 'postgres',      
 #         'PASSWORD': 'Victus_009',  
 #         'HOST': 'localhost',   
@@ -120,7 +120,7 @@ WSGI_APPLICATION = 'armitagen.wsgi.application'
 
 # Note: On cPanel host
 # 'ENGINE': 'mysql.connector.django',
-# 'USER': 'armitagen_admin',
+# 'USER': 'armitagen__admin',
 # 'PASSWORD': 'armitagen@1234',
 
 DATABASES = {

@@ -1,373 +1,489 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>گام ۱ — ثبت اطلاعات</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>رزرو نوبت مشاوره ژنتیک | سیستم جامع</title>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            /* --- پالت رنگی --- */
+            --primary: #0f766e;       /* سبز کله‌غازی */
+            --primary-dark: #115e59;
+            --primary-light: #ccfbf1;
+            --accent: #14b8a6;
+            
+            --bg-body: #f8fafc;       /* پس‌زمینه خیلی روشن */
+            --bg-card: #ffffff;
+            
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            
+            --radius-card: 24px;
+            --radius-input: 12px;
+            
+            --shadow-card: 0 20px 40px -5px rgba(0, 0, 0, 0.05);
         }
 
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'IRANSans', sans-serif;
-            background: #f5f5f5;
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--bg-body);
             min-height: 100vh;
             display: flex;
+            flex-direction: column; /* برای چسبیدن فوتر به پایین */
             align-items: center;
-            justify-content: center;
-            padding: 20px;
+            padding: 20px 15px;
+            color: var(--text-main);
+            margin: 0;
         }
 
-        .container {
+        .main-wrapper {
             width: 100%;
-            max-width: 500px;
-        }
-
-        /* Changed from purple gradient to minimal light design */
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 40px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-        }
-
-        .step-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .step-number {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            background: #f0f0f0;
-            border-radius: 50%;
+            max-width: 550px;
+            margin: auto; /* برای وسط چین شدن عمودی */
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #666;
-            margin-bottom: 15px;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        h1 {
-            color: #222;
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            color: #888;
-            font-size: 14px;
-        }
-
-        .messages {
-            margin-bottom: 20px;
-        }
-
-        .alert {
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            margin-bottom: 10px;
-            animation: slideIn 0.3s ease;
-        }
-
-        .alert-success {
-            background: #e8f5e9;
-            border: 1px solid #c8e6c9;
-            color: #2e7d32;
-        }
-
-        .alert-error {
-            background: #ffebee;
-            border: 1px solid #ffcdd2;
-            color: #c62828;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            color: #555;
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        input[type="text"],
-        input[type="tel"],
-        input[type="file"],
-        textarea,
-        select {
-            width: 100%;
-            padding: 12px 16px;
-            background: #fafafa;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            color: #222;
-            font-size: 14px;
-            font-family: inherit;
-            transition: all 0.3s ease;
-        }
-
-        input[type="text"]::placeholder,
-        input[type="tel"]::placeholder,
-        textarea::placeholder {
-            color: #bbb;
-        }
-
-        input[type="text"]:focus,
-        input[type="tel"]:focus,
-        input[type="file"]:focus,
-        textarea:focus,
-        select:focus {
-            outline: none;
-            background: white;
-            border-color: #999;
-            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .error-text {
-            color: #d32f2f;
-            font-size: 12px;
-            margin-top: 4px;
-            display: block;
-        }
-
-        .button-group {
-            margin-top: 30px;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-primary {
-            background: #222;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #000;
-        }
-
-        .btn-primary:active {
-            transform: translateY(2px);
-        }
-
-        .footer-link {
+        /* === 1. بخش برندینگ و لوگو === */
+        .brand-header {
             text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
+            margin-bottom: 10px;
+            animation: fadeInDown 0.6s ease;
+        }
+        .logo-container {
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
+            color: var(--primary);
+            border-radius: 24px;
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 20px -5px rgba(15, 118, 110, 0.15);
+            transform: rotate(-5deg);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .logo-container:hover { transform: rotate(0deg) scale(1.05); }
+        .logo-container svg { width: 40px; height: 40px; }
+
+        h1 { font-size: 24px; font-weight: 900; color: var(--text-main); margin: 0 0 8px 0; }
+        .subtitle { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+        /* === 2. کارت اصلی ویزارد === */
+        .wizard-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: 35px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid rgba(255,255,255,0.8);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
-        .footer-link a {
-            color: #666;
-            text-decoration: none;
+        /* نوار رنگی بالای کارت */
+        .wizard-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
         }
 
-        .footer-link a:hover {
-            color: #222;
-            border-bottom: 1px solid #222;
+        /* === نوار پیشرفت (Responsive) === */
+        .progress-header {
+            display: flex; justify-content: space-between; margin-bottom: 35px; position: relative;
+            padding: 0 10px;
+        }
+        .progress-line {
+            position: absolute; top: 18px; left: 25px; right: 25px; height: 3px;
+            background: var(--border-color); z-index: 0; border-radius: 10px;
+        }
+        .step-item {
+            position: relative; z-index: 1; text-align: center; width: 40px;
+        }
+        .step-circle {
+            width: 36px; height: 36px; background: var(--bg-card);
+            border: 2px solid var(--border-color); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 14px; color: var(--text-muted);
+            transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .step-text {
+            position: absolute; width: 100px; left: 50%; transform: translateX(-50%);
+            font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top: 8px;
+            transition: 0.3s;
+        }
+        
+        /* حالت فعال و تکمیل شده */
+        .step-item.active .step-circle {
+            border-color: var(--primary); background: var(--primary-light); color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15); transform: scale(1.1);
+        }
+        .step-item.active .step-text { color: var(--primary); }
+        
+        .step-item.completed .step-circle {
+            background: var(--primary); border-color: var(--primary); color: white;
         }
 
-        @media (max-width: 480px) {
-            .card {
-                padding: 24px;
-            }
+        /* === محتوای فرم === */
+        .step-content { display: none; animation: fadeIn 0.4s ease; }
+        .step-content.active { display: block; }
+        
+        .section-title {
+            font-size: 18px; font-weight: 800; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 8px; color: var(--text-main);
+        }
+        .section-title svg { color: var(--primary); }
 
-            h1 {
-                font-size: 22px;
+        /* === استایل فیلدها (دقیق و راست‌چین) === */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 8px; }
+        
+        .custom-input {
+            width: 100%; padding: 14px 16px; 
+            background: #f8fafc; border: 2px solid transparent; border-radius: var(--radius-input);
+            font-size: 14px; font-family: inherit; color: var(--text-main);
+            transition: all 0.2s; box-shadow: 0 0 0 1px #e2e8f0 inset;
+            text-align: right; /* راست‌چین */
+        }
+        .custom-input:focus {
+            background: #fff; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+        }
+        textarea.custom-input { min-height: 100px; resize: vertical; }
+
+        /* کارت‌های انتخاب سرویس */
+        .service-list { display: grid; gap: 12px; }
+        .service-card {
+            border: 2px solid var(--border-color); border-radius: 16px; padding: 16px;
+            display: flex; align-items: center; gap: 12px; cursor: pointer;
+            background: #fff; transition: all 0.2s;
+        }
+        .service-card:hover { border-color: #94a3b8; transform: translateY(-2px); }
+        .service-card.selected {
+            border-color: var(--primary); background: #f0fdfa; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.1);
+        }
+        .service-icon {
+            width: 44px; height: 44px; background: #fff; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: var(--primary);
+            border: 1px solid #e2e8f0; flex-shrink: 0;
+        }
+        .service-info h4 { margin: 0; font-size: 14px; font-weight: 800; }
+        .service-info span { font-size: 12px; color: var(--text-muted); }
+
+        /* آپلود فایل */
+        .upload-area {
+            border: 2px dashed #cbd5e1; border-radius: 16px; padding: 25px;
+            text-align: center; cursor: pointer; background: #f8fafc; transition: 0.3s;
+            position: relative;
+        }
+        .upload-area:hover { border-color: var(--primary); background: #f0fdfa; }
+        .upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+        /* === متن محرمانگی (مثل عکس 5) === */
+        .privacy-alert {
+            background: #f1f5f9; padding: 12px; border-radius: 10px;
+            font-size: 11px; color: var(--text-muted); text-align: center;
+            margin-top: 25px; margin-bottom: 20px;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+
+        /* === دکمه‌ها === */
+        .buttons-row {
+            display: flex; gap: 10px; margin-top: 10px;
+        }
+        .btn {
+            padding: 14px 24px; border-radius: 12px; font-size: 15px; font-weight: 700;
+            border: none; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-prev { background: #f1f5f9; color: var(--text-muted); flex: 1; }
+        .btn-next { background: var(--primary); color: white; flex: 2; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25); }
+        .btn-next:hover { background: var(--primary-dark); transform: translateY(-2px); }
+
+        /* لینک پیگیری نوبت */
+        .track-link {
+            text-align: center; margin-top: 20px; font-size: 13px; color: var(--text-muted);
+        }
+        .track-link a { color: var(--primary); text-decoration: none; font-weight: 700; }
+
+        /* === فوتر (استایل بادی‌بان) === */
+        .legal-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            width: 100%;
+        }
+        .footer-links {
+            display: flex; justify-content: center; align-items: center; gap: 15px;
+            margin-bottom: 12px; flex-wrap: wrap;
+        }
+        .footer-links a {
+            font-size: 12px; color: var(--text-muted); text-decoration: none; font-weight: 500;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: var(--primary); }
+        .footer-separator { width: 1px; height: 12px; background: #cbd5e1; }
+        .copyright-text { font-size: 11px; color: #94a3b8; }
+
+        /* مخفی کردن المان اصلی جنگو */
+        .hidden { display: none !important; }
+        .error-msg { color: #ef4444; font-size: 12px; margin-top: 5px; display: none; }
+
+        /* انیمیشن‌ها */
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* === مدیا کوئری برای موبایل === */
+        @media (max-width: 600px) {
+            .wizard-card { padding: 25px 20px; }
+            .step-text { display: none; } /* مخفی کردن متن مراحل در موبایل برای جلوگیری از فشردگی */
+            .buttons-row { flex-direction: column-reverse; } /* دکمه‌ها زیر هم */
+            .btn { width: 100%; padding: 16px; }
+            .logo-container { width: 64px; height: 64px; }
+            h1 { font-size: 20px; }
+            .custom-input { padding: 12px 14px; } /* تاچ راحت‌تر */
+            
+            /* فوتر در موبایل */
+            .footer-links { gap: 10px; }
+            .footer-separator { display: none; } /* حذف خطوط جداکننده در موبایل */
+            .footer-links a { 
+                background: #f1f5f9; padding: 6px 12px; border-radius: 20px; /* دکمه‌ای شدن لینک‌ها */
             }
         }
     </style>
 </head>
 <body>
+
 <script>
-    const servicePrices = {
+    const services = [
+        {% for x, y in form.fields.service_type.choices %}
+        { id: "{{ x }}", name: "{{ y }}" },
+        {% endfor %}
+    ];
+    const serviceDetails = {
         {% for s in service_types %}
-        "{{ s.id }}": {
-            "name": "{{ s.name }}",
-            "price": "{{ s.price }}",
-            "duration": "{{ s.duration }}"
-        },
+        "{{ s.id }}": { price: "{{ s.price }}", duration: "{{ s.duration }}" },
         {% endfor %}
     };
 </script>
 
-
-<div class="container">
-    <div class="card">
-        <div class="step-header">
-            <div class="step-number">۱</div>
-            <h1>ثبت اطلاعات</h1>
-            <p class="subtitle">اطلاعات پایه خود را وارد کنید</p>
+<div class="main-wrapper">
+    
+    <div class="brand-header">
+        <div class="logo-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M8 11h8"/><path d="M12 7v8"/></svg>
         </div>
+        <h1>درخواست مشاوره ژنتیک</h1>
+        <p class="subtitle">لطفاً جهت ارزیابی اولیه، اطلاعات زیر را تکمیل نمایید.</p>
+    </div>
 
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}success{% endif %}">
-                {{ message }}
+    <div class="wizard-card">
+        <div class="progress-header">
+            <div class="progress-line"></div>
+            <div class="step-item active" id="step-ind-1">
+                <div class="step-circle">1</div>
+                <div class="step-text">انتخاب خدمت</div>
             </div>
-            {% endfor %}
+            <div class="step-item" id="step-ind-2">
+                <div class="step-circle">2</div>
+                <div class="step-text">اطلاعات فردی</div>
+            </div>
+            <div class="step-item" id="step-ind-3">
+                <div class="step-circle">3</div>
+                <div class="step-text">مدارک و ثبت</div>
+            </div>
         </div>
-        {% endif %}
 
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="wizardForm">
             {% csrf_token %}
 
-            <div class="form-group">
-                <label for="{{ form.full_name.id_for_label }}">نام و نام خانوادگی</label>
-                {{ form.full_name }}
-                {% if form.full_name.errors %}
-                {% for error in form.full_name.errors %}
-                <span class="error-text">{{ error }}</span>
-                {% endfor %}
-                {% endif %}
+            <div class="step-content active" data-step="1">
+                <div class="section-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
+                    نوع مشاوره را انتخاب کنید
+                </div>
+                
+                <select name="{{ form.service_type.name }}" id="id_service_type" class="hidden">
+                    <option value="">انتخاب...</option>
+                    {% for x, y in form.fields.service_type.choices %}
+                        <option value="{{ x }}" {% if form.service_type.value == x %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+                
+                <div class="service-list" id="service-container"></div>
+                <div class="error-msg" id="err-step-1">لطفاً یک گزینه را انتخاب کنید.</div>
             </div>
 
-            <div class="form-group">
-                <label for="{{ form.phone_number.id_for_label }}">شماره تلفن</label>
-                {{ form.phone_number }}
-                {% if form.phone_number.errors %}
-                {% for error in form.phone_number.errors %}
-                <span class="error-text">{{ error }}</span>
-                {% endfor %}
-                {% endif %}
+            <div class="step-content" data-step="2">
+                <div class="section-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    اطلاعات تماس
+                </div>
+                
+                <div class="form-group">
+                    <label>نام و نام خانوادگی *</label>
+                    {{ form.full_name }}
+                    <div class="error-msg" id="err-name">این فیلد الزامی است.</div>
+                </div>
+                <div class="form-group">
+                    <label>شماره تماس *</label>
+                    {{ form.phone_number }}
+                    <div class="error-msg" id="err-phone">شماره تماس الزامی است.</div>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="{{ form.service_type.id_for_label }}">نوع خدمت</label>
-                {{ form.service_type }}
-                <div id="service-price-box" style="
-                    display:none;
-                    background:#f8f9fa;
-                    padding:12px;
-                    border-radius:10px;
-                    margin-top:10px;
-                    font-size:14px;
-                    border:1px solid #e5e5e5;
-                "></div>
+            <div class="step-content" data-step="3">
+                <div class="section-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    جزئیات تکمیلی (اختیاری)
+                </div>
+                
+                <div class="form-group">
+                    <label>عنوان مشاوره</label>
+                    <div class="input-wrapper">
+                        {{ form.consultation_topic }}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>توضیحات و سوابق</label>
+                    {{ form.message }}
+                </div>
 
-
-                {% if form.service_type.errors %}
-                {% for error in form.service_type.errors %}
-                <span class="error-text">{{ error }}</span>
-                {% endfor %}
-                {% endif %}
+                <div class="form-group">
+                    <label>آپلود مدارک</label>
+                    <div class="upload-area">
+                        {{ form.prescription }}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" style="margin-bottom:8px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                        <div id="file-text" style="font-size:13px; font-weight:700; color:#1e293b;">انتخاب فایل (PDF, JPG)</div>
+                    </div>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="{{ form.consultation_topic.id_for_label }}">عنوان مشاوره (اختیاری)</label>
-                {{ form.consultation_topic }}
-                {% if form.consultation_topic.errors %}
-                {% for error in form.consultation_topic.errors %}
-                <span class="error-text">{{ error }}</span>
-                {% endfor %}
-                {% endif %}
+            <div class="privacy-alert">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                اطلاعات شما طبق استانداردهای پزشکی کاملاً محرمانه باقی می‌ماند.
             </div>
 
-            <div class="form-group">
-                <label for="{{ form.message.id_for_label }}">توضیحات (اختیاری)</label>
-                {{ form.message }}
-                {% if form.message.errors %}
-                {% for error in form.message.errors %}
-                <span class="error-text">{{ error }}</span>
-                {% endfor %}
-                {% endif %}
+            <div class="buttons-row">
+                <button type="button" class="btn btn-prev" id="btn-prev" style="display:none;">بازگشت</button>
+                <button type="button" class="btn btn-next" id="btn-next">مرحله بعد</button>
             </div>
 
-            <div class="form-group">
-                <label for="{{ form.prescription.id_for_label }}">آپلود نسخه (اختیاری)</label>
-                {{ form.prescription }}
-                {% if form.prescription.errors %}
-                {% for error in form.prescription.errors %}
-                <span class="error-text">{{ error }}</span>
-                {% endfor %}
-                {% endif %}
-            </div>
-
-            <div class="button-group">
-                <button type="submit" class="btn-primary">ادامه</button>
+            <div class="track-link">
+                قبلاً نوبت رزرو کرده‌اید؟ <a href="{% url 'council:step2_select_time' %}">پیگیری نوبت</a>
             </div>
         </form>
-
-        <div class="footer-link">
-            <p>اگر قبلاً ثبت نام کردید: <a href="{% url 'council:step2_select_time' %}">به مرحله بعد بروید</a></p>
-        </div>
     </div>
+
+    <footer class="legal-footer">
+        <div class="footer-links">
+            <a href="#">قوانین و مقررات</a>
+            <span class="footer-separator"></span>
+            <a href="#">شرایط استفاده</a>
+            <span class="footer-separator"></span>
+            <a href="#">حریم خصوصی</a>
+        </div>
+        <div class="copyright-text">
+            تمامی حقوق برای این سامانه محفوظ است.
+        </div>
+    </footer>
 </div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    let currentStep = 1;
+    const totalSteps = 3;
+    const form = document.getElementById('wizardForm');
+    const btnNext = document.getElementById('btn-next');
+    const btnPrev = document.getElementById('btn-prev');
+    const realSelect = document.getElementById('id_service_type');
+    const cardContainer = document.getElementById('service-container');
 
-    const select = document.getElementById("inputServiceType");
-    const priceBox = document.getElementById("service-price-box");
-
-    if (!select) {
-        console.error("❌ عنصر inputServiceType پیدا نشد");
-        return;
-    }
-
-    select.addEventListener("change", function () {
-        const serviceId = this.value;
-
-        if (servicePrices[serviceId]) {
-            const s = servicePrices[serviceId];
-
-            priceBox.style.display = "block";
-            priceBox.innerHTML = `
-                <div style="font-weight:600; margin-bottom:6px;">${s.name}</div>
-                <div style="font-size:15px; margin-bottom:4px;">
-                    💰 <strong>${Number(s.price).toLocaleString('fa-IR')}</strong> تومان
-                </div>
-                <div style="font-size:13px; opacity:0.8;">
-                    ⏱ مدت زمان: ${s.duration} دقیقه
-                </div>
-            `;
-        } else {
-            priceBox.style.display = "none";
+    // 1. ساخت کارت‌های سرویس
+    services.forEach(s => {
+        if(!s.id) return;
+        const d = serviceDetails[s.id] || {price:'--', duration:'--'};
+        const el = document.createElement('div');
+        el.className = 'service-card';
+        el.innerHTML = `
+            <div class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+            <div class="service-info"><h4>${s.name}</h4><span>${Number(d.price).toLocaleString('fa-IR')} تومان • ${d.duration} دقیقه</span></div>
+        `;
+        el.onclick = () => {
+            realSelect.value = s.id;
+            document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('err-step-1').style.display = 'none';
         }
+        cardContainer.appendChild(el);
     });
 
+    // 2. مدیریت مراحل
+    btnNext.onclick = () => {
+        if(!validate(currentStep)) return;
+        if(currentStep < totalSteps) changeStep(currentStep + 1);
+        else form.submit();
+    }
+    btnPrev.onclick = () => changeStep(currentStep - 1);
+
+    function changeStep(step) {
+        document.querySelector(`.step-content[data-step="${currentStep}"]`).classList.remove('active');
+        document.querySelector(`.step-content[data-step="${step}"]`).classList.add('active');
+        
+        // آپدیت نوار پیشرفت
+        const oldInd = document.getElementById(`step-ind-${currentStep}`);
+        const newInd = document.getElementById(`step-ind-${step}`);
+        
+        oldInd.classList.remove('active');
+        if(step > currentStep) oldInd.classList.add('completed');
+        
+        newInd.classList.add('active');
+        newInd.classList.remove('completed');
+        
+        // مدیریت دکمه‌ها
+        btnPrev.style.display = step === 1 ? 'none' : 'block';
+        btnNext.textContent = step === totalSteps ? 'ثبت و انتخاب زمان' : 'مرحله بعد';
+        
+        currentStep = step;
+    }
+
+    function validate(step) {
+        let valid = true;
+        if(step === 1 && !realSelect.value) {
+            document.getElementById('err-step-1').style.display = 'block'; valid = false;
+        }
+        if(step === 2) {
+            // چک کردن ساده نام و تلفن
+            const name = document.querySelector('[name="{{ form.full_name.name }}"]').value;
+            const phone = document.querySelector('[name="{{ form.phone_number.name }}"]').value;
+            if(!name) { document.getElementById('err-name').style.display = 'block'; valid = false; }
+            if(!phone) { document.getElementById('err-phone').style.display = 'block'; valid = false; }
+        }
+        return valid;
+    }
+
+    // 3. اعمال استایل به تمام اینپوت‌ها (شامل فیلد عنوان مشاوره)
+    // این قطعه کد مشکل فیلد مرحله 3 را حل می‌کند
+    const allInputs = document.querySelectorAll('input[type="text"], input[type="tel"], textarea, select:not(.hidden)');
+    allInputs.forEach(el => {
+        el.classList.add('custom-input');
+    });
+
+    // 4. نمایش نام فایل
+    const fileInp = document.querySelector('input[type="file"]');
+    if(fileInp) {
+        fileInp.onchange = function() {
+            if(this.files[0]) document.getElementById('file-text').innerText = this.files[0].name;
+        }
+    }
 });
 </script>
-
 
 </body>
 </html>

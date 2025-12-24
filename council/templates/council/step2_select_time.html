@@ -2,620 +2,1063 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>گام ۲ — انتخاب زمان</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>رزرو نوبت مشاوره | فرآیند کامل</title>
+    
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            /* --- پالت رنگی اصلی --- */
+            --primary: #0f766e;       /* سبز کله‌غازی */
+            --primary-dark: #115e59;
+            --primary-soft: #ccfbf1;  /* سبز خیلی روشن */
+            --accent: #14b8a6;
+            
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            
+            --radius-card: 24px;
+            --radius-md: 12px;
+            
+            --shadow-card: 0 20px 40px -5px rgba(0, 0, 0, 0.05);
         }
 
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'IRANSans', sans-serif;
-            background: #f5f5f5;
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--bg-body);
+            background-image: radial-gradient(circle at top right, var(--primary-soft), transparent 40%),
+                              radial-gradient(circle at bottom left, #e0f2fe, transparent 40%);
             min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 20px 15px; color: var(--text-main); margin: 0;
+        }
+
+        .main-wrapper { width: 100%; max-width: 600px; margin: auto; display: flex; flex-direction: column; gap: 20px; }
+
+        /* === هدر برندینگ === */
+        .brand-header { text-align: center; margin-bottom: 10px; }
+        .logo-container {
+            width: 64px; height: 64px; background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
+            color: var(--primary); border-radius: 20px; display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 10px; box-shadow: 0 10px 20px -5px rgba(15, 118, 110, 0.15);
+        }
+        .logo-container svg { width: 32px; height: 32px; }
+        h1 { font-size: 22px; font-weight: 900; color: var(--text-main); margin: 0 0 5px 0; }
+        
+        /* === کارت اصلی === */
+        .wizard-card {
+            background: var(--bg-card); border-radius: var(--radius-card); padding: 30px;
+            box-shadow: var(--shadow-card); border: 1px solid rgba(255,255,255,0.8);
+            position: relative; overflow: hidden; transition: height 0.3s ease;
+        }
+        .wizard-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        /* === استایل نوار پیشرفت (Stepper Fix) === */
+        .progress-header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
+            margin-bottom: 35px;
+            position: relative;
+            padding: 0 15px;
         }
 
-        .container {
-            width: 100%;
-            max-width: 700px;
+        /* خط خاکستری پس‌زمینه */
+        .progress-line-bg {
+            position: absolute;
+            top: 50%; left: 30px; right: 30px;
+            height: 3px;
+            background: var(--border-color);
+            transform: translateY(-50%);
+            z-index: 0;
+            border-radius: 10px;
         }
 
-        /* Minimal design - white card on light background */
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 40px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        /* خط رنگی پرشونده */
+        .progress-line-fill {
+            position: absolute;
+            top: 50%; right: 30px; /* شروع از راست برای RTL */
+            height: 3px;
+            background: var(--primary);
+            transform: translateY(-50%);
+            z-index: 0;
+            width: 0%; /* با JS مقداردهی می‌شود */
+            transition: width 0.4s ease;
+            border-radius: 10px;
         }
 
-        .step-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .step-number {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            background: #f0f0f0;
+        /* دایره‌های گام‌ها */
+        .step-item {
+            position: relative;
+            z-index: 1; /* بالاتر از خط قرار بگیرد */
+            background: var(--bg-card); /* برای اینکه خط از زیرش دیده نشود */
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #666;
-            margin-bottom: 15px;
+            padding: 0 5px; /* فضای سفید اطراف دایره */
         }
 
-        h1 {
-            color: #222;
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 10px;
+        .step-circle {
+            width: 38px; height: 38px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 14px;
+            color: var(--text-muted);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .subtitle {
-            color: #888;
-            font-size: 14px;
+        /* حالت فعال (Active) */
+        .step-item.active .step-circle {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 4px var(--primary-soft);
+            transform: scale(1.1);
         }
 
-        .service-info {
-            background: #f5f5f5;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #555;
-        }
-
-        .service-info strong {
-            font-size: 18px;
-            display: block;
-            margin-bottom: 5px;
-            color: #222;
-        }
-
-        .messages {
-            margin-bottom: 20px;
-        }
-
-        .alert {
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            margin-bottom: 10px;
-            background: #ffebee;
-            border: 1px solid #ffcdd2;
-            color: #c62828;
-        }
-
-        /* Horizontal scroll dates carousel */
-        .dates-carousel {
-            overflow-x: auto;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .dates-carousel::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        .dates-carousel::-webkit-scrollbar-track {
-            background: #f0f0f0;
-            border-radius: 4px;
-        }
-
-        .dates-carousel::-webkit-scrollbar-thumb {
-            background: #ddd;
-            border-radius: 4px;
-        }
-
-        .date-items {
-            display: flex;
-            gap: 12px;
-            min-width: min-content;
-            padding: 0 5px;
-        }
-
-        .date-btn {
-            flex-shrink: 0;
-            padding: 12px 16px;
-            background: #f5f5f5;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            min-width: 90px;
-            white-space: nowrap;
-        }
-
-        .date-btn:hover {
-            background: #efefef;
-            border-color: #ccc;
-        }
-
-        .date-btn.active {
-            background: #222;
-            border-color: #222;
+        /* حالت تکمیل شده (Completed) */
+        .step-item.completed .step-circle {
+            background: var(--primary);
+            border-color: var(--primary);
             color: white;
         }
 
-        .date-label {
-            display: block;
-            font-size: 12px;
-            opacity: 0.7;
-            margin-bottom: 4px;
-        }
+        /* === مدیریت نمایش مراحل === */
+        .step-content { display: none; animation: fadeIn 0.4s ease; }
+        .step-content.active { display: block; }
 
-        .date-value {
-            display: block;
-            font-weight: 600;
-            font-size: 14px;
+        /* === خلاصه سرویس و دکمه بروزرسانی === */
+        .service-summary {
+            background: #f0fdfa; border: 1px dashed var(--primary);
+            border-radius: var(--radius-md); padding: 12px 16px;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px;
         }
-
-        .slots-section {
-            background: #f5f5f5;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            min-height: 100px;
-        }
-
-        .slots-title {
-            color: #666;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
-        }
-
-        .available-count {
-            color: #2e7d32;
-            font-size: 12px;
-            margin-left: 8px;
-        }
-
-        .slots-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
-            gap: 8px;
-        }
-
-        .slot-btn {
-            padding: 10px;
+        .summary-label { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; }
+        .summary-value { font-size: 14px; font-weight: 800; color: var(--primary-dark); }
+        
+        /* دکمه بروزرسانی جدید */
+        .btn-refresh {
             background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            color: #666;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .slot-btn:hover:not(.unavailable) {
-            background: #f5f5f5;
-            border-color: #ccc;
-            color: #222;
-        }
-
-        .slot-btn.selected {
-            background: #222;
-            border-color: #222;
-            color: white;
-        }
-
-        .slot-btn.unavailable {
-            opacity: 0.4;
-            cursor: not-allowed;
-            text-decoration: line-through;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #888;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 12px;
-        }
-
-        button {
-            flex: 1;
-            padding: 14px 24px;
-            border: none;
+            border: 1px solid var(--primary);
+            color: var(--primary);
             border-radius: 8px;
-            font-size: 16px;
+            padding: 6px 10px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 6px;
+            transition: 0.2s;
         }
+        .btn-refresh:hover { background: var(--primary); color: white; }
+        .btn-refresh.loading svg { animation: spin 1s linear infinite; }
 
-        .btn-primary {
-            background: #222;
-            color: white;
+        /* === تقویم و اسلات‌ها === */
+        .date-scroll-wrapper { overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; scrollbar-width: none; }
+        .date-items-container { display: flex; gap: 10px; padding: 2px; }
+        .date-card { flex: 0 0 auto; width: 85px; height: 90px; background: white; border: 2px solid var(--border-color); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+        .date-card.active { border-color: var(--primary); background: var(--primary); color: white; box-shadow: 0 8px 16px -4px rgba(13, 148, 136, 0.3); }
+        .date-weekday { font-size: 12px; opacity: 0.9; margin-bottom: 5px;} .date-day { font-size: 18px; font-weight: 800; } .date-month { font-size: 11px; opacity: 0.8; }
+        
+        .slots-container { background: #f8fafc; border-radius: var(--radius-md); padding: 20px; margin-bottom: 25px; min-height: 120px; }
+        .slots-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .slots-title { font-size: 13px; font-weight: 700; color: #475569; }
+        .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
+        .time-slot { padding: 10px; background: white; border: 1px solid var(--border-color); border-radius: 10px; text-align: center; font-size: 14px; font-weight: 600; color: var(--text-main); cursor: pointer; transition: all 0.2s; }
+        .time-slot.selected { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 4px 10px rgba(13, 148, 136, 0.2); }
+        .time-slot.unavailable { opacity: 0.5; background: #f1f5f9; text-decoration: line-through; cursor: not-allowed; }
+
+        /* === فرم‌ها === */
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; color: var(--text-main); }
+        .form-input { 
+            width: 100%; padding: 14px; border: 2px solid var(--border-color); border-radius: 12px; 
+            font-size: 16px; transition: 0.2s; font-family: 'Vazirmatn', sans-serif; background: #fff;
         }
+        .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); }
+        .ltr-input { direction: ltr; text-align: left; letter-spacing: 1px; }
+        .center-input { text-align: center; letter-spacing: 8px; font-weight: 700; font-size: 18px; }
+        
+        .otp-timer { text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 10px; }
+        .otp-timer span { color: var(--primary); font-weight: bold; }
 
-        .btn-primary:hover {
-            background: #000;
-        }
+        /* === فاکتور === */
+        .invoice-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+        .invoice-divider { height: 1px; background: #e2e8f0; margin: 15px 0; }
+        .timer-warning { background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c; padding: 10px; border-radius: 10px; text-align: center; font-size: 13px; font-weight: 700; margin-bottom: 20px; }
 
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        /* === دکمه‌ها === */
+        .buttons-row { display: flex; gap: 12px; margin-top: 20px; }
+        .btn { padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 700; border: none; cursor: pointer; transition: 0.2s; flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-back { background: #f1f5f9; color: var(--text-muted); flex: 0.4; }
+        .btn-submit { background: var(--primary); color: white; flex: 1; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25); }
+        .btn-submit:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; background: #94a3b8; box-shadow: none; }
+        .btn-outline { background: transparent; border: 2px solid var(--border-color); color: var(--text-muted); }
 
-        .btn-secondary {
-            background: #f5f5f5;
-            color: #666;
-            border: 1px solid #e0e0e0;
-        }
+        /* === فوتر === */
+        .legal-footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; width: 100%; }
+        .footer-links { display: flex; justify-content: center; gap: 15px; margin-bottom: 12px; }
+        .footer-links a { font-size: 12px; color: var(--text-muted); text-decoration: none; }
+        .copyright-text { font-size: 11px; color: #94a3b8; }
+        .alert-box { background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #fecaca; text-align: center; }
 
-        .btn-secondary:hover {
-            background: #efefef;
-            border-color: #ccc;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .footer-link {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
-        }
-
-        .footer-link a {
-            color: #666;
-            text-decoration: none;
-        }
-
-        .btn-refresh:hover {
-            background: #efefef;
-            border-color: #ccc;
-        }
-
-        .btn-refresh:active {
-            transform: scale(0.95);
-        }
-
-        .btn-refresh.loading {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-
-        .btn-refresh.loading span:first-child {
-            animation: rotate 1s linear infinite;
-        }
-
-        @keyframes rotate {
-            from {
-                transform: rotate(0deg);
-            }
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* افکت برای نوبت‌هایی که تازه expired شدن */
-        .slot-btn.just-expired {
-            animation: fadeToUnavailable 0.5s ease;
-        }
-
-        @keyframes fadeToUnavailable {
-            0% {
-                background: white;
-                opacity: 1;
-            }
-            50% {
-                background: #ffebee;
-            }
-            100% {
-                opacity: 0.4;
-                background: white;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .card {
-                padding: 24px;
-            }
-
-            h1 {
-                font-size: 22px;
-            }
-
-            .slots-grid {
-                grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-            }
-
-            .button-group {
-                flex-direction: column;
-            }
-
-            .btn-secondary {
-                display: none;
-            }
-        }
+        @media (max-width: 600px) { .wizard-card { padding: 20px; } .date-card { width: 75px; height: 80px; } .slots-grid { grid-template-columns: repeat(4, 1fr); } .buttons-row { flex-direction: column-reverse; } .btn { width: 100%; } }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="card">
-        <div class="step-header">
-            <div class="step-number">۲</div>
-            <h1>انتخاب تاریخ و زمان</h1>
-            <p class="subtitle">نوبت مطلوب خود را انتخاب کنید</p>
+
+<div class="main-wrapper">
+    
+    <div class="brand-header">
+        <div class="logo-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M8 11h8"/><path d="M12 7v8"/></svg>
+        </div>
+        <h1>رزرو نوبت مشاوره</h1>
+    </div>
+
+    <div class="wizard-card">
+        <div class="progress-header">
+            <div class="progress-line-bg"></div>
+            <div class="progress-line-fill" id="progress-fill"></div>
+            
+            <div class="step-item active" id="step-ind-1">
+                <div class="step-circle">1</div>
+            </div>
+            <div class="step-item" id="step-ind-2">
+                <div class="step-circle">2</div>
+            </div>
+            <div class="step-item" id="step-ind-3">
+                <div class="step-circle">3</div>
+            </div>
         </div>
 
         {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <div class="alert">{{ message }}</div>
-                {% endfor %}
-            </div>
+            {% for message in messages %}
+                <div class="alert-box">{{ message }}</div>
+            {% endfor %}
         {% endif %}
 
-        <div class="service-info">
-            <span>خدمت:</span>
-            <strong>{{ service_type.name }}</strong>
-        </div>
-
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-            <p style="color: #888; font-size: 13px; margin: 0;">
-                نوبت‌های موجود برای ۳۰ روز آینده
-            </p>
-            <button type="button" id="refresh-slots-btn" data-service-id="{{ service_type.id }}" class="btn-refresh" style="
-        padding: 8px 16px;
-        background: #f5f5f5;
-        border: 1px solid #e0e0e0;
-        border-radius: 6px;
-        color: #666;
-        cursor: pointer;
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.3s ease;
-    ">
-                <span style="font-size: 16px;">🔄</span>
-                <span>بروزرسانی</span>
-            </button>
-        </div>
-
-        {% if not slots_by_date %}
-            <div class="empty-state">
-                <p>❌ متأسفانه نوبتی در این بازه موجود نیست</p>
-                <p style="margin-top: 10px; font-size: 12px;">لطفاً بعداً دوباره بررسی کنید</p>
-            </div>
-        {% else %}
-            <form method="post" id="select-slot-form">
-                {% csrf_token %}
-                <input type="hidden" name="time_slot_id" id="selected-time-slot-id" value="">
-
-                <div class="dates-carousel">
-                    <div class="date-items">
-                        {% for date_key, data in slots_by_date.items %}
-                            <button type="button" class="date-btn" data-date-key="{{ date_key }}">
-                                <span class="date-label">{{ data.weekday }}</span>
-                                <span class="date-value">{{ data.jalali_str }}</span>
-                            </button>
-                        {% endfor %}
-                    </div>
+        <div id="step-1" class="step-content active">
+            <div class="service-summary">
+                <div>
+                    <span class="summary-label">خدمت انتخاب شده:</span>
+                    <span class="summary-value">{{ service_type.name }}</span>
                 </div>
+                <button type="button" id="refresh-slots-btn" data-service-id="{{ service_type.id }}" class="btn-refresh">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>بروزرسانی</span>
+                </button>
+            </div>
 
-                <div class="slots-section">
-                    <div class="slots-title">زمان‌های موجود <span class="available-count" id="available-count"></span>
-                    </div>
-                    <div class="slots-grid" id="slots-container">
-                        <div class="empty-state" style="grid-column: 1/-1; padding: 20px;">
-                            <p style="font-size: 12px;">روزی را انتخاب کنید</p>
+            {% if not slots_by_date %}
+                <div class="empty-slots">
+                    <p>متأسفانه نوبتی برای ۳۰ روز آینده یافت نشد.</p>
+                </div>
+            {% else %}
+                <form id="select-slot-form" onsubmit="return false;"> 
+                    {% csrf_token %}
+                    <input type="hidden" name="time_slot_id" id="selected-time-slot-id" value="">
+
+                    <div class="date-scroll-wrapper">
+                        <div class="date-items-container">
+                            {% for date_key, data in slots_by_date.items %}
+                                <div class="date-card date-btn" data-date-key="{{ date_key }}">
+                                    <span class="date-weekday">{{ data.weekday }}</span>
+                                    <span class="date-day">{{ data.day }}</span> 
+                                    <span class="date-month" style="font-size:10px;">{{ data.jalali_str }}</span>
+                                </div>
+                            {% endfor %}
                         </div>
                     </div>
-                </div>
 
-                <div class="button-group">
-                    <button type="submit" class="btn-primary" id="submit-btn" disabled>انتخاب و ادامه</button>
-                    <a href="{% url 'council:step1_initial' %}" class="btn-secondary"
-                       style="display: flex; align-items: center; justify-content: center; text-decoration: none;">بازگشت</a>
-                </div>
-            </form>
-            <script>
-                /* Fixed JavaScript to properly render slots from Django data */
-                const slotsData = {};
-                const dateButtons = document.querySelectorAll('.date-btn');
-                const slotsContainer = document.getElementById('slots-container');
-                const selectedInput = document.getElementById('selected-time-slot-id');
-                const submitBtn = document.getElementById('submit-btn');
-                const availableCountEl = document.getElementById('available-count');
-                let selectedSlotId = null;
-                let selectedDateKey = null;
+                    <div class="slots-container">
+                        <div class="slots-header">
+                            <span class="slots-title">ساعت‌های موجود</span>
+                            <span class="slots-count" id="available-count">---</span>
+                        </div>
+                        <div class="slots-grid" id="slots-container">
+                            <div class="empty-slots" style="padding:10px; width:100%; grid-column:1/-1;">
+                                <span style="font-size:12px;">لطفاً یک روز را از بالا انتخاب کنید</span>
+                            </div>
+                        </div>
+                    </div>
 
-                // Populate slots data from Django template
-                {% for date_key, data in slots_by_date.items %}
-                    slotsData["{{ date_key }}"] = {
-                        slots: [
-                            {% for slot in data.slots %}
-                                {
-                                    id: {{ slot.id }},
-                                    start_time: "{{ slot.start_time|time:'H:i' }}",
-                                    end_time: "{{ slot.end_time|time:'H:i' }}",
-                                    is_available: {{ slot.is_available|lower }}
-                                }{% if not forloop.last %},{% endif %}
-                            {% endfor %}
-                        ],
-                        available_count: {{ data.available_count }}
-                    };
+                    <div class="buttons-row">
+                        <a href="{% url 'council:step1_initial' %}" class="btn btn-back">بازگشت</a>
+                        <button type="button" class="btn btn-submit" id="submit-btn-step1" disabled onclick="goToStep(2)">
+                            تایید و ادامه
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                        </button>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+
+        <div id="step-2" class="step-content">
+            <div class="service-summary" style="background:#ecfdf5;">
+                <div>
+                    <span class="summary-label">زمان انتخابی:</span>
+                    <span class="summary-value" id="summary-time-display">---</span>
+                </div>
+                <div style="color:var(--primary); font-weight:bold;">✓</div>
+            </div>
+            
+            <div id="phone-entry-section">
+                <div class="form-group">
+                    <label class="form-label">شماره موبایل جهت رزرو:</label>
+                    <input type="tel" id="phone-input" class="form-input ltr-input" placeholder="09xxxxxxxxx">
+                </div>
+                <div class="buttons-row">
+                    <button class="btn btn-back" onclick="goToStep(1)">بازگشت</button>
+                    <button class="btn btn-submit" onclick="sendOtpLogic()">ارسال کد تایید</button>
+                </div>
+            </div>
+
+            <div id="otp-entry-section" style="display:none;">
+                <div class="form-group">
+                    <label class="form-label">کد 6 رقمی پیامک شده:</label>
+                    <input type="tel" id="otp-input" class="form-input center-input" maxlength="6" placeholder="- - - - - -">
+                </div>
+                <div class="otp-timer">ارسال مجدد کد تا: <span id="otp-timer-display">01:59</span></div>
+                
+                <div class="buttons-row">
+                    <button class="btn btn-outline" onclick="resetPhoneEntry()">تغییر شماره</button>
+                    <button class="btn btn-submit" onclick="verifyOtpLogic()">بررسی و ادامه</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="step-3" class="step-content">
+            <div class="timer-warning">
+                زمان باقی‌مانده برای پرداخت: <span id="payment-timer">15:00</span>
+            </div>
+
+            <div class="slots-container" style="background: #f8fafc; border:none;">
+                <div class="invoice-row">
+                    <span>متقاضی:</span>
+                    <span id="final-name-display" style="font-weight:700">---</span>
+                </div>
+                <div class="invoice-row">
+                    <span>شماره تماس:</span>
+                    <span id="final-phone-display">---</span>
+                </div>
+                <div class="invoice-divider"></div>
+                <div class="invoice-row">
+                    <span>خدمت:</span>
+                    <span>{{ service_type.name }}</span>
+                </div>
+                <div class="invoice-row">
+                    <span>زمان:</span>
+                    <span id="final-time-display">---</span>
+                </div>
+                <div class="invoice-divider"></div>
+                <div class="invoice-row">
+                    <span style="font-weight:700; color:var(--primary);">مبلغ قابل پرداخت:</span>
+                    <span id="final-price-display" style="font-weight:900; font-size:16px;">--- تومان</span>
+                </div>
+            </div>
+
+            <div class="buttons-row">
+                <button class="btn btn-back" onclick="goToStep(2)">بازگشت</button>
+                <button class="btn btn-submit" style="background:#15803d;" onclick="finalizeReservation(event)">
+                    انتقال به درگاه
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="legal-footer">
+        <div class="footer-links">
+            <a href="#">قوانین و مقررات</a><span class="footer-separator"></span>
+            <a href="#">شرایط استفاده</a><span class="footer-separator"></span>
+            <a href="#">حریم خصوصی</a>
+        </div>
+        <div class="copyright-text">تمامی حقوق برای این سامانه محفوظ است.</div>
+    </footer>
+</div>
+
+<script>
+    // --- ۱. تنظیمات اولیه و امنیتی ---
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const currentUrl = window.location.href;
+
+    /* دیتای اسلات‌ها از سمت جنگو */
+    const slotsData = {};
+    {% for date_key, data in slots_by_date.items %}
+        slotsData["{{ date_key }}"] = {
+            slots: [
+                {% for slot in data.slots %}
+                    {
+                        id: {{ slot.id }},
+                        start_time: "{{ slot.start_time|time:'H:i' }}",
+                        is_available: {{ slot.is_available|lower }}
+                    }{% if not forloop.last %},{% endif %}
                 {% endfor %}
+            ],
+            available_count: {{ data.available_count }},
+            day_label: "{{ data.weekday }} {{ data.day }} {{ data.jalali_str }}"
+        };
+    {% endfor %}
 
-                console.log("[Slots Data Loaded]", slotsData);
+    // المان‌های DOM
+    const dateButtons = document.querySelectorAll('.date-btn');
+    const slotsContainer = document.getElementById('slots-container');
+    const submitBtnStep1 = document.getElementById('submit-btn-step1');
+    const availableCountEl = document.getElementById('available-count');
+    
+    let selectedSlotId = null;
+    let selectedTimeText = "";
+    let otpTimerInterval = null;
 
-                function renderSlots(dateKey) {
-                    const data = slotsData[dateKey];
-                    if (!data) return;
+    // --- ۲. مدیریت تقویم و انتخاب ساعت ---
+    function renderSlots(dateKey) {
+        const data = slotsData[dateKey];
+        if (!data) return;
 
-                    slotsContainer.innerHTML = '';
-                    availableCountEl.textContent = `(${data.available_count} نوبت)`;
+        slotsContainer.innerHTML = '';
+        availableCountEl.textContent = `${data.available_count} نوبت`;
 
-                    if (!data.slots || data.slots.length === 0) {
-                        slotsContainer.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><p style="font-size: 12px;">نوبتی موجود نیست</p></div>';
-                        return;
-                    }
-
-                    data.slots.forEach(slot => {
-                        const btn = document.createElement('button');
-                        btn.type = 'button';
-                        btn.className = 'slot-btn';
-                        btn.dataset.slotId = slot.id;
-
-                        const isUnavailable = !slot.is_available;
-                        if (isUnavailable) {
-                            btn.classList.add('unavailable');
-                        }
-
-                        btn.textContent = slot.start_time;
-
-                        // فقط اگر در دسترس بود event listener اضافه کن
-                        if (!isUnavailable) {
-                            btn.addEventListener('click', (e) => {
-                                e.preventDefault();
-
-                                document.querySelectorAll('.slot-btn.selected').forEach(el => el.classList.remove('selected'));
-                                btn.classList.add('selected');
-                                selectedSlotId = slot.id;
-                                selectedInput.value = slot.id;
-                                submitBtn.disabled = false;
-                            });
-                        }
-
-                        slotsContainer.appendChild(btn);
-                    });
-                }
-
-                dateButtons.forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        dateButtons.forEach(el => el.classList.remove('active'));
-                        btn.classList.add('active');
-                        selectedDateKey = btn.dataset.dateKey;
-                        renderSlots(selectedDateKey);
-                    });
-                });
-
-                document.getElementById('select-slot-form').addEventListener('submit', (e) => {
-                    if (!selectedSlotId) {
-                        e.preventDefault();
-                        alert('لطفاً یک زمان را انتخاب کنید');
-                    }
-                });
-// ... (کدهای قبلی مثل renderSlots سر جای خودشان باشند) ...
-
-// Refresh functionality
-const refreshBtn = document.getElementById('refresh-slots-btn');
-
-refreshBtn.addEventListener('click', async () => {
-    const serviceId = refreshBtn.dataset.serviceId;
-
-    // UI: حالت لودینگ
-    refreshBtn.classList.add('loading');
-    const originalText = refreshBtn.querySelector('span:last-child').textContent;
-    refreshBtn.querySelector('span:last-child').textContent = 'در حال دریافت نوبت‌ها...';
-
-    try {
-        // 1. درخواست به API جدید برای گرفتن کل دیتا
-        const response = await fetch(`/council/api/slots/${serviceId}/`, {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const result = await response.json();
-
-        if (result.status === 'success') {
-            // 2. آپدیت کردن متغیر اصلی دیتا با دیتای جدید سرور
-            // نکته: ما آبجکت slotsData که در بالا تعریف شده بود را تغییر می‌دهیم
-
-            // پاک کردن دیتای قبلی (اختیاری، چون جایگزین می‌شود)
-            for (let key in slotsData) delete slotsData[key];
-
-            // ریختن دیتای جدید
-            Object.assign(slotsData, result.data);
-
-            console.log("[Slots Data Updated]", slotsData);
-
-            // 3. رندر مجدد صفحه
-            if (selectedDateKey) {
-                // اگر قبلاً روزی انتخاب شده، همان روز را دوباره رندر کن
-                if (slotsData[selectedDateKey]) {
-                    renderSlots(selectedDateKey);
-                    alert('✓ لیست نوبت‌ها بروزرسانی شد');
-                } else {
-                    // اگر روزی که انتخاب شده بود دیگر در لیست جدید نیست (مثلا منقضی شده)
-                    slotsContainer.innerHTML = '<div class="empty-state">این تاریخ دیگر در دسترس نیست</div>';
-                    selectedDateKey = null;
-                    selectedSlotId = null;
-                    selectedInput.value = '';
-                    submitBtn.disabled = true;
-                    document.querySelectorAll('.date-btn.active').forEach(b => b.classList.remove('active'));
-                }
-            } else {
-                alert('✓ لیست نوبت‌ها بروزرسانی شد. لطفاً یک تاریخ انتخاب کنید.');
-            }
-
-            // چک کردن اینکه آیا نوبت انتخاب شده هنوز معتبر است یا خیر
-            if (selectedSlotId) {
-                let stillExistsAndAvailable = false;
-                // جستجو در دیتای جدید
-                if (slotsData[selectedDateKey]) {
-                    const slot = slotsData[selectedDateKey].slots.find(s => s.id == selectedSlotId);
-                    if (slot && slot.is_available) {
-                        stillExistsAndAvailable = true;
-                        // اگر هست، دوباره کلاس selected را به دکمه‌اش بده (چون renderSlots همه چیز را ریست کرده)
-                        const btn = document.querySelector(`.slot-btn[data-slot-id="${selectedSlotId}"]`);
-                        if(btn) btn.classList.add('selected');
-                    }
-                }
-
-                if (!stillExistsAndAvailable) {
-                    selectedSlotId = null;
-                    selectedInput.value = '';
-                    submitBtn.disabled = true;
-                    alert('⚠️ نوبتی که انتخاب کرده بودید متأسفانه پر شد یا منقضی گردید.');
-                }
-            }
-
-        } else {
-            throw new Error(result.message || 'خطا در فرمت دیتا');
+        if (data.slots.length === 0) {
+            slotsContainer.innerHTML = '<div class="empty-slots" style="grid-column:1/-1;">نوبتی یافت نشد</div>';
+            return;
         }
 
-    } catch (error) {
-        console.error('Refresh error:', error);
-        alert('❌ خطا در ارتباط با سرور.');
-    } finally {
-        // حذف حالت لودینگ
-        refreshBtn.classList.remove('loading');
-        refreshBtn.querySelector('span:last-child').textContent = originalText;
+        data.slots.forEach(slot => {
+            const el = document.createElement('div');
+            el.className = `time-slot ${!slot.is_available ? 'unavailable' : ''}`;
+            el.textContent = slot.start_time;
+            
+            if (slot.is_available) {
+                el.onclick = () => {
+                    document.querySelectorAll('.time-slot.selected').forEach(i => i.classList.remove('selected'));
+                    el.classList.add('selected');
+                    selectedSlotId = slot.id;
+                    submitBtnStep1.disabled = false;
+                    selectedTimeText = `${data.day_label} - ساعت ${slot.start_time}`;
+                };
+            }
+            slotsContainer.appendChild(el);
+        });
     }
-});
-            </script>
-        {% endif %}
-    </div>
-</div>
+
+    dateButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            dateButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderSlots(btn.dataset.dateKey);
+            submitBtnStep1.disabled = true;
+            selectedSlotId = null;
+        });
+    });
+
+    if(dateButtons.length > 0) dateButtons[0].click();
+
+    // --- ۳. توابع کمکی AJAX ---
+    async function postData(fd) {
+        const response = await fetch(currentUrl, {
+            method: 'POST',
+            body: fd,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrftoken
+            }
+        });
+        if (!response.ok) throw new Error('خطای سرور');
+        return await response.json();
+    }
+
+    function setLoading(btn, isLoading, originalText) {
+        btn.disabled = isLoading;
+        btn.innerHTML = isLoading ? '<span>⏳ در حال پردازش...</span>' : originalText;
+    }
+
+    // --- ۴. عملیات مرحله اول: قفل کردن اسلات ---
+    async function submitStep1Logic() {
+        if (!selectedSlotId) return;
+        setLoading(submitBtnStep1, true, '');
+        const fd = new FormData();
+        fd.append('action', 'select_slot');
+        fd.append('time_slot_id', selectedSlotId);
+
+        try {
+            const result = await postData(fd);
+            if (result.success) goToStep(2);
+            else alert(result.message || "خطا در ثبت نوبت");
+        } catch (e) { alert("خطای شبکه"); }
+        finally { setLoading(submitBtnStep1, false, 'تایید و ادامه'); }
+    }
+
+    // --- ۵. عملیات مرحله دوم: ارسال OTP ---
+    async function sendOtpLogic() {
+        const phone = document.getElementById('phone-input').value;
+        const btn = event.target;
+        if(!/^09\d{9}$/.test(phone)) return alert('شماره موبایل معتبر نیست');
+
+        setLoading(btn, true, '');
+        const fd = new FormData();
+        fd.append('action', 'send_otp');
+        fd.append('phone_number', phone);
+
+        try {
+            const result = await postData(fd);
+            if (result.success) {
+                document.getElementById('phone-entry-section').style.display = 'none';
+                document.getElementById('otp-entry-section').style.display = 'block';
+                startOtpTimer(120);
+            } else alert(result.message);
+        } catch (e) { alert("خطا در ارسال"); }
+        finally { setLoading(btn, false, 'ارسال کد تایید'); }
+    }
+
+    // --- ۶. عملیات مرحله دوم: تایید OTP و دریافت دیتای گام ۴ (Review) ---
+    async function verifyOtpLogic() {
+        const otp = document.getElementById('otp-input').value;
+        const btn = event.target;
+        if(otp.length < 4) return alert('کد تایید ناقص است');
+
+        setLoading(btn, true, '');
+        const fd = new FormData();
+        fd.append('action', 'verify_otp');
+        fd.append('otp_code', otp);
+
+        try {
+            const result = await postData(fd);
+            if (result.success) {
+                // تزریق دیتای واقعی مرحله Review به HTML
+                const data = result.review_data;
+
+                // ۱. نمایش نام متقاضی (که از سشن خوانده شده)
+                const nameEl = document.getElementById('final-name-display');
+                if(nameEl) nameEl.textContent = data.full_name;
+                
+                document.getElementById('final-phone-display').textContent = data.phone;
+                document.getElementById('final-time-display').textContent = `${data.date} | ساعت ${data.time}`;
+                // اگر المان نام متقاضی دارید:
+                const priceEl = document.getElementById('final-price-display');
+                if(priceEl) priceEl.textContent = data.price + " ریال"; // یا تومان
+                
+                goToStep(3); // نمایش گام آخر (Review)
+            } else alert(result.message || "کد اشتباه است");
+        } catch (e) { alert("خطا در تایید هویت"); }
+        finally { setLoading(btn, false, 'بررسی و ادامه'); }
+    }
+
+    // --- ۷. عملیات نهایی: ثبت و انتقال به درگاه ---
+    async function finalizeReservation() {
+        const btn = event.target;
+        setLoading(btn, true, '');
+        const fd = new FormData();
+        fd.append('action', 'finalize_booking');
+
+        try {
+            const result = await postData(fd);
+            if (result.success) {
+                window.location.href = result.payment_url;
+            } else alert(result.message);
+        } catch (e) { alert("خطا در ثبت نهایی"); }
+        finally { setLoading(btn, false, 'انتقال به درگاه'); }
+    }
+
+    // --- ۸. مدیریت مراحل و تایمرها ---
+    function goToStep(stepNumber) {
+        document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+        document.getElementById(`step-${stepNumber}`).classList.add('active');
+        updateStepper(stepNumber);
+
+        if (stepNumber === 2) {
+            document.getElementById('summary-time-display').textContent = selectedTimeText;
+        }
+        if (stepNumber === 3) {
+            startPaymentTimer(900); // ۱۵ دقیقه
+        }
+    }
+
+    function updateStepper(step) {
+        for(let i=1; i<=3; i++) {
+            const el = document.getElementById(`step-ind-${i}`);
+            const circle = el.querySelector('.step-circle');
+            el.classList.remove('active', 'completed');
+            if (i < step) { el.classList.add('completed'); circle.innerHTML = '✓'; }
+            else if (i === step) { el.classList.add('active'); circle.innerHTML = i; }
+        }
+        document.getElementById('progress-fill').style.width = `${(step - 1) * 50}%`;
+    }
+
+    function startOtpTimer(duration) {
+        let timer = duration;
+        const display = document.getElementById('otp-timer-display');
+        if(otpTimerInterval) clearInterval(otpTimerInterval);
+        otpTimerInterval = setInterval(() => {
+            let m = Math.floor(timer / 60), s = timer % 60;
+            display.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            if (--timer < 0) { clearInterval(otpTimerInterval); display.textContent = "منقضی شد"; }
+        }, 1000);
+    }
+
+    function startPaymentTimer(duration) {
+        const display = document.getElementById('payment-timer');
+        const timer = setInterval(() => {
+            let m = Math.floor(duration / 60), s = duration % 60;
+            display.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            if (--duration < 0) {
+                clearInterval(timer);
+                alert('زمان رزرو به پایان رسید.');
+                location.reload();
+            }
+        }, 1000);
+    }
+
+    function resetPhoneEntry() {
+        document.getElementById('otp-entry-section').style.display = 'none';
+        document.getElementById('phone-entry-section').style.display = 'block';
+        if(otpTimerInterval) clearInterval(otpTimerInterval);
+    }
+
+    // Bindings
+    submitBtnStep1.onclick = submitStep1Logic;
+</script>
+
+<!-- <script>
+    // --- ۱. تنظیمات اولیه و امنیتی ---
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const currentUrl = window.location.href;
+
+    /* دیتای اسلات‌ها که از سمت جنگو تزریق شده است */
+    const slotsData = {};
+    {% for date_key, data in slots_by_date.items %}
+        slotsData["{{ date_key }}"] = {
+            slots: [
+                {% for slot in data.slots %}
+                    {
+                        id: {{ slot.id }},
+                        start_time: "{{ slot.start_time|time:'H:i' }}",
+                        is_available: {{ slot.is_available|lower }}
+                    }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            available_count: {{ data.available_count }},
+            day_label: "{{ data.weekday }} {{ data.day }} {{ data.jalali_str }}"
+        };
+    {% endfor %}
+
+    // المان‌های DOM
+    const dateButtons = document.querySelectorAll('.date-btn');
+    const slotsContainer = document.getElementById('slots-container');
+    const submitBtnStep1 = document.getElementById('submit-btn-step1');
+    const availableCountEl = document.getElementById('available-count');
+    
+    let selectedSlotId = null;
+    let selectedTimeText = "";
+    let otpTimerInterval = null;
+
+    // --- ۲. مدیریت تقویم و انتخاب ساعت ---
+    function renderSlots(dateKey) {
+        const data = slotsData[dateKey];
+        if (!data) return;
+
+        slotsContainer.innerHTML = '';
+        availableCountEl.textContent = `${data.available_count} نوبت`;
+
+        if (data.slots.length === 0) {
+            slotsContainer.innerHTML = '<div class="empty-slots" style="grid-column:1/-1;">نوبتی یافت نشد</div>';
+            return;
+        }
+
+        data.slots.forEach(slot => {
+            const el = document.createElement('div');
+            el.className = `time-slot ${!slot.is_available ? 'unavailable' : ''}`;
+            el.textContent = slot.start_time;
+            
+            if (slot.is_available) {
+                el.onclick = () => {
+                    document.querySelectorAll('.time-slot.selected').forEach(i => i.classList.remove('selected'));
+                    el.classList.add('selected');
+                    selectedSlotId = slot.id;
+                    submitBtnStep1.disabled = false;
+                    selectedTimeText = `${data.day_label} - ساعت ${slot.start_time}`;
+                };
+            }
+            slotsContainer.appendChild(el);
+        });
+    }
+
+    dateButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            dateButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderSlots(btn.dataset.dateKey);
+            submitBtnStep1.disabled = true;
+            selectedSlotId = null;
+        });
+    });
+
+    // انتخاب اولین تاریخ به صورت پیش‌فرض
+    if(dateButtons.length > 0) dateButtons[0].click();
+
+    // --- ۳. توابع کمکی برای درخواست‌های AJAX ---
+    async function postData(data) {
+        const response = await fetch(currentUrl, {
+            method: 'POST',
+            body: data,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrftoken
+            }
+        });
+        return await response.json();
+    }
+
+    function setLoading(btn, isLoading, originalText) {
+        btn.disabled = isLoading;
+        btn.innerHTML = isLoading ? '<span>⏳ در حال پردازش...</span>' : originalText;
+    }
+
+    // --- ۴. عملیات مرحله اول: قفل کردن اسلات ---
+    async function submitStep1Logic() {
+        if (!selectedSlotId) return;
+        
+        setLoading(submitBtnStep1, true, '');
+        const fd = new FormData();
+        fd.append('action', 'select_slot');
+        fd.append('time_slot_id', selectedSlotId);
+
+        try {
+            const result = await postData(fd);
+            if (result.success) {
+                goToStep(2);
+            } else {
+                alert(result.message || "خطا در ثبت نوبت");
+            }
+        } catch (e) {
+            alert("خطای شبکه؛ لطفاً اتصال خود را بررسی کنید.");
+        } finally {
+            setLoading(submitBtnStep1, false, 'تایید و ادامه');
+        }
+    }
+
+    // --- ۵. عملیات مرحله دوم: ارسال کد تایید ---
+    async function sendOtpLogic() {
+        const phone = document.getElementById('phone-input').value;
+        const btn = event.target;
+
+        if(!/^09\d{9}$/.test(phone)) {
+            alert('لطفاً شماره موبایل ۱۱ رقمی معتبر وارد کنید.');
+            return;
+        }
+
+        setLoading(btn, true, '');
+        const fd = new FormData();
+        fd.append('action', 'send_otp');
+        fd.append('phone_number', phone);
+
+        try {
+            const result = await postData(fd);
+            if (result.success) {
+                document.getElementById('phone-entry-section').style.display = 'none';
+                document.getElementById('otp-entry-section').style.display = 'block';
+                startOtpTimer(120);
+            } else {
+                alert(result.message);
+            }
+        } catch (e) {
+            alert("خطا در ارسال پیامک.");
+        } finally {
+            setLoading(btn, false, 'ارسال کد تایید');
+        }
+    }
+
+    // --- ۶. عملیات مرحله دوم: تایید نهایی کد OTP ---
+    async function verifyOtpLogic() {
+        const otp = document.getElementById('otp-input').value;
+        const btn = event.target;
+
+        if(otp.length < 4) {
+            alert('کد تایید را وارد کنید.');
+            return;
+        }
+
+        setLoading(btn, true, '');
+        const fd = new FormData();
+        fd.append('action', 'verify_otp');
+        fd.append('otp_code', otp);
+
+        try {
+            const result = await postData(fd);
+            if (result.success) {
+                goToStep(3); // نمایش فاکتور نهایی
+            } else {
+                alert(result.message || "کد اشتباه است.");
+            }
+        } catch (e) {
+            alert("خطا در تایید هویت.");
+        } finally {
+            setLoading(btn, false, 'بررسی و ادامه');
+        }
+    }
+
+    // --- ۷. مدیریت مراحل و تایمرها ---
+    function goToStep(stepNumber) {
+        document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+        document.getElementById(`step-${stepNumber}`).classList.add('active');
+        updateStepper(stepNumber);
+
+        if (stepNumber === 2) {
+            document.getElementById('summary-time-display').textContent = selectedTimeText;
+        }
+        if (stepNumber === 3) {
+            document.getElementById('final-time-display').textContent = selectedTimeText;
+            document.getElementById('final-phone-display').textContent = document.getElementById('phone-input').value;
+            startPaymentTimer(900); // ۱۵ دقیقه برای پرداخت
+        }
+    }
+
+    function updateStepper(step) {
+        for(let i=1; i<=3; i++) {
+            const el = document.getElementById(`step-ind-${i}`);
+            const circle = el.querySelector('.step-circle');
+            el.classList.remove('active', 'completed');
+            
+            if (i < step) {
+                el.classList.add('completed');
+                circle.innerHTML = '✓';
+            } else if (i === step) {
+                el.classList.add('active');
+                circle.innerHTML = i;
+            }
+        }
+        const fillPercent = (step - 1) * 50; 
+        document.getElementById('progress-fill').style.width = fillPercent + '%';
+    }
+
+    function startOtpTimer(duration) {
+        let timer = duration;
+        const display = document.getElementById('otp-timer-display');
+        if(otpTimerInterval) clearInterval(otpTimerInterval);
+        otpTimerInterval = setInterval(() => {
+            let m = Math.floor(timer / 60), s = timer % 60;
+            display.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            if (--timer < 0) {
+                clearInterval(otpTimerInterval);
+                display.textContent = "کد منقضی شد";
+            }
+        }, 1000);
+    }
+
+    function startPaymentTimer(duration) {
+        const display = document.getElementById('payment-timer');
+        const timer = setInterval(() => {
+            let m = Math.floor(duration / 60), s = duration % 60;
+            display.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            if (--duration < 0) {
+                clearInterval(timer);
+                alert('زمان رزرو شما به پایان رسید. لطفاً مجدداً تلاش کنید.');
+                location.reload();
+            }
+        }, 1000);
+    }
+
+    function resetPhoneEntry() {
+        document.getElementById('otp-entry-section').style.display = 'none';
+        document.getElementById('phone-entry-section').style.display = 'block';
+        if(otpTimerInterval) clearInterval(otpTimerInterval);
+    }
+
+    // اتصال دکمه مرحله ۱ به منطق جاوااسکریپت
+    submitBtnStep1.onclick = submitStep1Logic;
+
+</script> -->
+
+<!-- <script>
+    /* دیتای جنگو - دست نخورده */
+    const slotsData = {};
+    {% for date_key, data in slots_by_date.items %}
+        slotsData["{{ date_key }}"] = {
+            slots: [
+                {% for slot in data.slots %}
+                    {
+                        id: {{ slot.id }},
+                        start_time: "{{ slot.start_time|time:'H:i' }}",
+                        is_available: {{ slot.is_available|lower }}
+                    }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            available_count: {{ data.available_count }},
+            day_label: "{{ data.weekday }} {{ data.day }} {{ data.jalali_str }}"
+        };
+    {% endfor %}
+
+    // متغیرهای سراسری
+    const dateButtons = document.querySelectorAll('.date-btn');
+    const slotsContainer = document.getElementById('slots-container');
+    const selectedInput = document.getElementById('selected-time-slot-id');
+    const submitBtnStep1 = document.getElementById('submit-btn-step1');
+    const availableCountEl = document.getElementById('available-count');
+    
+    let selectedSlotId = null;
+    let selectedDateKey = null;
+    let selectedTimeText = "";
+
+    // --- توابع گام ۱ ---
+    function renderSlots(dateKey) {
+        const data = slotsData[dateKey];
+        if (!data) return;
+
+        slotsContainer.innerHTML = '';
+        availableCountEl.textContent = `${data.available_count} نوبت`;
+
+        if (!data.slots || data.slots.length === 0) {
+            slotsContainer.innerHTML = '<div class="empty-slots" style="grid-column:1/-1; font-size:12px;">نوبتی موجود نیست</div>';
+            return;
+        }
+
+        data.slots.forEach(slot => {
+            const el = document.createElement('div');
+            el.className = 'time-slot';
+            el.textContent = slot.start_time;
+            
+            if (!slot.is_available) {
+                el.classList.add('unavailable');
+            } else {
+                el.onclick = () => {
+                    document.querySelectorAll('.time-slot.selected').forEach(i => i.classList.remove('selected'));
+                    el.classList.add('selected');
+                    selectedSlotId = slot.id;
+                    selectedInput.value = slot.id;
+                    submitBtnStep1.disabled = false;
+                    selectedTimeText = `${data.day_label} - ساعت ${slot.start_time}`;
+                };
+            }
+            slotsContainer.appendChild(el);
+        });
+    }
+
+    dateButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            dateButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedDateKey = btn.dataset.dateKey;
+            selectedSlotId = null;
+            selectedInput.value = '';
+            submitBtnStep1.disabled = true;
+            renderSlots(selectedDateKey);
+        });
+    });
+
+    if(dateButtons.length > 0) dateButtons[0].click();
+
+    // --- دکمه بروزرسانی (Refresh) ---
+    const refreshBtn = document.getElementById('refresh-slots-btn');
+    if(refreshBtn) {
+        refreshBtn.addEventListener('click', async () => {
+            const serviceId = refreshBtn.dataset.serviceId;
+            refreshBtn.classList.add('loading');
+            
+            try {
+                // شبیه‌سازی آدرس API - لطفا این قسمت را با URL واقعی خود تنظیم کنید
+                // const response = await fetch(`/council/api/slots/${serviceId}/`);
+                // const result = await response.json();
+                
+                // فعلا فقط یک وقفه برای نمایش انیمیشن
+                await new Promise(r => setTimeout(r, 800));
+                
+                // اینجا لاجیک آپدیت دیتای slotsData را قرار دهید
+                // location.reload(); // ساده‌ترین راه فعلی: ریلود صفحه
+                
+                // اگر می‌خواهید Ajax باشد باید slotsData را آپدیت کنید
+                alert('زمان‌ها بروزرسانی شد (برای عملکرد واقعی باید API وصل شود)');
+
+            } catch (err) {
+                console.error(err);
+            } finally {
+                refreshBtn.classList.remove('loading');
+            }
+        });
+    }
+
+    // --- مدیریت مراحل (Step Logic) ---
+    function goToStep(stepNumber) {
+        document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+        document.getElementById(`step-${stepNumber}`).classList.add('active');
+        
+        updateStepper(stepNumber);
+
+        if (stepNumber === 2) {
+            document.getElementById('summary-time-display').textContent = selectedTimeText;
+        }
+        if (stepNumber === 3) {
+            startPaymentTimer();
+            document.getElementById('final-time-display').textContent = selectedTimeText;
+            document.getElementById('final-phone-display').textContent = document.getElementById('phone-input').value;
+        }
+    }
+
+    function updateStepper(step) {
+        for(let i=1; i<=3; i++) {
+            const el = document.getElementById(`step-ind-${i}`);
+            el.classList.remove('active', 'completed');
+            el.querySelector('.step-circle').innerHTML = i;
+            
+            if (i < step) {
+                el.classList.add('completed');
+                el.querySelector('.step-circle').innerHTML = '✓';
+            } else if (i === step) {
+                el.classList.add('active');
+            }
+        }
+        // نوار رنگی پرشونده (۵۰٪ برای گام ۲، ۱۰۰٪ برای گام ۳)
+        const fillPercent = (step - 1) * 50; 
+        document.getElementById('progress-fill').style.width = fillPercent + '%';
+    }
+
+    // --- گام ۲: احراز هویت ---
+    function sendOtpLogic() {
+        const phone = document.getElementById('phone-input').value;
+        if(phone.length < 10) { alert('شماره موبایل معتبر نیست'); return; }
+        document.getElementById('phone-entry-section').style.display = 'none';
+        document.getElementById('otp-entry-section').style.display = 'block';
+    }
+
+    function verifyOtpLogic() {
+        goToStep(3);
+    }
+
+    function resetPhoneEntry() {
+        document.getElementById('otp-entry-section').style.display = 'none';
+        document.getElementById('phone-entry-section').style.display = 'block';
+    }
+
+    // --- گام ۳: تایمر ---
+    function startPaymentTimer() {
+        let duration = 900; 
+        const display = document.querySelector('#payment-timer');
+        if(window.timerInterval) clearInterval(window.timerInterval);
+        window.timerInterval = setInterval(() => {
+            let m = Math.floor(duration / 60);
+            let s = duration % 60;
+            display.textContent = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+            if (--duration < 0) {
+                clearInterval(window.timerInterval);
+                alert('زمان پرداخت به پایان رسید');
+            }
+        }, 1000);
+    }
+</script> -->
+
 </body>
 </html>

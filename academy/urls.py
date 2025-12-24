@@ -7,5 +7,6 @@ app_name = 'academy'
 
 urlpatterns = [
     path('', IndexView.as_view(), name='home'),
-    path('test', TestView.as_view(), name='test')
+    path('test', TestView.as_view(), name='test'),
+    path('meet', MeetView.as_view(), name='meet')
 ]

@@ -1,270 +1,259 @@
 {% load static %}
-
 <!DOCTYPE html>
-<html lang="fa" dir="rtl" data-theme-color="skin-1">
+<html lang="fa" dir="rtl">
 <head>
-    <title>درخواست با موفقیت ثبت شد - آزمایشگاه ژنتیک پزشکی آرمیتاژن</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ثبت موفق درخواست | آرمیتاژن</title>
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- FAVICONS ICON -->
-    <link rel="icon" type="image/x-icon" href="{% static 'assets/images/logo/ArmitaGen-logo.png' %}">
-
-    <!-- STYLESHEETS -->
-    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style-2.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/fonts.css' %}">
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        .success-wrapper {
+        :root {
+            --primary: #0f766e;
+            --primary-dark: #115e59;
+            --primary-light: #f0fdfa;
+            --accent: #14b8a6;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --bg-body: #f8fafc;
+        }
+
+        * { box-sizing: border-box; outline: none; }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--bg-body);
+            background-image: radial-gradient(circle at top right, #ccfbf1, transparent 40%),
+                              radial-gradient(circle at bottom left, #e0f2fe, transparent 40%);
             min-height: 100vh;
+            margin: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
+            color: var(--text-main);
         }
+
+        .success-wrapper { width: 100%; max-width: 650px; }
 
         .success-card {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 60px 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(15, 118, 110, 0.1);
+            padding: 50px 40px;
             text-align: center;
-            max-width: 600px;
-            width: 100%;
-            animation: slideUp 0.6s ease-out;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid white;
+            animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* نوار رنگی بالای کارت */
+        .success-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
         }
 
-        .success-icon {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* انیمیشن آیکون */
+        .icon-wrapper {
+            position: relative;
+            width: 100px; height: 100px;
+            margin: 0 auto 25px;
+        }
+        
+        .success-circle {
+            width: 100%; height: 100%;
+            background: var(--primary-light);
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 30px;
-            animation: scaleIn 0.5s ease-out 0.2s both;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary);
+            font-size: 45px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s both;
         }
 
-        @keyframes scaleIn {
-            from {
-                transform: scale(0);
-            }
-            to {
-                transform: scale(1);
-            }
+        /* افکت موج دار دور آیکون */
+        .ripple {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 50%; border: 1px solid var(--primary);
+            animation: ripple 1.5s infinite linear;
+            opacity: 0;
         }
 
-        .success-icon i {
-            font-size: 50px;
-            color: white;
-        }
+        h1 { font-size: 1.8rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 10px; }
+        .subtitle { color: var(--text-muted); font-size: 1rem; line-height: 1.6; margin-bottom: 30px; }
 
-        .success-card h1 {
-            color: #2d3748;
-            font-size: 2rem;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        .success-card p {
-            color: #718096;
-            font-size: 1.1rem;
-            line-height: 1.8;
+        /* باکس اطلاعات رسید (مهم برای کاربر) */
+        .receipt-box {
+            background: #f1f5f9;
+            border: 1px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 20px;
             margin-bottom: 30px;
         }
 
-        .info-box {
-            background: #f7fafc;
-            border-radius: 12px;
-            padding: 25px;
-            margin: 30px 0;
-            border-right: 4px solid #667eea;
+        .receipt-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-size: 0.95rem;
+        }
+        .receipt-row:last-child { border-bottom: none; }
+        .receipt-label { color: var(--text-muted); }
+        .receipt-value { font-weight: 700; color: var(--text-main); }
+
+        .tracking-code-container {
+            display: flex; align-items: center; gap: 8px;
+            background: white; padding: 4px 10px; border-radius: 8px; border: 1px solid #e2e8f0;
+        }
+        .copy-btn {
+            background: none; border: none; color: var(--primary); cursor: pointer; font-size: 14px;
+            transition: 0.2s;
+        }
+        .copy-btn:hover { transform: scale(1.1); }
+
+        /* تایم لاین مراحل بعدی */
+        .timeline-box { text-align: right; margin-bottom: 35px; padding: 0 10px; }
+        .timeline-title { font-size: 1rem; font-weight: 700; margin-bottom: 15px; color: var(--text-main); }
+        
+        .timeline-item {
+            position: relative; padding-right: 30px; margin-bottom: 15px;
+            color: var(--text-muted); font-size: 0.9rem;
+        }
+        .timeline-item::before {
+            content: ''; position: absolute; right: 0; top: 6px;
+            width: 12px; height: 12px; border-radius: 50%;
+            background: var(--primary-light); border: 2px solid var(--primary);
+        }
+        .timeline-item::after {
+            content: ''; position: absolute; right: 5px; top: 20px; bottom: -10px;
+            width: 2px; background: #e2e8f0;
+        }
+        .timeline-item:last-child::after { display: none; }
+
+        /* دکمه‌ها */
+        .btn-group { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        
+        .btn {
+            padding: 14px 28px; border-radius: 12px; font-weight: 700; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; font-size: 0.95rem;
+            cursor: pointer; border: none;
+        }
+        
+        .btn-primary {
+            background: var(--primary); color: white;
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
+        }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        
+        .btn-outline {
+            background: transparent; color: var(--text-muted); border: 2px solid #e2e8f0;
+        }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); background: white; }
+
+        .footer-contact {
+            margin-top: 35px; border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 0.85rem; color: var(--text-muted);
+        }
+        .footer-contact a { color: var(--primary); text-decoration: none; font-weight: 700; margin: 0 5px; }
+
+        /* انیمیشن‌ها */
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+        @keyframes ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.5); opacity: 0; } }
+
+        /* استایل پرینت */
+        @media print {
+            body { background: white; padding: 0; }
+            .success-card { box-shadow: none; border: none; padding: 0; }
+            .btn-group, .footer-contact, .icon-wrapper .ripple { display: none; }
+            .receipt-box { border: 1px solid #000; background: none; }
         }
 
-        .info-box h3 {
-            color: #2d3748;
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        .info-box ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            text-align: right;
-        }
-
-        .info-box ul li {
-            color: #4a5568;
-            padding: 8px 0;
-            font-size: 1rem;
-        }
-
-        .info-box ul li i {
-            color: #667eea;
-            margin-left: 10px;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn-custom {
-            padding: 15px 35px;
-            border-radius: 50px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-primary-custom {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-primary-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-            color: white;
-        }
-
-        .btn-secondary-custom {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-
-        .btn-secondary-custom:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .contact-info {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 2px solid #e2e8f0;
-        }
-
-        .contact-info p {
-            margin-bottom: 10px;
-            color: #4a5568;
-        }
-
-        .contact-info a {
-            color: #667eea;
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .contact-info a:hover {
-            text-decoration: underline;
+        @media (max-width: 480px) {
+            .success-card { padding: 30px 20px; }
+            .btn { width: 100%; justify-content: center; }
         }
     </style>
 </head>
 
 <body>
-{% if messages %}
-<div class="container my-4">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert"
-         style="{% if message.tags == 'error' %}background-color: #fee; border-color: #f88; color: #c33;{% endif %}">
-        <strong>
-            {% if message.tags == 'success' %}
-            <i class="fas fa-check-circle"></i> موفق!
-            {% elif message.tags == 'error' %}
-            <i class="fas fa-exclamation-circle"></i> خطا!
-            {% endif %}
-        </strong>
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
+
 <div class="success-wrapper">
     <div class="success-card">
-        <div class="success-icon">
-            <i class="fas fa-check"></i>
+        
+        <div class="icon-wrapper">
+            <div class="ripple"></div>
+            <div class="success-circle">
+                <i class="fas fa-check"></i>
+            </div>
         </div>
 
-        <h1>درخواست شما با موفقیت ثبت شد!</h1>
-        <p>
-            از اینکه به آزمایشگاه ژنتیک پزشکی آرمیتاژن اعتماد کردید، سپاسگزاریم.
-            درخواست مشاوره شما دریافت شد و به زودی کارشناسان ما با شما تماس خواهند گرفت.
+        <h1>درخواست شما با موفقیت ثبت شد</h1>
+        <p class="subtitle">
+            از اعتماد شما به آزمایشگاه آرمیتاژن سپاسگزاریم.<br>
+            نوبت مشاوره شما رزرو شد و کارشناسان ما جهت هماهنگی نهایی با شما تماس خواهند گرفت.
         </p>
 
-        <div class="info-box">
-            <h3>مراحل بعدی:</h3>
-            <ul>
-                <li><i class="fas fa-phone"></i> تماس تلفنی کارشناسان ما در اسرع وقت</li>
-                <li><i class="fas fa-calendar-check"></i> هماهنگی زمان مشاوره</li>
-                <li><i class="fas fa-file-medical"></i> بررسی مدارک و نسخه ارسالی</li>
-                <li><i class="fas fa-user-md"></i> مشاوره تخصصی با متخصص ژنتیک</li>
-            </ul>
+        <div class="receipt-box">
+            <div class="receipt-row">
+                <span class="receipt-label">نام متقاضی:</span>
+                <span class="receipt-value">{{ reservation.full_name|default:"کاربر گرامی" }}</span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-label">کد پیگیری:</span>
+                <div class="tracking-code-container">
+                    <span class="receipt-value" id="tracking-code">{{ reservation.tracking_code|default:"RES-123456" }}</span>
+                    <button class="copy-btn" onclick="copyCode()" title="کپی کد">
+                        <i class="far fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-label">تاریخ و زمان:</span>
+                <span class="receipt-value" style="direction: ltr;">
+                    {{ jalali_date_str }} - {{ reservation.time_slot.start_time|time:"H:i" }}
+                </span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-label">خدمت:</span>
+                <span class="receipt-value">{{ reservation.service_type.name }}</span>
+            </div>
+        </div>
+
+        <div class="timeline-box">
+            <div class="timeline-title">مراحل بعدی چیست؟</div>
+            <div class="timeline-item">تماس کارشناسان جهت تایید نهایی (امروز/فردا)</div>
+            <div class="timeline-item">بررسی مدارک ارسالی شما توسط تیم پذیرش</div>
+            <div class="timeline-item">انجام جلسه مشاوره در زمان مقرر</div>
         </div>
 
         <div class="btn-group">
-            <a href="{% url 'home:index' %}" class="btn-custom btn-primary-custom">
-                <i class="fas fa-home"></i>
-                بازگشت به صفحه اصلی
+            <a href="{% url 'home:index' %}" class="btn btn-outline">
+                <i class="fas fa-home"></i> صفحه اصلی
             </a>
-            <a href="{% url 'council:con' %}" class="btn-custom btn-secondary-custom">
-                <i class="fas fa-plus"></i>
-                ثبت درخواست جدید
+            <button onclick="window.print()" class="btn btn-outline">
+                <i class="fas fa-print"></i> چاپ رسید
+            </button>
+            <a href="{% url 'council:con' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> ثبت درخواست جدید
             </a>
         </div>
 
-        <div class="contact-info">
-            <p><strong>در صورت نیاز به اطلاعات بیشتر:</strong></p>
-            <p>
-                <i class="fas fa-phone"></i>
-                <a href="tel:02188985291">021-88985291-3</a>
-            </p>
-            <p>
-                <i class="fas fa-envelope"></i>
-                <a href="mailto:info@armitagen.ir">info@armitagen.ir</a>
-            </p>
-            <p>
-                <i class="fab fa-whatsapp"></i>
-                <a href="https://wa.me/989922807742" target="_blank">09922807742</a>
-            </p>
+        <div class="footer-contact">
+            پشتیبانی: <a href="tel:02188985291">021-88985291</a> | <a href="https://wa.me/989922807742">واتساپ</a>
         </div>
     </div>
 </div>
 
-<!-- JAVASCRIPT FILES -->
-<script src="{% static 'assets/js/global.min-2.js' %}"></script>
-
-<!-- Auto redirect after 10 seconds (optional) -->
 <script>
-    // اگر می‌خواهید بعد از 10 ثانیه خودکار به صفحه اصلی برگردد:
-    // setTimeout(function() {
-    //     window.location.href = "{% url 'home:index' %}";
-    // }, 10000);
+    function copyCode() {
+        const code = document.getElementById('tracking-code').innerText;
+        navigator.clipboard.writeText(code).then(() => {
+            const btn = document.querySelector('.copy-btn i');
+            btn.className = 'fas fa-check';
+            setTimeout(() => { btn.className = 'far fa-copy'; }, 2000);
+        });
+    }
 </script>
+
 </body>
 </html>
