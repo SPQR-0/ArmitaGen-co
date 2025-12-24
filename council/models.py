@@ -344,7 +344,11 @@ class Reservation(models.Model):
     User reservations for consultation appointments
     Handles the complete booking flow: creation -> OTP -> payment -> completion
     """
-
+    COUNSELOR_GENDER_CHOICES = [
+        ('no_preference', 'هر کدام'),  # Default
+        ('male', 'مرد'),
+        ('female', 'زن'),
+    ]
     STATUS_CHOICES = [
         ('pending', 'در انتظار تایید شماره'),
         ('phone_verified', 'شماره تایید شده - در انتظار پرداخت'),
@@ -432,6 +436,12 @@ class Reservation(models.Model):
         blank=True,
         verbose_name='زمان تایید شماره'
     )
+    counselor_gender = models.CharField(
+        max_length=20,
+        choices=COUNSELOR_GENDER_CHOICES,
+        default='no_preference',
+        verbose_name='جنسیت مشاور'
+    )
 
     # Additional info
     message = models.TextField(
@@ -452,8 +462,8 @@ class Reservation(models.Model):
         max_length=50,
         null=True,
         blank=True,
-        verbose_name='کد پرونده',
-        help_text='کد پرونده را وارد کنید'
+        verbose_name='کد ملی',
+        help_text='کد ملی را وارد کنید'
     )
 
     # Timestamps

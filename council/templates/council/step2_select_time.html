@@ -4,62 +4,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>رزرو نوبت مشاوره | فرآیند کامل</title>
-    
-    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
-    
+
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"
+          type="text/css"/>
+
     <style>
         :root {
             /* --- پالت رنگی اصلی --- */
-            --primary: #0f766e;       /* سبز کله‌غازی */
+            --primary: #0f766e; /* سبز کله‌غازی */
             --primary-dark: #115e59;
-            --primary-soft: #ccfbf1;  /* سبز خیلی روشن */
+            --primary-soft: #ccfbf1; /* سبز خیلی روشن */
             --accent: #14b8a6;
-            
+
             --bg-body: #f8fafc;
             --bg-card: #ffffff;
-            
+
             --text-main: #1e293b;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
-            
+
             --radius-card: 24px;
             --radius-md: 12px;
-            
+
             --shadow-card: 0 20px 40px -5px rgba(0, 0, 0, 0.05);
         }
 
-        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        
+        * {
+            box-sizing: border-box;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             font-family: 'Vazirmatn', sans-serif;
             background-color: var(--bg-body);
             background-image: radial-gradient(circle at top right, var(--primary-soft), transparent 40%),
-                              radial-gradient(circle at bottom left, #e0f2fe, transparent 40%);
+            radial-gradient(circle at bottom left, #e0f2fe, transparent 40%);
             min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center;
-            padding: 20px 15px; color: var(--text-main); margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 15px;
+            color: var(--text-main);
+            margin: 0;
         }
 
-        .main-wrapper { width: 100%; max-width: 600px; margin: auto; display: flex; flex-direction: column; gap: 20px; }
+        .main-wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
 
         /* === هدر برندینگ === */
-        .brand-header { text-align: center; margin-bottom: 10px; }
-        .logo-container {
-            width: 64px; height: 64px; background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
-            color: var(--primary); border-radius: 20px; display: inline-flex; align-items: center; justify-content: center;
-            margin-bottom: 10px; box-shadow: 0 10px 20px -5px rgba(15, 118, 110, 0.15);
+        .brand-header {
+            text-align: center;
+            margin-bottom: 10px;
         }
-        .logo-container svg { width: 32px; height: 32px; }
-        h1 { font-size: 22px; font-weight: 900; color: var(--text-main); margin: 0 0 5px 0; }
-        
+
+        .logo-container {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
+            color: var(--primary);
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            box-shadow: 0 10px 20px -5px rgba(15, 118, 110, 0.15);
+        }
+
+        .logo-container svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--text-main);
+            margin: 0 0 5px 0;
+        }
+
         /* === کارت اصلی === */
         .wizard-card {
-            background: var(--bg-card); border-radius: var(--radius-card); padding: 30px;
-            box-shadow: var(--shadow-card); border: 1px solid rgba(255,255,255,0.8);
-            position: relative; overflow: hidden; transition: height 0.3s ease;
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: 30px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            position: relative;
+            overflow: hidden;
+            transition: height 0.3s ease;
         }
+
         .wizard-card::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
             background: linear-gradient(90deg, var(--primary), var(--accent));
         }
 
@@ -76,7 +124,9 @@
         /* خط خاکستری پس‌زمینه */
         .progress-line-bg {
             position: absolute;
-            top: 50%; left: 30px; right: 30px;
+            top: 50%;
+            left: 30px;
+            right: 30px;
             height: 3px;
             background: var(--border-color);
             transform: translateY(-50%);
@@ -87,7 +137,8 @@
         /* خط رنگی پرشونده */
         .progress-line-fill {
             position: absolute;
-            top: 50%; right: 30px; /* شروع از راست برای RTL */
+            top: 50%;
+            right: 30px; /* شروع از راست برای RTL */
             height: 3px;
             background: var(--primary);
             transform: translateY(-50%);
@@ -107,12 +158,16 @@
         }
 
         .step-circle {
-            width: 38px; height: 38px;
+            width: 38px;
+            height: 38px;
             background: var(--bg-card);
             border: 2px solid var(--border-color);
             border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
             color: var(--text-muted);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -134,19 +189,39 @@
         }
 
         /* === مدیریت نمایش مراحل === */
-        .step-content { display: none; animation: fadeIn 0.4s ease; }
-        .step-content.active { display: block; }
+        .step-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .step-content.active {
+            display: block;
+        }
 
         /* === خلاصه سرویس و دکمه بروزرسانی === */
         .service-summary {
-            background: #f0fdfa; border: 1px dashed var(--primary);
-            border-radius: var(--radius-md); padding: 12px 16px;
-            display: flex; justify-content: space-between; align-items: center;
+            background: #f0fdfa;
+            border: 1px dashed var(--primary);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 25px;
         }
-        .summary-label { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; }
-        .summary-value { font-size: 14px; font-weight: 800; color: var(--primary-dark); }
-        
+
+        .summary-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .summary-value {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--primary-dark);
+        }
+
         /* دکمه بروزرسانی جدید */
         .btn-refresh {
             background: white;
@@ -157,75 +232,351 @@
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            display: flex; align-items: center; gap: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             transition: 0.2s;
         }
-        .btn-refresh:hover { background: var(--primary); color: white; }
-        .btn-refresh.loading svg { animation: spin 1s linear infinite; }
+
+        .btn-refresh:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-refresh.loading svg {
+            animation: spin 1s linear infinite;
+        }
 
         /* === تقویم و اسلات‌ها === */
-        .date-scroll-wrapper { overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; scrollbar-width: none; }
-        .date-items-container { display: flex; gap: 10px; padding: 2px; }
-        .date-card { flex: 0 0 auto; width: 85px; height: 90px; background: white; border: 2px solid var(--border-color); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
-        .date-card.active { border-color: var(--primary); background: var(--primary); color: white; box-shadow: 0 8px 16px -4px rgba(13, 148, 136, 0.3); }
-        .date-weekday { font-size: 12px; opacity: 0.9; margin-bottom: 5px;} .date-day { font-size: 18px; font-weight: 800; } .date-month { font-size: 11px; opacity: 0.8; }
-        
-        .slots-container { background: #f8fafc; border-radius: var(--radius-md); padding: 20px; margin-bottom: 25px; min-height: 120px; }
-        .slots-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .slots-title { font-size: 13px; font-weight: 700; color: #475569; }
-        .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
-        .time-slot { padding: 10px; background: white; border: 1px solid var(--border-color); border-radius: 10px; text-align: center; font-size: 14px; font-weight: 600; color: var(--text-main); cursor: pointer; transition: all 0.2s; }
-        .time-slot.selected { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 4px 10px rgba(13, 148, 136, 0.2); }
-        .time-slot.unavailable { opacity: 0.5; background: #f1f5f9; text-decoration: line-through; cursor: not-allowed; }
+        .date-scroll-wrapper {
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            scrollbar-width: none;
+        }
+
+        .date-items-container {
+            display: flex;
+            gap: 10px;
+            padding: 2px;
+        }
+
+        .date-card {
+            flex: 0 0 auto;
+            width: 85px;
+            height: 90px;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .date-card.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 8px 16px -4px rgba(13, 148, 136, 0.3);
+        }
+
+        .date-weekday {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .date-day {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .date-month {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .slots-container {
+            background: #f8fafc;
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 25px;
+            min-height: 120px;
+        }
+
+        .slots-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .slots-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+        }
+
+        .time-slot {
+            padding: 10px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .time-slot.selected {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(13, 148, 136, 0.2);
+        }
+
+        .time-slot.unavailable {
+            opacity: 0.5;
+            background: #f1f5f9;
+            text-decoration: line-through;
+            cursor: not-allowed;
+        }
 
         /* === فرم‌ها === */
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; color: var(--text-main); }
-        .form-input { 
-            width: 100%; padding: 14px; border: 2px solid var(--border-color); border-radius: 12px; 
-            font-size: 16px; transition: 0.2s; font-family: 'Vazirmatn', sans-serif; background: #fff;
+        .form-group {
+            margin-bottom: 20px;
         }
-        .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); }
-        .ltr-input { direction: ltr; text-align: left; letter-spacing: 1px; }
-        .center-input { text-align: center; letter-spacing: 8px; font-weight: 700; font-size: 18px; }
-        
-        .otp-timer { text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 10px; }
-        .otp-timer span { color: var(--primary); font-weight: bold; }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 16px;
+            transition: 0.2s;
+            font-family: 'Vazirmatn', sans-serif;
+            background: #fff;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-soft);
+        }
+
+        .ltr-input {
+            direction: ltr;
+            text-align: left;
+            letter-spacing: 1px;
+        }
+
+        .center-input {
+            text-align: center;
+            letter-spacing: 8px;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .otp-timer {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+
+        .otp-timer span {
+            color: var(--primary);
+            font-weight: bold;
+        }
 
         /* === فاکتور === */
-        .invoice-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
-        .invoice-divider { height: 1px; background: #e2e8f0; margin: 15px 0; }
-        .timer-warning { background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c; padding: 10px; border-radius: 10px; text-align: center; font-size: 13px; font-weight: 700; margin-bottom: 20px; }
+        .invoice-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .invoice-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 15px 0;
+        }
+
+        .timer-warning {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            color: #c2410c;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
 
         /* === دکمه‌ها === */
-        .buttons-row { display: flex; gap: 12px; margin-top: 20px; }
-        .btn { padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 700; border: none; cursor: pointer; transition: 0.2s; flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-back { background: #f1f5f9; color: var(--text-muted); flex: 0.4; }
-        .btn-submit { background: var(--primary); color: white; flex: 1; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25); }
-        .btn-submit:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-2px); }
-        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; background: #94a3b8; box-shadow: none; }
-        .btn-outline { background: transparent; border: 2px solid var(--border-color); color: var(--text-muted); }
+        .buttons-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            flex: 1;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-back {
+            background: #f1f5f9;
+            color: var(--text-muted);
+            flex: 0.4;
+        }
+
+        .btn-submit {
+            background: var(--primary);
+            color: white;
+            flex: 1;
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #94a3b8;
+            box-shadow: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-muted);
+        }
 
         /* === فوتر === */
-        .legal-footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; width: 100%; }
-        .footer-links { display: flex; justify-content: center; gap: 15px; margin-bottom: 12px; }
-        .footer-links a { font-size: 12px; color: var(--text-muted); text-decoration: none; }
-        .copyright-text { font-size: 11px; color: #94a3b8; }
-        .alert-box { background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #fecaca; text-align: center; }
+        .legal-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            width: 100%;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
 
-        @media (max-width: 600px) { .wizard-card { padding: 20px; } .date-card { width: 75px; height: 80px; } .slots-grid { grid-template-columns: repeat(4, 1fr); } .buttons-row { flex-direction: column-reverse; } .btn { width: 100%; } }
+        .footer-links a {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        .copyright-text {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .alert-box {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #fecaca;
+            text-align: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .wizard-card {
+                padding: 20px;
+            }
+
+            .date-card {
+                width: 75px;
+                height: 80px;
+            }
+
+            .slots-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .buttons-row {
+                flex-direction: column-reverse;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
 
 <div class="main-wrapper">
-    
+
     <div class="brand-header">
         <div class="logo-container">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M8 11h8"/><path d="M12 7v8"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="M8 11h8"/>
+                <path d="M12 7v8"/>
+            </svg>
         </div>
         <h1>رزرو نوبت مشاوره</h1>
     </div>
@@ -234,7 +585,7 @@
         <div class="progress-header">
             <div class="progress-line-bg"></div>
             <div class="progress-line-fill" id="progress-fill"></div>
-            
+
             <div class="step-item active" id="step-ind-1">
                 <div class="step-circle">1</div>
             </div>
@@ -258,8 +609,13 @@
                     <span class="summary-label">خدمت انتخاب شده:</span>
                     <span class="summary-value">{{ service_type.name }}</span>
                 </div>
-                <button type="button" id="refresh-slots-btn" data-service-id="{{ service_type.id }}" class="btn-refresh">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <button type="button" id="refresh-slots-btn" data-service-id="{{ service_type.id }}"
+                        class="btn-refresh">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
                     <span>بروزرسانی</span>
                 </button>
             </div>
@@ -269,7 +625,7 @@
                     <p>متأسفانه نوبتی برای ۳۰ روز آینده یافت نشد.</p>
                 </div>
             {% else %}
-                <form id="select-slot-form" onsubmit="return false;"> 
+                <form id="select-slot-form" onsubmit="return false;">
                     {% csrf_token %}
                     <input type="hidden" name="time_slot_id" id="selected-time-slot-id" value="">
 
@@ -278,7 +634,7 @@
                             {% for date_key, data in slots_by_date.items %}
                                 <div class="date-card date-btn" data-date-key="{{ date_key }}">
                                     <span class="date-weekday">{{ data.weekday }}</span>
-                                    <span class="date-day">{{ data.day }}</span> 
+                                    <span class="date-day">{{ data.day }}</span>
                                     <span class="date-month" style="font-size:10px;">{{ data.jalali_str }}</span>
                                 </div>
                             {% endfor %}
@@ -299,9 +655,14 @@
 
                     <div class="buttons-row">
                         <a href="{% url 'council:step1_initial' %}" class="btn btn-back">بازگشت</a>
-                        <button type="button" class="btn btn-submit" id="submit-btn-step1" disabled onclick="goToStep(2)">
+                        <button type="button" class="btn btn-submit" id="submit-btn-step1" disabled
+                                onclick="goToStep(2)">
                             تایید و ادامه
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                            </svg>
                         </button>
                     </div>
                 </form>
@@ -316,7 +677,7 @@
                 </div>
                 <div style="color:var(--primary); font-weight:bold;">✓</div>
             </div>
-            
+
             <div id="phone-entry-section">
                 <div class="form-group">
                     <label class="form-label">شماره موبایل جهت رزرو:</label>
@@ -331,10 +692,11 @@
             <div id="otp-entry-section" style="display:none;">
                 <div class="form-group">
                     <label class="form-label">کد 6 رقمی پیامک شده:</label>
-                    <input type="tel" id="otp-input" class="form-input center-input" maxlength="6" placeholder="- - - - - -">
+                    <input type="tel" id="otp-input" class="form-input center-input" maxlength="6"
+                           placeholder="- - - - - -">
                 </div>
                 <div class="otp-timer">ارسال مجدد کد تا: <span id="otp-timer-display">01:59</span></div>
-                
+
                 <div class="buttons-row">
                     <button class="btn btn-outline" onclick="resetPhoneEntry()">تغییر شماره</button>
                     <button class="btn btn-submit" onclick="verifyOtpLogic()">بررسی و ادامه</button>
@@ -376,7 +738,10 @@
                 <button class="btn btn-back" onclick="goToStep(2)">بازگشت</button>
                 <button class="btn btn-submit" style="background:#15803d;" onclick="finalizeReservation(event)">
                     انتقال به درگاه
-                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                    </svg>
                 </button>
             </div>
         </div>
@@ -421,7 +786,7 @@
     const slotsContainer = document.getElementById('slots-container');
     const submitBtnStep1 = document.getElementById('submit-btn-step1');
     const availableCountEl = document.getElementById('available-count');
-    
+
     let selectedSlotId = null;
     let selectedTimeText = "";
     let otpTimerInterval = null;
@@ -443,7 +808,7 @@
             const el = document.createElement('div');
             el.className = `time-slot ${!slot.is_available ? 'unavailable' : ''}`;
             el.textContent = slot.start_time;
-            
+
             if (slot.is_available) {
                 el.onclick = () => {
                     document.querySelectorAll('.time-slot.selected').forEach(i => i.classList.remove('selected'));
@@ -467,7 +832,7 @@
         });
     });
 
-    if(dateButtons.length > 0) dateButtons[0].click();
+    if (dateButtons.length > 0) dateButtons[0].click();
 
     // --- ۳. توابع کمکی AJAX ---
     async function postData(fd) {
@@ -500,15 +865,18 @@
             const result = await postData(fd);
             if (result.success) goToStep(2);
             else alert(result.message || "خطا در ثبت نوبت");
-        } catch (e) { alert("خطای شبکه"); }
-        finally { setLoading(submitBtnStep1, false, 'تایید و ادامه'); }
+        } catch (e) {
+            alert("خطای شبکه");
+        } finally {
+            setLoading(submitBtnStep1, false, 'تایید و ادامه');
+        }
     }
 
     // --- ۵. عملیات مرحله دوم: ارسال OTP ---
     async function sendOtpLogic() {
         const phone = document.getElementById('phone-input').value;
         const btn = event.target;
-        if(!/^09\d{9}$/.test(phone)) return alert('شماره موبایل معتبر نیست');
+        if (!/^09\d{9}$/.test(phone)) return alert('شماره موبایل معتبر نیست');
 
         setLoading(btn, true, '');
         const fd = new FormData();
@@ -522,15 +890,18 @@
                 document.getElementById('otp-entry-section').style.display = 'block';
                 startOtpTimer(120);
             } else alert(result.message);
-        } catch (e) { alert("خطا در ارسال"); }
-        finally { setLoading(btn, false, 'ارسال کد تایید'); }
+        } catch (e) {
+            alert("خطا در ارسال");
+        } finally {
+            setLoading(btn, false, 'ارسال کد تایید');
+        }
     }
 
     // --- ۶. عملیات مرحله دوم: تایید OTP و دریافت دیتای گام ۴ (Review) ---
     async function verifyOtpLogic() {
         const otp = document.getElementById('otp-input').value;
         const btn = event.target;
-        if(otp.length < 4) return alert('کد تایید ناقص است');
+        if (otp.length < 4) return alert('کد تایید ناقص است');
 
         setLoading(btn, true, '');
         const fd = new FormData();
@@ -545,18 +916,21 @@
 
                 // ۱. نمایش نام متقاضی (که از سشن خوانده شده)
                 const nameEl = document.getElementById('final-name-display');
-                if(nameEl) nameEl.textContent = data.full_name;
-                
+                if (nameEl) nameEl.textContent = data.full_name;
+
                 document.getElementById('final-phone-display').textContent = data.phone;
                 document.getElementById('final-time-display').textContent = `${data.date} | ساعت ${data.time}`;
                 // اگر المان نام متقاضی دارید:
                 const priceEl = document.getElementById('final-price-display');
-                if(priceEl) priceEl.textContent = data.price + " ریال"; // یا تومان
-                
+                if (priceEl) priceEl.textContent = data.price + " ریال"; // یا تومان
+
                 goToStep(3); // نمایش گام آخر (Review)
             } else alert(result.message || "کد اشتباه است");
-        } catch (e) { alert("خطا در تایید هویت"); }
-        finally { setLoading(btn, false, 'بررسی و ادامه'); }
+        } catch (e) {
+            alert("خطا در تایید هویت");
+        } finally {
+            setLoading(btn, false, 'بررسی و ادامه');
+        }
     }
 
     // --- ۷. عملیات نهایی: ثبت و انتقال به درگاه ---
@@ -571,8 +945,11 @@
             if (result.success) {
                 window.location.href = result.payment_url;
             } else alert(result.message);
-        } catch (e) { alert("خطا در ثبت نهایی"); }
-        finally { setLoading(btn, false, 'انتقال به درگاه'); }
+        } catch (e) {
+            alert("خطا در ثبت نهایی");
+        } finally {
+            setLoading(btn, false, 'انتقال به درگاه');
+        }
     }
 
     // --- ۸. مدیریت مراحل و تایمرها ---
@@ -590,12 +967,17 @@
     }
 
     function updateStepper(step) {
-        for(let i=1; i<=3; i++) {
+        for (let i = 1; i <= 3; i++) {
             const el = document.getElementById(`step-ind-${i}`);
             const circle = el.querySelector('.step-circle');
             el.classList.remove('active', 'completed');
-            if (i < step) { el.classList.add('completed'); circle.innerHTML = '✓'; }
-            else if (i === step) { el.classList.add('active'); circle.innerHTML = i; }
+            if (i < step) {
+                el.classList.add('completed');
+                circle.innerHTML = '✓';
+            } else if (i === step) {
+                el.classList.add('active');
+                circle.innerHTML = i;
+            }
         }
         document.getElementById('progress-fill').style.width = `${(step - 1) * 50}%`;
     }
@@ -603,11 +985,14 @@
     function startOtpTimer(duration) {
         let timer = duration;
         const display = document.getElementById('otp-timer-display');
-        if(otpTimerInterval) clearInterval(otpTimerInterval);
+        if (otpTimerInterval) clearInterval(otpTimerInterval);
         otpTimerInterval = setInterval(() => {
             let m = Math.floor(timer / 60), s = timer % 60;
-            display.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-            if (--timer < 0) { clearInterval(otpTimerInterval); display.textContent = "منقضی شد"; }
+            display.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            if (--timer < 0) {
+                clearInterval(otpTimerInterval);
+                display.textContent = "منقضی شد";
+            }
         }, 1000);
     }
 
@@ -615,7 +1000,7 @@
         const display = document.getElementById('payment-timer');
         const timer = setInterval(() => {
             let m = Math.floor(duration / 60), s = duration % 60;
-            display.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            display.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             if (--duration < 0) {
                 clearInterval(timer);
                 alert('زمان رزرو به پایان رسید.');
@@ -627,7 +1012,7 @@
     function resetPhoneEntry() {
         document.getElementById('otp-entry-section').style.display = 'none';
         document.getElementById('phone-entry-section').style.display = 'block';
-        if(otpTimerInterval) clearInterval(otpTimerInterval);
+        if (otpTimerInterval) clearInterval(otpTimerInterval);
     }
 
     // Bindings
@@ -1059,6 +1444,6 @@
         }, 1000);
     }
 </script> -->
-
+*/
 </body>
 </html>

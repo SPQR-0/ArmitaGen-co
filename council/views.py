@@ -36,13 +36,12 @@ def login_user_for_24h(request, user):
 
 class ReservationStep1View(View):
     """
-    Step 1: Initial form - collect basic info and service type
+    Step 1: Initial form - collect basic info and service type (WITHOUT phone number)
     """
     template_name = 'council/step1_initial_form.html'
     service = ReservationService()
 
     def get(self, request):
-
         form = ReservationStepOneForm()
         service_types, consultation_topics = self.service.get_step_one_data(request)
 
@@ -68,8 +67,6 @@ class ReservationStep1View(View):
         }
         return render(request, self.template_name, context)
 
-    # In ReservationStep1View.post() method - COMPLETE replacement:
-
     def post(self, request):
         form = ReservationStepOneForm(request.POST, request.FILES)
 
@@ -84,7 +81,7 @@ class ReservationStep1View(View):
                 request=request,
                 metadata={
                     'full_name': form.cleaned_data['full_name'],
-                    'phone_number': form.cleaned_data['phone_number'],
+                    # phone_number removed from here
                     'service_type': form.cleaned_data['service_type'].name,
                     'has_prescription': bool(form.cleaned_data.get('prescription')),
                     'step': 1
@@ -117,15 +114,15 @@ class ReservationStep1View(View):
                 # Save file
                 prescription_path = default_storage.save(relative_path, prescription_file)
 
-            # Store data in session
+            # Store data in session (WITHOUT phone_number)
             request.session['reservation_data'] = {
                 'full_name': form.cleaned_data['full_name'],
-                'phone_number': form.cleaned_data['phone_number'],
+                # phone_number removed from here - will be added in step 2
                 'service_type_id': form.cleaned_data['service_type'].id,
                 'consultation_topic_id': form.cleaned_data.get('consultation_topic').id if form.cleaned_data.get(
                     'consultation_topic') else None,
                 'message': form.cleaned_data.get('message', ''),
-                'prescription_path': prescription_path,  # Store the path in session
+                'prescription_path': prescription_path,
             }
 
             messages.success(request, '✓ اطلاعات شما ثبت شد. لطفاً زمان مشاوره را انتخاب کنید.')
@@ -145,6 +142,7 @@ class ReservationStep1View(View):
 class ReservationStep2View(ExpiredSlotCleanupMixin, ReservationFlowMixin, View):
     """
     Step 2: Unified view for Slot Selection, OTP Verification, and Invoice Review.
+    Phone number is collected HERE when user requests OTP.
     """
     template_name = 'council/step2_select_time.html'
     service = ReservationService()
@@ -175,7 +173,7 @@ class ReservationStep2View(ExpiredSlotCleanupMixin, ReservationFlowMixin, View):
             'service_type': service_type,
             'slots_by_date': slots_by_date,
             'reservation_data': reservation_data,
-            'step': 2  # مقدار ثابت برای نمایش در ایندیکیتور
+            'step': 2
         }
         return render(request, self.template_name, context)
 
@@ -186,7 +184,7 @@ class ReservationStep2View(ExpiredSlotCleanupMixin, ReservationFlowMixin, View):
         if action == 'select_slot':
             return self._handle_select_slot(request)
 
-        # ۲. اکشن ارسال کد تایید (Send OTP)
+        # ۲. اکشن ارسال کد تایید (Send OTP) - NOW with phone number collection
         elif action == 'send_otp':
             return self._handle_send_otp(request)
 
@@ -194,7 +192,7 @@ class ReservationStep2View(ExpiredSlotCleanupMixin, ReservationFlowMixin, View):
         elif action == 'verify_otp':
             return self._handle_verify_otp(request)
 
-        # ۴. اکشن جدید: نهایی سازی و رفتن به درگاه (که فعلا بای‌پس می‌شود)
+        # ۴. اکشن جدید: نهایی سازی و رفتن به درگاه
         elif action == 'finalize_booking':
             return self._handle_finalize_booking(request)
 
@@ -223,18 +221,45 @@ class ReservationStep2View(ExpiredSlotCleanupMixin, ReservationFlowMixin, View):
             return JsonResponse({'success': False, 'message': str(e)})
 
     def _handle_send_otp(self, request):
+        """
+        UPDATED: Now collects phone number from POST data and saves it to session
+        """
         phone_number = request.POST.get('phone_number')
 
+        # اعتبارسنجی شماره تلفن
         if not phone_number:
             return JsonResponse({'success': False, 'message': 'شماره تلفن الزامی است.'})
 
-        # فراخوانی سرویس برای تولید و ارسال کد
+        # اعتبارسنجی فرمت شماره (اختیاری - می‌توانید پیچیده‌تر کنید)
+        if not phone_number.startswith('09') or len(phone_number) != 11:
+            return JsonResponse({'success': False, 'message': 'لطفاً شماره موبایل معتبر وارد کنید (مثال: 09123456789)'})
+
         try:
+            # ارسال کد OTP
             otp_instance = OTPService.generate_and_send_otp(phone_number)
 
             if otp_instance:
+                # ذخیره شماره تلفن در session برای استفاده در مرحله بعد
                 request.session['temp_phone_number'] = phone_number
+
+                # همچنین شماره را به reservation_data اضافه کنید
+                res_data = request.session.get('reservation_data', {})
+                res_data['phone_number'] = phone_number
+                request.session['reservation_data'] = res_data
+
                 request.session.modified = True
+
+                # لاگ ارسال OTP
+                log_activity(
+                    user=request.user if request.user.is_authenticated else None,
+                    session_key=request.session.session_key if not request.user.is_authenticated else None,
+                    action_type='otp_sent',
+                    description=f'ارسال کد تایید به شماره {phone_number}',
+                    severity='info',
+                    request=request,
+                    metadata={'phone_number': phone_number, 'step': 2}
+                )
+
                 return JsonResponse({
                     'success': True,
                     'message': 'کد تایید با موفقیت ارسال شد.'
@@ -253,38 +278,55 @@ class ReservationStep2View(ExpiredSlotCleanupMixin, ReservationFlowMixin, View):
             })
 
     def _handle_verify_otp(self, request):
+        """
+        UPDATED: Uses phone number from session (saved in _handle_send_otp)
+        """
         otp_code = request.POST.get('otp_code')
         phone_number = request.session.get('temp_phone_number')
 
-        # ۱. واکشی اطلاعات مرحله اول (نام متقاضی) از سشن
+        # بررسی اینکه شماره تلفن در سشن موجود است
+        if not phone_number:
+            return JsonResponse({'success': False, 'message': 'ابتدا شماره تلفن خود را وارد کرده و کد را دریافت کنید.'})
+
+        # واکشی اطلاعات مرحله اول (نام متقاضی) از سشن
         res_data = request.session.get('reservation_data', {})
         applicant_name = res_data.get('full_name', 'مهمان')
 
-        # ۲. بررسی واقعی کد تایید با استفاده از سرویس OTPService
+        # بررسی واقعی کد تایید با استفاده از سرویس OTPService
         from .services.otp_service import OTPService
         otp_instance = OTPService.verify_otp_code(phone_number, otp_code)
 
         if otp_instance:
-            # ۳. تایید موفق: ایجاد یا بروزرسانی کاربر در دیتابیس
+            # تایید موفق: ایجاد یا بروزرسانی کاربر در دیتابیس
             user = OTPService.create_or_update_user(
                 phone_number=phone_number,
                 full_name=applicant_name,
                 otp_instance=otp_instance
             )
 
-            # ۴. بروزرسانی اطلاعات سشن
+            # بروزرسانی اطلاعات سشن با شماره تلفن تایید شده
             res_data['phone_number'] = phone_number
             request.session['reservation_data'] = res_data
             request.session['step_two_completed'] = True
             request.session.modified = True
 
-            # ۵. واکشی اطلاعات اسلات و قیمت داینامیک (بهینه شده)
+            # لاگ تایید موفق
+            log_activity(
+                user=user,
+                action_type='otp_verified',
+                description=f'تایید موفق کد OTP برای شماره {phone_number}',
+                severity='info',
+                request=request,
+                metadata={'phone_number': phone_number, 'user_id': user.id, 'step': 2}
+            )
+
+            # واکشی اطلاعات اسلات و قیمت داینامیک
             slot_id = request.session.get('selected_time_slot_id')
             try:
                 time_slot = TimeSlot.objects.select_related('service_type').get(id=slot_id)
                 formatted_price = "{:,}".format(time_slot.service_type.price)
 
-                # ۶. ارسال دیتای نهایی به فرانت‌اِند برای گام Review
+                # ارسال دیتای نهایی به فرانت‌اِند برای گام Review
                 return JsonResponse({
                     'success': True,
                     'message': 'هویت تایید شد',
@@ -302,10 +344,21 @@ class ReservationStep2View(ExpiredSlotCleanupMixin, ReservationFlowMixin, View):
 
         else:
             # اگر کد اشتباه یا منقضی بود
+            log_activity(
+                user=request.user if request.user.is_authenticated else None,
+                session_key=request.session.session_key,
+                action_type='otp_failed',
+                description=f'کد OTP اشتباه برای شماره {phone_number}',
+                severity='warning',
+                request=request,
+                metadata={'phone_number': phone_number, 'step': 2}
+            )
             return JsonResponse({'success': False, 'message': 'کد وارد شده اشتباه است یا منقضی شده است.'})
 
-    # ۵. هندلر نهایی سازی (از کامنت خارج شده و تکمیل شده) ✅
     def _handle_finalize_booking(self, request):
+        """
+        UPDATED: Now properly handles phone number from session
+        """
         # بررسی اینکه کاربر مرحله قبل (OTP) را رد کرده باشد
         if not request.session.get('step_two_completed'):
             return JsonResponse({'success': False, 'message': 'لطفاً ابتدا مراحل تایید هویت را تکمیل کنید.'})
@@ -315,12 +368,24 @@ class ReservationStep2View(ExpiredSlotCleanupMixin, ReservationFlowMixin, View):
                 # دریافت اطلاعات از سشن
                 res_data = request.session.get('reservation_data')
                 slot_id = request.session.get('selected_time_slot_id')
-                phone_number = res_data.get('phone_number') or request.session.get('temp_phone_number')
 
-                # پیدا کردن کاربر
-                user = User.objects.get(phone=phone_number)
+                # شماره تلفن حالا در reservation_data ذخیره شده است
+                phone_number = res_data.get('phone_number')
 
-                # ساخت رزرو واقعی (با فرض وجود متد finalize_reservation در سرویس شما)
+                if not phone_number:
+                    # fallback به temp_phone_number اگر به هر دلیلی در reservation_data نبود
+                    phone_number = request.session.get('temp_phone_number')
+
+                if not phone_number:
+                    return JsonResponse({'success': False, 'message': 'شماره تلفن یافت نشد. لطفاً مجدداً امتحان کنید.'})
+
+                # پیدا کردن کاربر با شماره تلفن
+                try:
+                    user = User.objects.get(phone=phone_number)
+                except User.DoesNotExist:
+                    return JsonResponse({'success': False, 'message': 'کاربر یافت نشد. لطفاً مجدداً وارد شوید.'})
+
+                # ساخت رزرو واقعی
                 reservation = self.service.finalize_reservation(
                     user=user,
                     reservation_data=res_data,
@@ -331,15 +396,27 @@ class ReservationStep2View(ExpiredSlotCleanupMixin, ReservationFlowMixin, View):
                 fake_payment = Payment.objects.create(
                     reservation=reservation,
                     amount=reservation.service_type.price,
-                    status='success',  # مهم: وضعیت موفق
-                    # transaction_id=f"MOCK-{uuid.uuid4().hex[:8].upper()}",
-                    # gateway_name='پرداخت تستی (لوکال)'
+                    status='success',
                 )
 
                 # تغییر وضعیت رزرو
                 reservation.payment_status = 'paid'
                 reservation.status = 'phone_verified'
                 reservation.save()
+
+                # لاگ نهایی‌سازی رزرو
+                log_activity(
+                    user=user,
+                    action_type='reservation_completed',
+                    description=f'رزرو با کد پیگیری {reservation.tracking_code} تکمیل شد',
+                    severity='info',
+                    request=request,
+                    metadata={
+                        'reservation_id': reservation.id,
+                        'tracking_code': reservation.tracking_code,
+                        'phone_number': phone_number
+                    }
+                )
 
                 # پاکسازی سشن
                 keys_to_remove = ['reservation_data', 'selected_time_slot_id', 'temp_phone_number',
@@ -358,7 +435,16 @@ class ReservationStep2View(ExpiredSlotCleanupMixin, ReservationFlowMixin, View):
                 })
 
         except Exception as e:
-            print(f"Finalize Error: {e}")  # لاگ خطا در کنسول
+            print(f"Finalize Error: {e}")
+            log_activity(
+                user=request.user if request.user.is_authenticated else None,
+                session_key=request.session.session_key,
+                action_type='reservation_error',
+                description=f'خطا در نهایی‌سازی رزرو: {str(e)}',
+                severity='error',
+                request=request,
+                metadata={'error': str(e)}
+            )
             return JsonResponse({'success': False, 'message': f'خطا در ثبت نهایی: {str(e)}'})
 
 

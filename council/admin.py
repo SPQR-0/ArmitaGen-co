@@ -1421,7 +1421,7 @@ class ReservationAdminForm(forms.ModelForm):
         if "sepas_code" in self.fields:
             self.fields["sepas_code"].widget.attrs.update({
                 "style": "font-size:16px; font-weight:800; padding:10px; border:2px solid #f59e0b; border-radius:10px;",
-                "placeholder": "کد پرونده را وارد کنید…",
+                "placeholder": "کد ملی را وارد کنید…",
             })
             self.fields["sepas_code"].help_text = "⚠️ ضروری: اگر خالی است حتماً وارد کنید."
 
@@ -1437,15 +1437,18 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         'phone_number',
         'service_type',
         'consultation_topic_display',
+        'counselor_gender_badge',  
         'slot_info',
         'status_badge',
         'payment_badge',
         'sepas_badge',
         'get_jalali_reserve_date',
     ]
+
     list_filter = [
         'status',
         'payment_status',
+        'counselor_gender',  
         'service_type',
         'consultation_topic',
         JalaliDateFilter,
@@ -1453,6 +1456,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         ('time_slot__date', admin.DateFieldListFilter),
         'created_at',
     ]
+
     search_fields = [
         'tracking_code',
         'phone_number',
@@ -1462,6 +1466,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         'user__phone',
         'user__full_name'
     ]
+
     readonly_fields = [
         'tracking_code',
         'phone_verified_at',
@@ -1470,8 +1475,10 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         'updated_at',
         'prescription_preview',
     ]
+
     list_display_links = ['row_number', 'full_name_display']
     date_hierarchy = 'time_slot__date'
+
     actions = [
         'mark_as_completed',
         'mark_as_cancelled',
@@ -1480,15 +1487,17 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         'export_selected_pdf_admin',
         'export_selected_pdf_user',
     ]
+
     form = ReservationAdminForm
 
     fieldsets = (
-        ('کد پرونده', {
+        ('کد ملی', {
             'fields': ('sepas_code',),
-            'description': '<strong style="color: #FF9130;">⚠️ مهم: کد پرونده را وارد کنید</strong>',
+            'description': '<strong style="color: #FF9130;">⚠️ مهم: کد ملی را وارد کنید</strong>',
         }),
         ('اطلاعات رزرو', {
-            'fields': ('tracking_code', 'service_type', 'time_slot', 'consultation_topic')
+            'fields': ('tracking_code', 'service_type', 'time_slot', 'consultation_topic', 'counselor_gender')
+            
         }),
         ('اطلاعات تماس', {
             'fields': (
@@ -1514,6 +1523,39 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         }),
     )
 
+    # 🆕 متد نمایش badge جنسیت مشاور
+    def counselor_gender_badge(self, obj):
+        """Display counselor gender preference with icon and badge"""
+        colors = {
+            'male': '#3b82f6',  # آبی
+            'female': '#ec4899',  # صورتی
+            'no_preference': '#6b7280',  # خاکستری
+        }
+
+        icons = {
+            'male': '👨‍⚕️',
+            'female': '👩‍⚕️',
+            'no_preference': '',
+        }
+
+        color = colors.get(obj.counselor_gender, '#6b7280')
+        icon = icons.get(obj.counselor_gender, '')
+
+        return format_html(
+            '<span style="background: {}; color: white; padding: 4px 10px; '
+            'border-radius: 12px; font-size: 11px; font-weight: 600; '
+            'display: inline-flex; align-items: center; gap: 4px;">'
+            '<span>{}</span>'
+            '<span>{}</span>'
+            '</span>',
+            color,
+            icon,
+            obj.get_counselor_gender_display()
+        )
+
+    counselor_gender_badge.short_description = 'جنسیت مشاور'
+    counselor_gender_badge.admin_order_field = 'counselor_gender'
+
     @admin.action(description='📗 خروجی اکسل رزروها (Excel)')
     def export_reservations_excel(self, request, queryset):
         """Export Reservations as styled Excel (.xlsx) including payment+slot+sepas info"""
@@ -1537,12 +1579,13 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         headers = [
             'شناسه',
             'کد پیگیری',
-            'کد پرونده',
+            'کد ملی',
             'نام و نام خانوادگی',
             'شماره تماس',
             'ایمیل',
             'نوع مشاوره',
             'عنوان مشاوره',
+            'جنسیت مشاور',  
             'تاریخ نوبت (جلالی)',
             'روز هفته',
             'بازه زمانی نوبت',
@@ -1604,12 +1647,17 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             paid_at = datetime2jalali(success_pay.paid_at) if success_pay and success_pay.paid_at else "-"
 
             # Status displays
-            status_display = res.get_status_display() if hasattr(res, "get_status_display") else getattr(res, "status", "-")
+            status_display = res.get_status_display() if hasattr(res, "get_status_display") else getattr(res, "status",
+                                                                                                         "-")
             payment_display = (
                 res.get_payment_status_display()
                 if hasattr(res, "get_payment_status_display")
                 else getattr(res, "payment_status", "-")
             )
+
+            # 🆕 نمایش جنسیت مشاور
+            counselor_gender_display = res.get_counselor_gender_display() if hasattr(res,
+                                                                                     "get_counselor_gender_display") else "-"
 
             row = [
                 res.id,
@@ -1620,6 +1668,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
                 res.email or "-",
                 res.service_type.name if res.service_type else "-",
                 res.consultation_topic.name if getattr(res, "consultation_topic", None) else "-",
+                counselor_gender_display,  
                 jalali_slot_date,
                 weekday_fa,
                 time_range,
@@ -1662,7 +1711,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
         # Only show warning on GET to avoid repeated messages
         if obj and request.method == "GET" and not getattr(obj, "sepas_code", None):
-            messages.warning(request, "⚠️ کد پرونده وارد نشده است. لطفاً کد را وارد کنید.")
+            messages.warning(request, "⚠️ کد ملی وارد نشده است. لطفاً کد را وارد کنید.")
 
         return super().change_view(request, object_id, form_url, extra_context)
 
@@ -1675,7 +1724,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             )
         return format_html('<span style="color: #999;">—</span>')
 
-    sepas_badge.short_description = 'کد پرونده'
+    sepas_badge.short_description = 'کد ملی'
 
     @admin.action(description='📥 خروجی CSV رزروها')
     def export_reservations_csv(self, request, queryset):
@@ -1685,23 +1734,22 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
         writer = csv.writer(response, delimiter=',', quoting=csv.QUOTE_MINIMAL)
 
-        # CSV Header
+        # CSV Header (با اضافه کردن جنسیت مشاور)
         writer.writerow([
             'شناسه',
             'نام و نام خانوادگی',
             'شماره تماس',
             'کد پیگیری',
-            'کد پرونده',
+            'کد ملی',
             'نوع مشاوره',
             'عنوان مشاوره',
+            'جنسیت مشاور',  
             'تاریخ نوبت',
             'بازه زمانی نوبت',
             'روز نوبت',
             'وضعیت پرداخت',
             'تاریخ و زمان رزرو نوبت',
         ])
-
-
 
         def date2jalali(date_obj):
             if not date_obj:
@@ -1729,8 +1777,13 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
                 time_range = "-"
                 weekday = "-"
 
-            payment_status = res.get_payment_status_display() if hasattr(res, 'get_payment_status_display') else res.payment_status
+            payment_status = res.get_payment_status_display() if hasattr(res,
+                                                                         'get_payment_status_display') else res.payment_status
             booking_time = datetime2jalali(res.reserved_at)
+
+            # 🆕 جنسیت مشاور
+            counselor_gender = res.get_counselor_gender_display() if hasattr(res,
+                                                                             'get_counselor_gender_display') else "-"
 
             writer.writerow([
                 res.id,
@@ -1740,6 +1793,7 @@ class ReservationAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
                 res.sepas_code or "-",
                 res.service_type.name if res.service_type else "-",
                 res.consultation_topic.name if res.consultation_topic else "-",
+                counselor_gender,  
                 jalali_date,
                 time_range,
                 weekday,

@@ -9,7 +9,7 @@ urlpatterns = [
     path('info/', views.InfoView.as_view(), name='info'),  # Info Page
     # Step 1: Initial form
     path('consultation/', views.ReservationStep1View.as_view(), name='step1_initial'),
-    # path('con/', views.ReservationStep1View.as_view(), name='con'),  # Alias
+    path('con/', views.ReservationStep1View.as_view(), name='con'),  # Alias
 
     # Step 2: Select time
     path('select-time/', views.ReservationStep2View.as_view(), name='step2_select_time'),

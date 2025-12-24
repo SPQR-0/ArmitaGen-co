@@ -302,54 +302,58 @@
         <form method="post" enctype="multipart/form-data" id="wizardForm">
             {% csrf_token %}
 
+            <!-- ========== مرحله 1: انتخاب سرویس ========== -->
             <div class="step-content active" data-step="1">
                 <div class="section-title">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
                     نوع مشاوره را انتخاب کنید
                 </div>
-                
+
                 <select name="{{ form.service_type.name }}" id="id_service_type" class="hidden">
                     <option value="">انتخاب...</option>
                     {% for x, y in form.fields.service_type.choices %}
                         <option value="{{ x }}" {% if form.service_type.value == x %}selected{% endif %}>{{ y }}</option>
                     {% endfor %}
                 </select>
-                
+
                 <div class="service-list" id="service-container"></div>
                 <div class="error-msg" id="err-step-1">لطفاً یک گزینه را انتخاب کنید.</div>
             </div>
 
+            <!-- ========== مرحله 2: اطلاعات فردی (بدون شماره موبایل) ========== -->
             <div class="step-content" data-step="2">
                 <div class="section-title">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                     اطلاعات تماس
                 </div>
-                
+
                 <div class="form-group">
                     <label>نام و نام خانوادگی *</label>
                     {{ form.full_name }}
                     <div class="error-msg" id="err-name">این فیلد الزامی است.</div>
                 </div>
-                <div class="form-group">
-                    <label>شماره تماس *</label>
-                    {{ form.phone_number }}
-                    <div class="error-msg" id="err-phone">شماره تماس الزامی است.</div>
-                </div>
+
+                <!-- ✅ فیلد شماره موبایل حذف شد - در مرحله 2 (انتخاب زمان) گرفته می‌شود -->
+
+{#                <div style="background: #fef3c7; padding: 12px; border-radius: 10px; font-size: 12px; color: #92400e; text-align: center; margin-top: 15px;">#}
+{#                    💡 شماره موبایل شما در مرحله بعد (انتخاب زمان) درخواست می‌شود#}
+{#                </div>#}
             </div>
 
+            <!-- ========== مرحله 3: مدارک و جزئیات ========== -->
             <div class="step-content" data-step="3">
                 <div class="section-title">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    جزئیات تکمیلی (اختیاری)
+                    جزئیات تکمیلی
                 </div>
-                
+
                 <div class="form-group">
                     <label>عنوان مشاوره</label>
                     <div class="input-wrapper">
                         {{ form.consultation_topic }}
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label>توضیحات و سوابق</label>
                     {{ form.message }}
@@ -376,7 +380,7 @@
             </div>
 
             <div class="track-link">
-                قبلاً نوبت رزرو کرده‌اید؟ <a href="{% url 'council:step2_select_time' %}">پیگیری نوبت</a>
+                قبلاً نوبت رزرو کرده‌اید؟ <a href="#">پیگیری نوبت</a>
             </div>
         </form>
     </div>
@@ -435,41 +439,51 @@ document.addEventListener("DOMContentLoaded", function () {
     function changeStep(step) {
         document.querySelector(`.step-content[data-step="${currentStep}"]`).classList.remove('active');
         document.querySelector(`.step-content[data-step="${step}"]`).classList.add('active');
-        
+
         // آپدیت نوار پیشرفت
         const oldInd = document.getElementById(`step-ind-${currentStep}`);
         const newInd = document.getElementById(`step-ind-${step}`);
-        
+
         oldInd.classList.remove('active');
         if(step > currentStep) oldInd.classList.add('completed');
-        
+
         newInd.classList.add('active');
         newInd.classList.remove('completed');
-        
+
         // مدیریت دکمه‌ها
         btnPrev.style.display = step === 1 ? 'none' : 'block';
         btnNext.textContent = step === totalSteps ? 'ثبت و انتخاب زمان' : 'مرحله بعد';
-        
+
         currentStep = step;
     }
 
     function validate(step) {
         let valid = true;
+
+        // ✅ اعتبارسنجی مرحله 1: انتخاب سرویس
         if(step === 1 && !realSelect.value) {
-            document.getElementById('err-step-1').style.display = 'block'; valid = false;
+            document.getElementById('err-step-1').style.display = 'block';
+            valid = false;
         }
+
+        // ✅ اعتبارسنجی مرحله 2: فقط نام (شماره موبایل حذف شد)
         if(step === 2) {
-            // چک کردن ساده نام و تلفن
             const name = document.querySelector('[name="{{ form.full_name.name }}"]').value;
-            const phone = document.querySelector('[name="{{ form.phone_number.name }}"]').value;
-            if(!name) { document.getElementById('err-name').style.display = 'block'; valid = false; }
-            if(!phone) { document.getElementById('err-phone').style.display = 'block'; valid = false; }
+
+            if(!name || name.trim() === '') {
+                document.getElementById('err-name').style.display = 'block';
+                valid = false;
+            } else {
+                document.getElementById('err-name').style.display = 'none';
+            }
         }
+
+        // مرحله 3: همه اختیاری - نیاز به اعتبارسنجی نیست
+
         return valid;
     }
 
-    // 3. اعمال استایل به تمام اینپوت‌ها (شامل فیلد عنوان مشاوره)
-    // این قطعه کد مشکل فیلد مرحله 3 را حل می‌کند
+    // 3. اعمال استایل به تمام اینپوت‌ها
     const allInputs = document.querySelectorAll('input[type="text"], input[type="tel"], textarea, select:not(.hidden)');
     allInputs.forEach(el => {
         el.classList.add('custom-input');
@@ -482,6 +496,13 @@ document.addEventListener("DOMContentLoaded", function () {
             if(this.files[0]) document.getElementById('file-text').innerText = this.files[0].name;
         }
     }
+
+    // 5. مخفی کردن پیام‌های خطا هنگام تایپ
+    document.querySelector('[name="{{ form.full_name.name }}"]')?.addEventListener('input', function() {
+        if(this.value.trim() !== '') {
+            document.getElementById('err-name').style.display = 'none';
+        }
+    });
 });
 </script>
 
