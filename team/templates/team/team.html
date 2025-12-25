@@ -51,7 +51,8 @@
 	<link rel="stylesheet" type="text/css" href="{% static 'assets/css/style-2.css' %}">
 	<link rel="stylesheet" type="text/css" href="{% static 'assets/css/fonts.css' %}">
 
-</head>
+</head>	
+
 <style>
 	/* ==== واتساپ ==== */
 .whatsapp-float-container {
@@ -633,6 +634,7 @@
 
     </style>	
 <body id="bg">
+<div class="page-wraper">
 
 	<!-- دکمه تماس -->
 	<div class="call-float-container">
@@ -813,10 +815,10 @@
 								</ul>
 							</li>
 							<li>
-								<a href="{% url 'team:soon' %}"><span>آکادمی ژنتیک</span></a>
+								<a href="javascript:void(0);"><span>آکادمی ژنتیک</span></a>
 							</li>
 							<li>
-								<a href="{% url 'council:info' %}"><span>مشاوره ژنتیک</span></a>
+								<a href="{% url 'council:con' %}"><span>مشاوره ژنتیک</span></a>
 							</li>
 							<li class="sub-menu-down mega-menu-item" dir="rtl">
 								<a href="javascript:void(0);"><span>خدمات آزمایشگاهی</span> <i class="fas fa-chevron-down tabindex"></i></a>
@@ -1029,14 +1031,14 @@
 	
 	<main class="page-content">
 	
-	<div class="dz-bnr-inr dz-banner-dark overlay-secondary-middle dz-bnr-inr-md" style="background-image:url('{% static 'assets/images/banner/bnr1.webp' %}');">
+    <div class="dz-bnr-inr dz-banner-dark overlay-secondary-middle dz-bnr-inr-md" style="background-image:url('{% static 'assets/images/banner/bnr1.webp' %}');">
 		<div class="container">
 			<div class="dz-bnr-inr-entry d-table-cell">
-				<h1 class="wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">درباره ما</h1>
+				<h1 class="wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">تیم ما</h1>
 				<nav aria-label="breadcrumb" class="breadcrumb-row wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
 					<ul class="breadcrumb">
 						<li class="breadcrumb-item"><a href="{% url 'home:index' %}">خانه</a></li>
-						<li class="breadcrumb-item">درباره ما</li>
+						<li class="breadcrumb-item">تیم ما</li>
 					</ul>
 				</nav>
 				<div class="dz-btn">
@@ -1075,722 +1077,469 @@
 		</ul>
 	</div>
 		
-	<section class="content-inner" style="background-image: url('{% static 'assets/images/background/bg1.png' %}'); background-repeat: no-repeat; background-position: left bottom;">
-		<div class="container">
-			<div class="row content-wrapper style-1 align-items-center">
-				<div class="col-xl-6 m-b30">
-					<div class="content-media">
-						<div class="dz-media">
-							<img src="{% static 'assets/images/Dropbox/lab/one.jpeg' %}" alt="">
-						</div>
-						<div class="item1" data-bottom-top="transform: translateY(-50px)" data-top-bottom="transform: translateY(50px)">
-							<div class="info-widget style-7">
-								<div class="widget-content bg-secondary">
-									پشتیبانی تماس ویدیویی
+		<section class="content-inner">
+			<div class="container">
+				<div class="row">
+					<div class="col-xl-3 col-sm-6 wow fadeInUp" data-wow-delay="0.1s" data-wow-duration="0.8s">
+						<div class="dz-team style-1 active box-hover">
+							<div class="dz-media">
+								<img src="{% static 'assets/images/team/img1.webp' %}" alt="/">
+								<a href="appointment.html" class="btn btn-primary">
+									<i class="feather icon-calendar m-r5"></i>
+									نوبت بگیرید
+								</a>
+							</div>
+							<div class="dz-content">
+								<div class="clearfix">
+									<h3 class="dz-name"><a href="team-detail.html"> نشید مارتینز </a></h3>
+									<span class="dz-position"> جراحی قلبی </span>
 								</div>
-								<div class="widget-media">
-									<img src="{% static 'assets/images/Dropbox/lab/two.jpeg' %}" alt="">
-									<div class="call-widget">
-										<a href="javascript:void(0);">
-											<img src="{% static 'assets/images/svg/camra.svg' %}" alt="">
-										</a>
-										<a href="javascript:void(0);">
-											<img src="{% static 'assets/images/svg/message.svg' %}" alt="">
-										</a>
-										<a href="javascript:void(0);" class="active">
-											<img src="{% static 'assets/images/svg/call.svg' %}" alt="">
-										</a>
-										<a href="javascript:void(0);">
-											<img src="{% static 'assets/images/svg/mike.svg' %}" alt="">
-										</a>
-										<a href="javascript:void(0);">
-											<img src="{% static 'assets/images/svg/video.svg' %}" alt="">
-										</a>
+								<a href="team-detail.html" class="btn btn-square btn-secondary">
+									<i class="feather icon-arrow-left"></i>
+								</a>
+							</div>
+							<ul class="dz-social">
+								<li>
+									<a href="https://www.linkedin.com" target="_blank">
+										<i class="fa-brands fa-linkedin"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.instagram.com" target="_blank">
+										<i class="fa-brands fa-instagram"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.facebook.com" target="_blank">
+										<i class="fa-brands fa-facebook-f"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://twitter.com" target="_blank">
+										<i class="fa-brands fa-x-twitter"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.youtube.com" target="_blank">
+										<i class="fa-brands fa-youtube"></i>
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<div class="col-xl-3 col-sm-6 wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">
+						<div class="dz-team style-1 box-hover">
+							<div class="dz-media">
+								<img src="{% static 'assets/images/team/img2.webp' %}" alt="/">
+								<a href="appointment.html" class="btn btn-primary">
+									<i class="feather icon-calendar m-r5"></i>
+									نوبت بگیرید
+								</a>
+							</div>
+							<div class="dz-content">
+								<div class="clearfix">
+									<h3 class="dz-name"><a href="team-detail.html">دانیال فرانکی</a></h3>
+									<span class="dz-position">کلینیک کودکان</span>
+								</div>
+								<a href="team-detail.html" class="btn btn-square btn-secondary">
+									<i class="feather icon-arrow-left"></i>
+								</a>
+							</div>
+							<ul class="dz-social">
+								<li>
+									<a href="https://www.linkedin.com" target="_blank">
+										<i class="fa-brands fa-linkedin"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.instagram.com" target="_blank">
+										<i class="fa-brands fa-instagram"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.facebook.com" target="_blank">
+										<i class="fa-brands fa-facebook-f"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://twitter.com" target="_blank">
+										<i class="fa-brands fa-x-twitter"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.youtube.com" target="_blank">
+										<i class="fa-brands fa-youtube"></i>
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<div class="col-xl-3 col-sm-6 wow fadeInUp" data-wow-delay="0.3s" data-wow-duration="0.8s">
+						<div class="dz-team style-1 box-hover">
+							<div class="dz-media">
+								<img src="{% static 'assets/images/team/img3.webp' %}" alt="/">
+								<a href="appointment.html" class="btn btn-primary">
+									<i class="feather icon-calendar m-r5"></i>
+									نوبت بگیرید
+								</a>
+							</div>
+							<div class="dz-content">
+								<div class="clearfix">
+									<h3 class="dz-name"><a href="team-detail.html">ریحانه زوی</a></h3>
+									<span class="dz-position">زنان و زایمان</span>
+								</div>
+								<a href="team-detail.html" class="btn btn-square btn-secondary">
+									<i class="feather icon-arrow-left"></i>
+								</a>
+							</div>
+							<ul class="dz-social">
+								<li>
+									<a href="https://www.linkedin.com" target="_blank">
+										<i class="fa-brands fa-linkedin"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.instagram.com" target="_blank">
+										<i class="fa-brands fa-instagram"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.facebook.com" target="_blank">
+										<i class="fa-brands fa-facebook-f"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://twitter.com" target="_blank">
+										<i class="fa-brands fa-x-twitter"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.youtube.com" target="_blank">
+										<i class="fa-brands fa-youtube"></i>
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<div class="col-xl-3 col-sm-6 wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
+						<div class="dz-team style-1 box-hover">
+							<div class="dz-media">
+								<img src="{% static 'assets/images/team/img4.webp' %}" alt="/">
+								<a href="appointment.html" class="btn btn-primary">
+									<i class="feather icon-calendar m-r5"></i>
+									نوبت بگیرید
+								</a>
+							</div>
+							<div class="dz-content">
+								<div class="clearfix">
+									<h3 class="dz-name"><a href="team-detail.html"> کنت فونگ </a></h3>
+									<span class="dz-position">عصب شناسی</span>
+								</div>
+								<a href="team-detail.html" class="btn btn-square btn-secondary">
+									<i class="feather icon-arrow-left"></i>
+								</a>
+							</div>
+							<ul class="dz-social">
+								<li>
+									<a href="https://www.linkedin.com" target="_blank">
+										<i class="fa-brands fa-linkedin"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.instagram.com" target="_blank">
+										<i class="fa-brands fa-instagram"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.facebook.com" target="_blank">
+										<i class="fa-brands fa-facebook-f"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://twitter.com" target="_blank">
+										<i class="fa-brands fa-x-twitter"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.youtube.com" target="_blank">
+										<i class="fa-brands fa-youtube"></i>
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<div class="col-xl-3 col-sm-6 wow fadeInUp" data-wow-delay="0.5s" data-wow-duration="0.8s">
+						<div class="dz-team style-1 active box-hover">
+							<div class="dz-media">
+								<img src="{% static 'assets/images/team/img1.webp' %}" alt="/">
+								<a href="appointment.html" class="btn btn-primary">
+									<i class="feather icon-calendar m-r5"></i>
+									نوبت بگیرید
+								</a>
+							</div>
+							<div class="dz-content">
+								<div class="clearfix">
+									<h3 class="dz-name"><a href="team-detail.html"> نشید مارتینز </a></h3>
+									<span class="dz-position"> جراحی قلبی </span>
+								</div>
+								<a href="team-detail.html" class="btn btn-square btn-secondary">
+									<i class="feather icon-arrow-left"></i>
+								</a>
+							</div>
+							<ul class="dz-social">
+								<li>
+									<a href="https://www.linkedin.com" target="_blank">
+										<i class="fa-brands fa-linkedin"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.instagram.com" target="_blank">
+										<i class="fa-brands fa-instagram"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.facebook.com" target="_blank">
+										<i class="fa-brands fa-facebook-f"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://twitter.com" target="_blank">
+										<i class="fa-brands fa-x-twitter"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.youtube.com" target="_blank">
+										<i class="fa-brands fa-youtube"></i>
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<div class="col-xl-3 col-sm-6 wow fadeInUp" data-wow-delay="0.6s" data-wow-duration="0.8s">
+						<div class="dz-team style-1 box-hover">
+							<div class="dz-media">
+								<img src="{% static 'assets/images/team/img2.webp' %}" alt="/">
+								<a href="appointment.html" class="btn btn-primary">
+									<i class="feather icon-calendar m-r5"></i>
+									نوبت بگیرید
+								</a>
+							</div>
+							<div class="dz-content">
+								<div class="clearfix">
+									<h3 class="dz-name"><a href="team-detail.html">دانیال فرانکی</a></h3>
+									<span class="dz-position">کلینیک کودکان</span>
+								</div>
+								<a href="team-detail.html" class="btn btn-square btn-secondary">
+									<i class="feather icon-arrow-left"></i>
+								</a>
+							</div>
+							<ul class="dz-social">
+								<li>
+									<a href="https://www.linkedin.com" target="_blank">
+										<i class="fa-brands fa-linkedin"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.instagram.com" target="_blank">
+										<i class="fa-brands fa-instagram"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.facebook.com" target="_blank">
+										<i class="fa-brands fa-facebook-f"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://twitter.com" target="_blank">
+										<i class="fa-brands fa-x-twitter"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.youtube.com" target="_blank">
+										<i class="fa-brands fa-youtube"></i>
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<div class="col-xl-3 col-sm-6 wow fadeInUp" data-wow-delay="0.7s" data-wow-duration="0.8s">
+						<div class="dz-team style-1 box-hover">
+							<div class="dz-media">
+								<img src="{% static 'assets/images/team/img3.webp' %}" alt="/">
+								<a href="appointment.html" class="btn btn-primary">
+									<i class="feather icon-calendar m-r5"></i>
+									نوبت بگیرید
+								</a>
+							</div>
+							<div class="dz-content">
+								<div class="clearfix">
+									<h3 class="dz-name"><a href="team-detail.html"> نشید مارتینز </a></h3>
+									<span class="dz-position"> جراحی قلبی </span>
+								</div>
+								<a href="team-detail.html" class="btn btn-square btn-secondary">
+									<i class="feather icon-arrow-left"></i>
+								</a>
+							</div>
+							<ul class="dz-social">
+								<li>
+									<a href="https://www.linkedin.com" target="_blank">
+										<i class="fa-brands fa-linkedin"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.instagram.com" target="_blank">
+										<i class="fa-brands fa-instagram"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.facebook.com" target="_blank">
+										<i class="fa-brands fa-facebook-f"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://twitter.com" target="_blank">
+										<i class="fa-brands fa-x-twitter"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.youtube.com" target="_blank">
+										<i class="fa-brands fa-youtube"></i>
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<div class="col-xl-3 col-sm-6 wow fadeInUp" data-wow-delay="0.8s" data-wow-duration="0.8s">
+						<div class="dz-team style-1 box-hover">
+							<div class="dz-media">
+								<img src="{% static 'assets/images/team/img4.webp' %}" alt="/">
+								<a href="appointment.html" class="btn btn-primary">
+									<i class="feather icon-calendar m-r5"></i>
+									نوبت بگیرید
+								</a>
+							</div>
+							<div class="dz-content">
+								<div class="clearfix">
+									<h3 class="dz-name"><a href="team-detail.html">ریحانه زوی</a></h3>
+									<span class="dz-position">عصب شناسی</span>
+								</div>
+								<a href="team-detail.html" class="btn btn-square btn-secondary">
+									<i class="feather icon-arrow-left"></i>
+								</a>
+							</div>
+							<ul class="dz-social">
+								<li>
+									<a href="https://www.linkedin.com" target="_blank">
+										<i class="fa-brands fa-linkedin"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.instagram.com" target="_blank">
+										<i class="fa-brands fa-instagram"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.facebook.com" target="_blank">
+										<i class="fa-brands fa-facebook-f"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://twitter.com" target="_blank">
+										<i class="fa-brands fa-x-twitter"></i>
+									</a>
+								</li>
+								<li>
+									<a href="https://www.youtube.com" target="_blank">
+										<i class="fa-brands fa-youtube"></i>
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		
+        <section class="content-inner" style="background-image: url('{% static 'images/background/bg3.png' %}');     background-position: left bottom; background-repeat: no-repeat;">
+		<div class="container">
+			<div class="row content-wrapper style-5">
+				<div class="col-xxl-7 col-xl-6 col-lg-5 m-b30 align-self-center">
+					<div class="content-info">
+						<div class="section-head style-1 m-b30">
+							<h2 class="title wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.7s">سوالات متداول</h2>
+							<p class="wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.7s">این یک واقعیت خیلی جالب و طولانی است که یک خواننده هنگام نگاه به طرح آن ، از محتوای قابل خواندن طولانی در یک صفحه منحرف می شود.</p>
+						</div>
+						<div class="accordion dz-accordion style-1" id="accordionExample">
+							<div class="accordion-item wow fadeInUp" data-wow-delay="0.5s" data-wow-duration="0.7s">
+								<h2 class="accordion-header">
+									<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+										چقدر برای پدیکور هزینه می کنید؟
+									</button>
+								</h2>
+								<div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+									<div class="accordion-body">
+										<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد.</p>
+									</div>
+								</div>
+							</div>
+							<div class="accordion-item wow fadeInUp" data-wow-delay="0.6s" data-wow-duration="0.7s">
+								<h2 class="accordion-header">
+									<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+										چه نوع درمانی را ارائه می دهید؟
+									</button>
+								</h2>
+								<div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+									<div class="accordion-body">
+										<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد.</p>
+									</div>
+								</div>
+							</div>
+							<div class="accordion-item wow fadeInUp" data-wow-delay="0.7s" data-wow-duration="0.7s">
+								<h2 class="accordion-header">
+									<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+										چگونه قرار ملاقات خود را رزرو کنم؟
+									</button>
+								</h2>
+								<div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+									<div class="accordion-body">
+										<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد.</p>
+									</div>
+								</div>
+							</div>
+							<div class="accordion-item wow fadeInUp" data-wow-delay="0.8s" data-wow-duration="0.7s">
+								<h2 class="accordion-header">
+									<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+										آیا می توانم قرار ملاقات خود را لغو کنم؟
+									</button>
+								</h2>
+								<div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+									<div class="accordion-body">
+										<p>لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد.</p>
 									</div>
 								</div>
 							</div>
 						</div>
-						<div class="item2" data-bottom-top="transform: translateY(50px)" data-top-bottom="transform: translateY(-50px)">
-							<div class="info-widget style-6 bg-primary">
-								<div class="info-icon bg-secondary">
-									<img src="{% static 'assets/images/svg/clock.svg' %}" alt="">
+					</div>
+				</div>
+				<div class="col-xxl-5 col-xl-6 col-lg-7 m-b30">
+					<div class="content-media" data-bottom-top="transform: translateY(50px)" data-top-bottom="transform: translateY(-50px)">
+						<div class="dz-media">
+							<img src="{% static 'assets/images/about/img3.webp' %}" alt="">
+						</div>
+						<div class="item1">
+							<div class="info-widget style-5">
+								<div class="widget-media text-primary">
+									<i class="feather icon-phone-call dz-ring-effect"></i>
 								</div>
 								<div class="widget-content">
-									<h4 class="title"> ساعتهای پشتیبانی </h4>
-									<ul>
-										<li> شنبه <strong>17:30 - 08:30</strong></li>
-										<li> یکشنبه <strong>17:30 - 08:30</strong></li>
-										<li> دوشنبه <strong>17:30 - 08:30</strong></li>
-										<li> سه شنبه <strong>17:30 - 08:30</strong></li>
-										<li> چهارشنبه <strong>17:30 - 08:30</strong></li>
-										<li> پنج شنبه <strong>14:30 - 08:30</strong></li>
-									</ul>
+									<h6 class="title">تماس با ما؟</h6>
+									<a href="tel:+989108622597" class="text-secondary" dir="ltr">+98 910 862 2597</a>
 								</div>
 							</div>
-						</div>
-					</div>
-				</div>
-				<div class="col-xl-6 m-b30">
-					<div class="section-head style-1 m-b30">
-						<h2 class="title wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s"> آزمایشگاه ژنتیک پزشکی آرمیتاژن</h2>
-						<p class="wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s" style="text-align: justify;">آزمایشگاه تشخیص پزشکی آرمیتاژن با عنوان مرجع تخصصی پزشکی فرادقیق و ژنتیک پزشکی در کشور با تمرکز بر آزمایشات ژنتیکی مرتبط با سرطان فعالیت خود را در سال 1403 آغاز کرده است. این آزمایشگاه با هدف ارائه خدمات ژنتیکی شخصی‌سازی‌شده و فرا دقیق تأسیس شده و متعهد است به مراجعه‌کنندگان،  بیماران و ارائه‌دهنگان خدمات تشخیصی  کمک کند تا بر اساس کامل‌ترین و بروزترین سطح دانش و فناوری ژنتیک، تصمیمات آگاهانه‌تری بگیرند. با توجه پیشرفت های اخیر در حوزه پزشکی شخصی و درمان هدفمند، آرمیتاژن با بهره‌گیری از جدید‌ترین تکنولوژی روز دنیا، همکاری با موسسسات معتبر بین المللی و با تکیه بر دانش متخصصین خود شروع به ارائه خدمات تشخیصی در حوزه درمان هدفمند سرطان، آزمون های تشخیص پیش از تولد، آزمون‌های ناقل بودن، سقط مکرر ، ناباروری و استعدادیابی ژنتیکی کرده است.</p>
-						<p class="wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s" style="text-align: justify;">در آرمیتاژن، ما با  قدرت دانش و فناوری‌های جدید در حوزه‌های مختلف پزشکی باور داریم  و مفتخریم در خط مقدم این حوزه  با عنوان پیشگام در حوزه پزشکی فرادقیق  (Precision Medicine) در حال خدمت رسانی به انسانها می‌باشیم. با شما در کشف اطلاعات ژنتیکی مورد نیاز برای آینده‌ای سالم‌تر همراه خواهیم بود.</p>
-					</div>
-					<!-- <ul class="list-check text-secondary fw-medium m-b30 wow fadeInUp" data-wow-delay="0.6s" data-wow-duration="0.8s">
-						<li>تخصص های جامع</li>
-						<li>خدمات اضطراری</li>
-						<li>خدمات توانبخشی</li>
-						<li>رویکرد بیمار محور</li>
-						<li>فناوری اطلاعات سلامتی</li>
-					</ul> -->
-					<div class="d-flex flex-wrap align-items-center wow fadeInUp" data-wow-delay="0.8s" data-wow-duration="0.8s">
-						<a href="tel:02188985291	" class="btn btn-lg btn-icon btn-secondary btn-shadow m-r30 mb-3 mb-sm-0">
-							نوبت‌دهی
-							<span class="right-icon"><i class="feather icon-arrow-left"></i></span>
-						</a>
-						<div class="info-widget style-5">
-							<div class="widget-media text-primary">
-								<i class="feather icon-phone-call dz-ring-effect"></i>
-							</div>
-							<div class="widget-content">
-								<h6 class="title">تماس با ما</h6>
-								<a href="tel:02188985291" class="text-secondary" dir="ltr">+98 (21) 8898 5291-3</a><br>
-								<a href="tel:02188985291" class="text-secondary" dir="ltr">+98  910 862 2597</a>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
-
-	<section class="content-inner-2 bg-light">
-	<div class="container">
-		<div class="section-head style-3 m-b30 text-center wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">
-			<h2 class="title">پیشگیری، تشخیص و درمان هدفمند با آزمایشات ژنتیکی
-			</h2>
-		</div>
-		<div class="dz-flex-wrapper m-b30 swiper dz-flex-swiper wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
-			<div class="swiper-wrapper">
-				<div class="dz-flex-item swiper-slide active">
-					<div class="dz-flex-head" style="background-image: url('{% static 'assets/images/category/CA.jpg' %}');">
-						<a href="service-detail.html" class="btn btn-square btn-lg btn-white btn-shadow btn-rounded">
-							<i class="feather icon-arrow-up-left"></i>
-						</a>
-						<h3 class="title">تشخیص بیماری‌های ارثی </h3>
-					</div>
-					<div class="dz-flex-info">
-						<div class="dz-flex-inner">
-							<div class="dz-media">
-								<img src="{% static 'assets/images/category/1.jpeg' %}" alt="/">
-								<a href="#" class="btn btn-white" data-wow-delay="0.6s" 
-									data-wow-duration="0.8s"
-									data-bs-toggle="modal"        
-									data-bs-target="#armitagenAppointmentModal" 
-									style="cursor: pointer;">
-									<i class="feather icon-calendar m-r5 text-primary"></i>
-									نوبت بگیرید
-								</a>
-							</div>
-							<div class="dz-info">
-								<div class="dz-info-top">
-									<h3 class="dz-title">تشخیص بیماری‌های ارثی </h3>
-									<p class="text">آزمایش‌های ژنتیکی برای شناسایی انواع جهش‌های ژنتیکی در یک فرد علامت‌دار و افراد در معرض خطر ابتلا به بیماری استفاده می‌شود.</p>
-									<ul class="list-check-try fw-medium m-b30">
-										<li>مشاوره ژنتیک پیش از انجام تست و پس از دریافت جواب آزمایش اهمیت بالایی دارد.</li>
-										<li>زمایش هم بر روی فرد درخواست دهنده و هم سایر افراد خانواده می‌تواند صورت بگیرد.</li>
-									</ul>
-								</div>
-								<div class="item1">
-									<div class="info-widget style-14">
-										<div class="info-widget-profile">
-											<div class="widget-media">
-												<img src="{% static 'assets/images/category/1.jpeg' %}" alt="">
-											</div>
-											<div class="widget-content">
-												<!-- <h6 class="title mb-0"> بیماری های ارثی</h6> -->
-												<p class="text mb-0"> بیماری های ارثی</p>
-											</div>
-										</div>
-										<a href="{% url 'home:cancer' %}" class="btn btn-lg btn-square btn-primary rounded-circle">
-											<i class="feather icon-arrow-up-left"></i>
-										</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>						
-				<div class="dz-flex-item swiper-slide">
-					<div class="dz-flex-head" style="background-image: url('{% static 'assets/images/category/CA.jpg' %}');">
-						<a href="service-detail.html" class="btn btn-square btn-lg btn-white btn-shadow btn-rounded">
-							<i class="feather icon-arrow-up-left"></i>
-						</a>
-						<h3 class="title">تشخیص و درمان هدفمند سرطان</h3>
-					</div>	
-					<div class="dz-flex-info">
-						<div class="dz-flex-inner">
-							<div class="dz-media">
-								<img src="{% static 'assets/images/category/2.jpeg' %}" alt="/">
-								<a href="#" class="btn btn-white" data-wow-delay="0.6s" 
-									data-wow-duration="0.8s"
-									data-bs-toggle="modal"        
-									data-bs-target="#armitagenAppointmentModal" 
-									style="cursor: pointer;">
-									<i class="feather icon-calendar m-r5 text-primary"></i>
-									نوبت بگیرید
-								</a>
-							</div>
-							<div class="dz-info">
-								<div class="dz-info-top">
-									<h3 class="dz-title">تشخیص و درمان هدفمند سرطان</h3>
-									<p class="text">زمایشگاه آرمیتاژن سرطان‌ها در هر دو دسته ارثی و غیرارثی خدمات کامل را به مراجعین ارائه می‌دهد.</p>
-									<ul class="list-check-try fw-medium m-b30">
-										<li>سابقه سلامت خانوادگی شما برای سرطان‌های ارثی را ارزیابی می‌شود</li>
-										<li>پرونده بالینی و نمونه تومور</li>
-									</ul>
-								</div>
-								<div class="item1">
-									<div class="info-widget style-14">
-										<div class="info-widget-profile">
-											<div class="widget-media">
-												<img src="{% static 'assets/images/category/2.jpeg' %}" alt="">
-											</div>
-											<div class="widget-content">
-												<!-- <h6 class="title mb-0"> نشید مارتینز </h6> -->
-												<p class="text mb-0"> تشخیص و درمان سرطان</p>
-											</div>
-										</div>
-										<a href="{% url 'home:brca' %}" class="btn btn-lg btn-square btn-primary rounded-circle">
-											<i class="feather icon-arrow-up-left"></i>
-										</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="dz-flex-item swiper-slide">
-					<div class="dz-flex-head" style="background-image: url('{% static 'assets/images/category/CA.jpg' %}');">
-						<a href="service-detail.html" class="btn btn-square btn-lg btn-white btn-shadow btn-rounded">
-							<i class="feather icon-arrow-up-left"></i>
-						</a>
-						<h3 class="title">آزمایش‌های پیش از ازدواج</h3>
-					</div>	
-					<div class="dz-flex-info">
-						<div class="dz-flex-inner">
-							<div class="dz-media">
-								<img src="{% static 'assets/images/category/3.jpeg' %}" alt="/">
-								<a href="#" class="btn btn-white" data-wow-delay="0.6s" 
-									data-wow-duration="0.8s"
-									data-bs-toggle="modal"        
-									data-bs-target="#armitagenAppointmentModal" 
-									style="cursor: pointer;">
-									<i class="feather icon-calendar m-r5 text-primary"></i>
-									نوبت بگیرید
-								</a>
-							</div>
-							<div class="dz-info">
-								<div class="dz-info-top">
-									<h3 class="dz-title">آزمایش‌های پیش از ازدواج</h3>
-									<p class="text">گاهی تنها یک مشاوره ژنتیک پیش از ازدواج توسط متخصص ژنتیک با تجربه، بینشی در مورد احتمال بروز بیماری‌های ژنتیکی در فرزندان به زوجین می‌دهد که قابل پیشگیری و کنترل هستند.</p>
-									<ul class="list-check-try fw-medium m-b30">
-										<li>آگاهی از وضعیت سلامت ژنتیکی طرفین</li>
-										<li>کاهش خطر ابتلا به اختلالات ژنتیکی</li>
-										<li>جلوگیری از انتقال اختلالات خونی ارثی والدین</li>
-									</ul>
-								</div>
-								<div class="item1">
-									<div class="info-widget style-14">
-										<div class="info-widget-profile">
-											<div class="widget-media">
-												<img src="{% static 'assets/images/category/3.jpeg' %}" alt="">
-											</div>
-											<div class="widget-content">
-												<!-- <h6 class="title mb-0"> نشید مارتینز </h6> -->
-												<p class="text mb-0"> آزمایش های پیش از ازدواج</p>
-											</div>
-										</div>
-										<a href="{% url 'home:pgd' %}" class="btn btn-lg btn-square btn-primary rounded-circle">
-											<i class="feather icon-arrow-up-left"></i>
-										</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="dz-flex-item swiper-slide" style="padding-left: 15px;">
-					<div class="dz-flex-head" style="background-image: url('{% static 'assets/images/category/CA.jpg' %}');">
-						<a href="service-detail.html" class="btn btn-square btn-lg btn-white btn-shadow btn-rounded">
-							<i class="feather icon-arrow-up-left"></i>
-						</a>
-						<h3 class="title">آزمایش‌های بارداری سالم</h3>
-					</div>	
-					<div class="dz-flex-info">
-						<div class="dz-flex-inner">
-							<div class="dz-media">
-								<img src="{% static 'assets/images/category/4.jpeg' %}" alt="/">
-								<a href="#" class="btn btn-white" data-wow-delay="0.6s" 
-									data-wow-duration="0.8s"
-									data-bs-toggle="modal"        
-									data-bs-target="#armitagenAppointmentModal" 
-									style="cursor: pointer;">
-									<i class="feather icon-calendar m-r5 text-primary"></i>
-									نوبت بگیرید
-								</a>
-							</div>
-							<div class="dz-info">
-								<div class="dz-info-top">
-									<h3 class="dz-title">آزمایش‌های بارداری سالم</h3>
-									<p class="text" style="text-align: justify;">ژن‌های ما حامل اطلاعاتی هستند که از نسلی به نسل دیگر منتقل می‌شود. ژن‌ها تعیین می‌کنند که چرا برخی از بیماری‌ها در خانواده‌ها ایجاد می‌شوند و اینکه نوزادان پسر یا دختر خواهند بود.</p>
-									<ul class="list-check-try fw-medium m-b30">
-										<li>آگاه سازی والدین درمورد بیماری ژنتیکی</li>
-										<li>توالی یابی اگزوم برای بررسی دقیق کل ژن های والدین</li>
-										<li>آزمایش NIPT از خون باردار</li>
-									</ul>
-								</div>
-								<div class="item1">
-									<div class="info-widget style-14">
-										<div class="info-widget-profile">
-											<div class="widget-media">
-												<img src="{% static 'assets/images/category/4.jpeg' %}" alt="">
-											</div>
-											<div class="widget-content">
-												<!-- <h6 class="title mb-0"> نشید مارتینز </h6> -->
-												<p class="text mb-0"> آزمایش بارداری های سالم</p>
-											</div>
-										</div>
-										<a href="{% url 'home:pnd' %}" class="btn btn-lg btn-square btn-primary rounded-circle">
-											<i class="feather icon-arrow-up-left"></i>
-										</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="dz-flex-item swiper-slide">
-					<div class="dz-flex-head" style="background-image: url('{% static 'assets/images/category/CA.jpg' %}');">
-						<a href="service-detail.html" class="btn btn-square btn-lg btn-white btn-shadow btn-rounded">
-							<i class="feather icon-arrow-up-left"></i>
-						</a>
-						<h3 class="title">آنالیز استعدادیابی</h3>
-					</div>	
-					<div class="dz-flex-info">
-						<div class="dz-flex-inner">
-							<div class="dz-media">
-								<img src="{% static 'assets/images/category/5.jpeg' %}" alt="/">
-								<a href="#" class="btn btn-white" data-wow-delay="0.6s" 
-									data-wow-duration="0.8s"
-									data-bs-toggle="modal"        
-									data-bs-target="#armitagenAppointmentModal" 
-									style="cursor: pointer;">
-									<i class="feather icon-calendar m-r5 text-primary"></i>
-									نوبت بگیرید
-								</a>
-							</div>
-							<div class="dz-info">
-								<div class="dz-info-top">
-									<h3 class="dz-title">آنالیز استعدادیایی</h3>
-									<p class="text">DNA  انسان از فردی به فرد دیگر تقریباً ۹۹٪ یکسان است. با این حال، تفاوت‌های کوچکی وجود دارد که هر فرد را منحصر به فرد می‌کند.</p>
-									<ul class="list-check-try fw-medium m-b30">
-										<li>تست ژنتیکی آرمیتاژن بر پایه فناوری‌های توالی‌یابی نسل جدید (NGS) می‌باشد.</li>
-										<li>خون و بزاق شما حاوی DNA سلول‌های شماست و ما از همین نمونه‌ها برای انجام آزمایش شما استفاده می‌کنیم. </li>
-									</ul>
-								</div>
-								<div class="item1">
-									<div class="info-widget style-14">
-										<div class="info-widget-profile">
-											<div class="widget-media">
-												<img src="{% static 'assets/images/category/5.jpeg' %}" alt="">
-											</div>
-											<div class="widget-content">
-												<!-- <h6 class="title mb-0"> نشید مارتینز </h6> -->
-												<p class="text mb-0">آنالیز استعدادیابی</p>
-											</div>
-										</div>
-										<a href="{% url 'home:talent' %}" class="btn btn-lg btn-square btn-primary rounded-circle">
-											<i class="feather icon-arrow-up-left"></i>
-										</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="dz-separator style-3">
-			<a href="services.html" class="btn separator-badge">مشاهده همه خدمات</a>
-		</div>
-	</div>
-		</section>
-
-	<section class="content-inner-1 overflow-hidden">
-			<div class="container-left">
-				<div class="row g-0 align-items-center">
-					<div class="col-xxl-3">
-						<div class="section-head style-1 m-b30">
-							<h2 class="title wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">استانداردهای بین المللی</h2>
-							<p class="wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s" style="text-align: justify;">استاندارد، تعهد ما به سلامتی شماست. ما با رعایت دقیق‌ترین گواهینامه‌های بین‌المللی ISO و GLP، تضمین می‌کنیم که هر مرحله از خدمات ژنتیکی و پزشکی با بالاترین سطح دقت، کیفیت و قابلیت اطمینان انجام شود.</p>
-						</div>
-						<!-- <a href="javascript:void(0);" class="btn btn-outline-light btn-rounded m-r5 m-b10 wow fadeInUp" data-wow-delay="0.5s" data-wow-duration="0.8s">1404</a>
-						<a href="javascript:void(0);" class="btn btn-outline-light btn-rounded m-r5 m-b10 wow fadeInUp" data-wow-delay="0.6s" data-wow-duration="0.8s">1403</a>
-						<a href="javascript:void(0);" class="btn btn-outline-light btn-rounded m-r5 m-b10 wow fadeInUp" data-wow-delay="0.7s" data-wow-duration="0.8s">1402</a>
-						<a href="javascript:void(0);" class="btn btn-outline-light btn-rounded m-r5 m-b10 wow fadeInUp" data-wow-delay="0.8s" data-wow-duration="0.8s">1401</a>
-						<a href="javascript:void(0);" class="btn btn-outline-light btn-rounded m-r5 m-b10 wow fadeInUp" data-wow-delay="0.9s" data-wow-duration="0.8s">1400</a>
-						<a href="javascript:void(0);" class="btn btn-outline-light btn-rounded m-r5 m-b10 wow fadeInUp" data-wow-delay="1.0s" data-wow-duration="0.8s">1399</a> -->
-						<a href="javascript:void(0);" class="btn btn-outline-light btn-rounded m-r5 m-b10 wow fadeInUp" data-wow-delay="1.1s" data-wow-duration="0.8s"> مشاهده همه </a>
-					</div>
-					<div class="col-xxl-9">
-						<div class="swiper awards-swiper wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s" style="overflow: hidden;">
-							<div class="swiper-wrapper">
-								<div class="swiper-slide">
-									<div class="dz-img-box style-1 box-lg grid-bx text-center">
-										<div class="dz-media">
-											<img src="{% static 'assets/images/logo/Iso2015-Logo.jpg' %}" alt="">
-										</div>
-										<!-- <div class="dz-content">	
-											<h3 class="title">کلینیک مستر 1403 </h3>
-											<p> موسسه کیفیت و اعتباربخشی </p>
-											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
-										</div> -->
-									</div>
-								</div>
-								<div class="swiper-slide">
-									<div class="dz-img-box style-1 box-lg grid-bx text-center">
-										<div class="dz-media">
-											<img src="{% static 'assets/images/logo/Iso2016-Logo.jpg' %}" alt="">
-										</div>
-										<!-- <div class="dz-content">	
-											<h3 class="title">کلینیک مستر 1403 </h3>
-											<p> موسسه کیفیت و اعتباربخشی </p>
-											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
-										</div> -->
-									</div>
-								</div>
-								<div class="swiper-slide">
-									<div class="dz-img-box style-1 box-lg grid-bx text-center">
-										<div class="dz-media">
-											<img src="{% static 'assets/images/logo/GLP-Logo.jpg' %}" alt="">
-										</div>
-										<!-- <div class="dz-content">	
-											<h3 class="title">کلینیک مستر 1403 </h3>
-											<p> موسسه کیفیت و اعتباربخشی </p>
-											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
-										</div> -->
-									</div>
-								</div>
-								<div class="swiper-slide">
-									<div class="dz-img-box style-1 box-lg grid-bx text-center">
-										<div class="dz-media">
-											<img src="{% static 'assets/images/logo/Iso1725-Logo.jpg' %}" alt="">
-										</div>
-										<!-- <div class="dz-content">	
-											<h3 class="title">کلینیک مستر 1403 </h3>
-											<p> موسسه کیفیت و اعتباربخشی </p>
-											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
-										</div> -->
-									</div>
-								</div>	
-								<div class="swiper-slide">
-									<div class="dz-img-box style-1 box-lg grid-bx text-center">
-										<div class="dz-media">
-											<img src="{% static 'assets/images/logo/Iso2015-Logo.jpg' %}" alt="">
-										</div>
-										<!-- <div class="dz-content">	
-											<h3 class="title">کلینیک مستر 1403 </h3>
-											<p> موسسه کیفیت و اعتباربخشی </p>
-											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
-										</div> -->
-									</div>
-								</div>
-								<div class="swiper-slide">
-									<div class="dz-img-box style-1 box-lg grid-bx text-center">
-										<div class="dz-media">
-											<img src="{% static 'assets/images/logo/Iso2016-Logo.jpg' %}" alt="">
-										</div>
-										<!-- <div class="dz-content">	
-											<h3 class="title">کلینیک مستر 1403 </h3>
-											<p> موسسه کیفیت و اعتباربخشی </p>
-											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
-										</div> -->
-									</div>
-								</div>
-								<div class="swiper-slide">
-									<div class="dz-img-box style-1 box-lg grid-bx text-center">
-										<div class="dz-media">
-											<img src="{% static 'assets/images/logo/GLP-Logo.jpg' %}" alt="">
-										</div>
-										<!-- <div class="dz-content">	
-											<h3 class="title">کلینیک مستر 1403 </h3>
-											<p> موسسه کیفیت و اعتباربخشی </p>
-											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
-										</div> -->
-									</div>
-								</div>
-								<div class="swiper-slide">
-									<div class="dz-img-box style-1 box-lg grid-bx text-center">
-										<div class="dz-media">
-											<img src="{% static 'assets/images/logo/Iso1725-Logo.jpg' %}" alt="">
-										</div>
-										<!-- <div class="dz-content">	
-											<h3 class="title">کلینیک مستر 1403 </h3>
-											<p> موسسه کیفیت و اعتباربخشی </p>
-											<a href="javascript:void(0);" class="btn-link">کمک به کودکان</a>
-										</div> -->
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</section>
-				
-	<section class="content-inner">
-		<div class="container">
-			<div class="row g-xl-4 align-items-center">
-				<div class="col-xl-7 pe-xl-4 m-b10">
-					<div class="section-head style-1 m-b30">
-						<h2 class="title wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">مشاوره ژنتیک حضوری و آنلاین</h2>
-						<p class="small wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s" style="text-align: justify;">مشاوره ژنتیک اطلاعاتی در مورد چگونگی تأثیر اختلالات ژنتیکی بر شما و خانواده شما می‌دهد. متخصص مشاور ژنتیک، سابقه سلامت و موارد مشکوک ژنتیکی شخصی و خانوادگی را جمع آوری می‌کند. با استفاده از این اطلاعات میزان احتمال ابتلای شما یا یکی از اعضای خانواده‌تان به بیماری ژنتیکی تعیین می‌گردد. بر اساس این اطلاعات، مشاور ژنتیک می‌تواند به شما کمک کند تا تصمیم بگیرید که کدام آزمایش ژنتیک برای شما یا خویشاوندان شما مناسب است. یک مشاور ژنتیک می تواند به شما در درک این موارد کمک کند: </p>
-                        <ul class="list-check-try fw-medium m-b30">
-                            <li>خطرات و مزایای انجام آزمایش ژنتیک در شما و سایر افراد خانواده</li>
-                            <li>تایج بالقوه آزمایش ژنتیک و تفسیر نتایج</li>
-                            <li>استفاده از نتایج برای پیشگیری از وقوع بیماری و یا مدیریت درمان</li>
-                            <li>وگیری از انتقال جهش ژنتیکی به فرزندان</li>
-                        </ul>
-                        <p class="small wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s" style="text-align: justify;">در آزمایشگاه ژنتیک آرمیتاژن  مشاوره ژنتیک حضوری و آنلاین در تمامی حوزه‌ها همچون مشاوره ژنتیک پیش از ازدواج، پیش از بارداری، اختلالات جنینی و ناباروری، سلامت ژنتیکی، سرطان‌ها، بیماری‌های قلبی-عروقی، ناهنجاری‌های ژنتیکی اطفال و غیره تحت نظر متخصص ژنتیک صورت می‌پذیرد.   </p>
-                        <ul class="list-check-try fw-medium m-b30">
-                            <li>در صورت داشتن نسخه آزمایش ژنتیکی، می توانید آن را برای کارشناسان ما از طریق فرم درخواست و یا واتساپ ارسال کنید.</li>
-                        </ul>
-                    </div>
-									
-					<!-- <div class="clearfix m-b60 m-lg-b30">
-						<div class="d-flex align-items-center m-b15 wow fadeInUp" data-wow-delay="0.6s" data-wow-duration="0.8s">
-							<div class="info-widget style-12 m-r10 bg-light">
-								<div class="avatar-group">
-									<img class="avatar rounded-circle avatar-md border border-white border-2" src="{% static 'assets/images/avatar/small/avatar1.webp' %}" alt="">
-									<img class="avatar rounded-circle avatar-md border border-white border-2" src="{% static 'assets/images/avatar/small/avatar2.webp' %}" alt="">
-									<img class="avatar rounded-circle avatar-md border border-white border-2" src="{% static 'assets/images/avatar/small/avatar3.webp' %}" alt="">
-									<img class="avatar rounded-circle avatar-md border border-white border-2" src="{% static 'assets/images/avatar/small/avatar4.webp' %}" alt="">
-								</div>
-								<div class="clearfix">
-									<span> با بیش از 215 دکتر صحبت کنید </span>
-								</div>
-							</div>
-							<a href="team.html" class="btn btn-square btn-xl btn-light btn-rounded">
-								<svg width="24" height="24" viewbox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-									<path d="M7 17L17 7" stroke="var(--bs-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-									<path d="M7 7H17V17" stroke="var(--bs-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-								</svg>
+							<a href="appointment.html" class="btn btn-lg btn-icon btn-primary btn-shadow">
+								<span class="w-100">نوبت دهی</span> <span class="right-icon"><i class="feather icon-arrow-left"></i></span>
 							</a>
-						</div>
-						<div class="widget-rating3 wow fadeInUp" data-wow-delay="0.8s" data-wow-duration="0.8s">
-							<ul class="star-list">
-								<li><i class="fa fa-star"></i></li>
-								<li><i class="fa fa-star"></i></li>
-								<li><i class="fa fa-star"></i></li>
-								<li><i class="fa fa-star"></i></li>
-								<li><i class="fa fa-star"></i></li>
-							</ul>
-							<span class="rating">(4.8)</span>
-							<span class="text">12 هزار امتیاز در گوگل</span>
-						</div>
-					</div> -->
-					<div class="row">
-						<div class="col-md-6 m-b20 wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">
-							<div class="icon-bx-wraper style-8 box-hover">
-								<div class="icon-bx">
-									<span class="icon-cell">
-										<i class="feather icon-map-pin"></i>						
-									</span>
-								</div>
-								<div class="icon-content">
-									<h4 class="dz-title">آدرس</h4>
-									<p>تهران، بلوار کشاورز، خیابان نادری، بعد از خیابان ایتالیا، پلاک 2، طبقه اول، واحد 105</p>
-								</div>
-							</div>
-						</div>
-						<div class="col-md-6 m-b20 wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
-							<div class="icon-bx-wraper style-8 box-hover">
-								<div class="icon-bx">
-									<span class="icon-cell">
-										<i class="feather icon-phone"></i>							
-									</span>
-								</div>
-								<div class="icon-content">
-									<h4 class="dz-title">تماس با ما</h4>
-									<p><a href="tel:02188985291" class="text-body" dir="ltr">+98 (21) 8898 5291-3</a><br>
-									<a href="tel:+989108622597" class="text-body" dir="ltr">+98  910 862 2597</a></p>
-								</div>
-							</div>
-						</div>
-						<div class="col-md-6 m-b20 wow fadeInUp" data-wow-delay="0.6s" data-wow-duration="0.8s">
-							<div class="icon-bx-wraper style-8 box-hover">
-								<div class="icon-bx">
-									<span class="icon-cell">
-										<i class="feather icon-mail"></i>
-									</span>
-								</div>
-								<div class="icon-content">
-									<h4 class="dz-title"> برای ما نامه ارسال کنید </h4>
-									<p>info@armitagen.ir</p>
-								</div>
-							</div>
-						</div>
-						<div class="col-md-6 m-b20 wow fadeInUp" data-wow-delay="0.8s" data-wow-duration="0.8s">
-							<div class="icon-bx-wraper style-8 box-hover">
-								<div class="icon-bx">
-									<span class="icon-cell">
-										<i class="feather icon-clock"></i>								
-									</span>
-								</div>
-								<div class="icon-content">
-									<h4 class="dz-title">ساعات کاری</h4>
-									<p>شنبه - چهارشنبه: 8 صبح - 19 عصر پنجشنبه: 8:00 صبح -13:00 ظهر</p>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="col-xl-5 m-b30" data-bottom-top="transform: translateY(50px)" data-top-bottom="transform: translateY(-50px)">
-					<div class="form-wrapper style-1">
-						<div class="form-body bg-primary background-blend-burn" style="background-image: url('{% static 'assets/images/background/bg2.png' %}');">
-							<div class="title-head">
-								<h2 class="form-title m-b0">فرم درخواست<span><br>مشاوره ژنتیکی</span></h2>
-							</div>
-							<form action="{% static 'assets/script/contact_smtp.php' %}" class="dzForm" method="POST">
-								<input type="hidden" class="form-control" name="dzToDo" value="Appointment">
-								<input type="hidden" class="form-control" name="reCaptchaEnable" value="0">
-								<div class="dzFormMsg"></div>
-								<div class="row">
-									<div class="col-sm-6 m-b30">
-										<div class="form-floating floating-underline input-light">
-											<input name="dzName" type="text" class="form-control" id="inputYourName" placeholder="نام">
-											<label for="inputYourName">نام و نام خانوادگی</label>
-										</div>
-									</div>
-									<div class="col-sm-6 m-b30">
-                                        <label for="inputPrescriptionFile" style="color: rgba(255, 255, 255, 0.7); display: block; margin-bottom: 5px;">
-                                            آپلود نسخه
-                                        </label>
-                                        
-                                        <div class="input-light"> 
-                                            <input 
-                                                name="prescription_file" 
-                                                type="file" 
-                                                class="form-control" 
-                                                id="inputPrescriptionFile" 
-                                                accept=".pdf,.jpg,.jpeg,.png"
-                                                style="
-                                                    /* این استایل‌ها را برای هماهنگی با ظاهر تیره قالب اضافه می‌کنیم */
-                                                    background-color: transparent; 
-                                                    color: #fff;
-                                                    border: 1px solid rgba(255, 255, 255, 0.3); /* خط دور کادر */
-                                                "
-                                            >
-                                            </div>
-                                    </div>
-									<div class="col-sm-6 m-b30">
-										<div class="form-floating floating-underline input-light">
-											<input name="dzPhoneNumber" type="text" class="form-control dz-number" id="inputPhoneNumber" placeholder="شماره تماس">
-											<label for="inputPhoneNumber">شماره تلفن</label>
-										</div>
-									</div>
-									<div class="col-sm-6 m-b30">
-										<div class="form-floating floating-underline input-light">
-											<select name="dzOther[Services]" class="bs-select" data-style="form-control" title="انتخاب خدمت">
-												<option value="آنژیوپلاستی">آزمایشکاه سرطان</option>
-												<option value="قلب شناسی">آزمایشکاه سلامت مادر و جنین</option>
-												<option value="دندانپزشکی">ژنتیک مولکولی</option>
-												<option value="چشم پزشکی">سایر خدمات</option>
-											</select>
-										</div>
-									</div>
-									<div class="col-sm-12 m-b30">
-										<div class="form-floating floating-underline input-light">
-											<textarea name="dzMessage" class="form-control" id="inputMessage" rows="6" placeholder="انتخاب خدمت"></textarea>
-											<label for="inputMessage">پیام</label>
-										</div>
-									</div>
-									<div class="col-sm-12">
-										<button type="submit" name="submit" value="submit" class="btn btn-lg btn-icon btn-white hover-secondary btn-shadow">
-											نوبت‌دهی <span class="right-icon"><i class="feather icon-arrow-left"></i></span>
-										</button>
-									</div>
-								</div>
-							</form>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
-		
-	<!-- <section class="clearfix">
-		<div class="container">
-			<div class="row content-wrapper style-16" style="background-image: url('{% static 'assets/images/call-action.webp' %}');">
-				<div class="col-xl-6 col-md-7 col-sm-9">
-					<div class="section-head style-3 position-relative mb-0 z-2">
-						<h2 class="title m-b30 wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">امروز مشاوره خود را برنامه ریزی کنید!</h2>
-						<a href="appointment.html" class="btn btn-lg btn-icon btn-primary btn-shadow wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
-							<span class="w-100">نوبت دهی</span> <span class="right-icon"><i class="feather icon-arrow-left"></i></span>
-						</a>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section> -->
-		
-	<section class="content-inner">
-		<div class="container">
-			<div class="row align-items-center">
-				<div class="col-xl-4">
-					<div class="section-head style-1 m-b30">
-						<h2 class="title m-b0 wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s"> بیمه پذیرفته شده ما </h2>
-					</div>
-				</div>
-				<div class="col-xl-8 m-b30">
-					<div class="swiper client-swiper2">
-						<div class="swiper-wrapper">
-							<div class="swiper-slide wow fadeInUp" data-wow-delay="0.1s" data-wow-duration="0.8s">
-								<div class="clients-logo2">
-									<img src="{% static 'assets/images/logo/sataIns.jpg' %}" alt="">
-								</div>
-							</div>
-							<div class="swiper-slide wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">
-								<div class="clients-logo2">
-									<img src="{% static 'assets/images/logo/iran-150x150.webp' %}" alt="">
-								</div>
-							</div>
-							<div class="swiper-slide wow fadeInUp" data-wow-delay="0.3s" data-wow-duration="0.8s">
-								<div class="clients-logo2">
-									<img src="{% static 'assets/images/logo/markazi-150x150.webp' %}" alt="">
-								</div>
-							</div>
-							<div class="swiper-slide wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
-								<div class="clients-logo2">
-									<img src="{% static 'assets/images/logo/melli-150x150.webp' %}" alt="">
-								</div>
-							</div>
-							<div class="swiper-slide wow fadeInUp" data-wow-delay="0.5s" data-wow-duration="0.8s">
-								<div class="clients-logo2">
-									<img src="{% static 'assets/images/logo/sina-150x150.webp' %}" alt="">
-								</div>
-							</div>
-							<div class="swiper-slide wow fadeInUp" data-wow-delay="0.6s" data-wow-duration="0.8s">
-								<div class="clients-logo2">
-									<img src="{% static 'assets/images/logo/tamin-ejtemaei-150x150.webp' %}" alt="">
-								</div>
-							</div>
-							<div class="swiper-slide wow fadeInUp" data-wow-delay="0.7s" data-wow-duration="0.8s">
-								<div class="clients-logo2">
-									<img src="{% static 'assets/images/logo/amoozeshoparvaresh-150x150.webp' %}" alt="">
-								</div>
-							</div>
 						</div>
 					</div>
 				</div>
@@ -1800,7 +1549,7 @@
 		
 	</main>
 	
-	<!-- Footer -->
+    <!-- Footer -->
 	<footer class="site-footer style-1 overlay-primary-light" style="background-image: url('{% static 'assets/images/background/bg4.webp' %}')">
 		
 		<div class="footer-head">
@@ -2003,10 +1752,6 @@
 <script src="{% static 'assets/js/dz.carousel-2.js' %}"></script>
 <script src="{% static 'assets/js/dz.ajax-2.js' %}"></script>
 <script src="{% static 'assets/js/custom-2.js' %}"></script>
-
-<div class="modal fade" id="armitagenAppointmentModal" tabindex="-1" aria-labelledby="armitagenAppointmentModalLabel" aria-hidden="true">
-    {% include 'snippets/modal_appointment_form.html' %}
-</div>
 
 </body>
 </html>

@@ -61636,7 +61636,7 @@ table.wishlist_table {
    z-index: 1
 }
 
-.site-header.box-header .main-bar>*,
+.site-header.box-header .main-bar>,
 .site-header.box-header .main-bar>.container,
 .site-header.box-header .main-bar>.container-fluid,
 .site-header.box-header .main-bar>.container-lg,

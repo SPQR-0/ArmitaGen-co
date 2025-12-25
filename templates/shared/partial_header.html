@@ -335,7 +335,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         </li>
                     
                         <li>
-                            <a href="javascript:void(0);"><span>آکادمی ژنتیک</span></a>
+                            <a href="{% url 'team:soon' %}"><span>آکادمی ژنتیک</span></a>
                         </li>
 
                         <!-- <li>
@@ -346,23 +346,23 @@ document.addEventListener("DOMContentLoaded", function() {
                             <a href="javascript:void(0);"><span>آرمیتابلاگ</span> <i
                                     class="fas fa-chevron-down tabindex"></i></a>
                             <ul class="sub-menu">
-                                <li><a href="blog-grid.html">وبلاگ علمی</a></li>
+                                <li><a href="{% url 'blog:post_list' %}">وبلاگ علمی</a></li>
                                 <!-- <li><a href="blog-list-sidebar.html"></a></li> -->
-                                <li><a href="blog-details.html">اخبار ژنتیکی</a></li>
+                                <li><a href="{% url 'blog:news' %}">اخبار ژنتیکی</a></li>
                             </ul>
                         </li>
                         <li class="sub-menu-down">
                             <a href="javascript:void(0);"><span>راهنمای مراجعین</span> <i
                                     class="fas fa-chevron-down tabindex"></i></a>
                             <ul class="sub-menu">
-                                <li><a href="blog-grid.html">ساعت کاری آزمایشگاه</a></li>
-                                <li><a href="blog-grid.html">مشاهده تمامی خدمات</a></li>
+                                <li><a href="#">ساعت کاری آزمایشگاه</a></li>
+                                <li><a href="#">مشاهده تمامی خدمات</a></li>
                                 <!-- <li><a href="blog-list-sidebar.html"></a></li> -->
                                 <li class="has-submenu">
-                                    <a href="team.html">خدمات غیر حضوری</a>
+                                    <a href="{% url 'council:info' %}">خدمات غیر حضوری</a>
                                     <ul class="sub-menu">
-                                        <li><a href="about-us.html">مشاوره آنلاین</a></li>
-                                        <li><a href="about-us-2.html">نمونه گیری در محل</a></li>
+                                        <li><a href="{% url 'council:info' %}">مشاوره آنلاین</a></li>
+                                        <li><a href="{% url 'council:info' %}">نمونه گیری در محل</a></li>
                                         <li><a href="{% url 'council:info' %}">جواب دهی آنلاین</a></li>
                                     </ul>
                                 </li>
@@ -375,8 +375,8 @@ document.addEventListener("DOMContentLoaded", function() {
                             <ul class="sub-menu">
                                 <li><a href="{% url 'team:about-us' %}">درباره ما</a></li>
                                 <!-- <li><a href="blog-list-sidebar.html"></a></li> -->
-                                <li><a href="#">تماس با ما</a></li>
-                                <li><a href="#">تیم ما</a></li>
+                                <li><a href="{% url 'team:contact-us' %}">تماس با ما</a></li>
+                                <li><a href="{% url 'team:team' %}">تیم ما</a></li>
                             </ul>
                         </li>
                     </ul>

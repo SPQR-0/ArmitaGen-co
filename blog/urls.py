@@ -7,6 +7,7 @@ app_name = 'blog'
 urlpatterns = [
     # Post URLs
     path('', views.PostListView.as_view(), name='post_list'),
+    path('news', views.PostListView.as_view(), name='news'),
     path('search/', views.PostSearchView.as_view(), name='post_search'),
     path('archive/<int:year>/', views.PostArchiveView.as_view(), name='post_archive_year'),
     path(

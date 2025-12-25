@@ -1,0 +1,150 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme-color="skin-1">
+<head>
+
+		<!-- Title -->
+	<title>آزمایشگاه ژنتیک پزشکی آرمیتاژن</title>
+	
+	<!-- Meta -->
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="author" content="DexignZone">
+	<meta name="robots" content="index, follow">
+	<meta name="format-detection" content="telephone=no">
+	
+	<meta name="keywords" content="healthcare HTML template, medical Bootstrap template, clinic website template, hospital HTML template, responsive medical template, healthcare web design, Bootstrap health template, ClinicMaster medical design, modern medical template, health website design">
+	<meta name="description" content="کلینیک مستر یک الگوی بوت سترپ اچ تی ام ال مدرن و پاسخگو است که برای وب سایت های بهداشتی و پزشکی طراحی شده است.ایده آل برای کلینیک ها ، بیمارستان ها و متخصصان مراقبت های بهداشتی که به دنبال حضور حرفه ای آنلاین با طراحی زیبا و کاربر پسند هستند.">
+	
+	<meta property="og:title" content="ClinicMaster - قالب بوت‌سترپ درمانی و پزشکی">
+	<meta property="og:description" content="کلینیک مستر یک الگوی بوت سترپ اچ تی ام ال مدرن و پاسخگو است که برای وب سایت های بهداشتی و پزشکی طراحی شده است.ایده آل برای کلینیک ها ، بیمارستان ها و متخصصان مراقبت های بهداشتی که به دنبال حضور حرفه ای آنلاین با طراحی زیبا و کاربر پسند هستند.">
+	<meta property="og:image" content="https://clinicmaster.dexignzone.com/xhtml/social-image.png">
+	
+	<!-- TWITTER META -->
+	<meta name="twitter:title" content="ClinicMaster - قالب بوت‌سترپ درمانی و پزشکی">
+	<meta name="twitter:description" content="کلینیک مستر یک الگوی بوت سترپ اچ تی ام ال مدرن و پاسخگو است که برای وب سایت های بهداشتی و پزشکی طراحی شده است.ایده آل برای کلینیک ها ، بیمارستان ها و متخصصان مراقبت های بهداشتی که به دنبال حضور حرفه ای آنلاین با طراحی زیبا و کاربر پسند هستند.">
+	<meta name="twitter:image" content="https://clinicmaster.dexignzone.com/xhtml/social-image.png">
+	<meta name="twitter:card" content="summary_large_image">
+	
+	<!-- CANONICAL URL -->
+	<link rel="canonical" href="{% url 'team:soon' %}">
+	
+	<!-- MOBILE SPECIFIC -->
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<!-- FAVICONS ICON -->
+	<link rel="icon" type="image/x-icon" href="{% static 'assets/images/logo/Armita2.png' %}">
+	
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+	<link href="../../css2-2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+	
+	<!-- Custom Stylesheet -->
+	<link rel="stylesheet" type="text/css" href="{% static 'assets/css/style-2.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'assets/css/fonts.css' %}">
+
+</head>	
+<body id="bg">
+<div class="page-wraper">
+	
+	
+
+	<main class="page-content">
+	
+		<section class="dz-coming-soon">
+			<div class="row">
+				<div class="col-xxl-6 col-xl-6 col-lg-6 px-0">
+					<div class="dz-coming-bx">
+						<div class="top-wrapper">
+							<div class="coming-soon-logo">
+								<a href="{% url 'home:index' %}"><img src="{% static 'assets/images/logo/Armita2.png' %}" alt="ArmitaGen lab" style="width: 200px; height: 60px;"></a>
+							</div>
+							<div class="dz-content">
+								<h2 class="dz-title pe-xl-4">آکادمی ژنتیک،<br> به زودی...</h2>
+								<div class="countdown">
+									<div class="date">
+										<span class="time" id="day">10</span>
+										<span class="text"> روز</span>
+									</div>
+									<div class="date">
+										<span class="time" id="hour">17</span>
+										<span class="text">ساعت</span>
+									</div>
+									<div class="date">
+										<span class="time" id="min">50</span>
+										<span class="text">دقیقه</span>
+									</div>
+									<div class="date">
+										<div class="time lost" id="second">30</div>
+										<span class="text">ثانیه</span>
+									</div>
+								</div>
+								<p>آکادمی ژنتیک آزمایشگاه تشخیص پزشکی آرمیتاژن با عنوان مرجع تخصصی پزشکی فرادقیق و ژنتیک پزشکی در کشور با تمرکز بر توسعه علم ژنتیک، به زودی افتتاح خواهد شد.</p>
+								<form class="dzSubscribe style-3" action="{% static 'assets/script/mailchimp.php' %}" method="post">
+									<div class="dzSubscribeMsg"></div>
+									<div class="form-group">
+										<div class="input-group mb-0">
+											<input name="dzEmail" required="required" type="email" class="form-control" placeholder="ایمل شما">
+											<div class="input-group-addon">
+												<button name="submit" value="Submit" type="submit" class="btn btn-primary btn-hover1">
+													<span class="btn-text">مشترک شوید</span>
+													<span class="btn-icon">
+														<i class="fa-solid fa-paper-plane"></i>
+													</span>
+												</button>
+											</div>
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
+						<div class="bottom-wrapper">
+							<div class="dz-social-icon style-4 m-b20">
+								<ul>
+									<li>
+										<a href="https://www.facebook.com" target="_blank">
+											<i class="fa-brands fa-facebook-f"></i>
+										</a>
+									</li>
+									<li>
+										<a href="https://twitter.com" target="_blank">
+											<i class="fa-brands fa-twitter"></i>
+										</a>
+									</li>
+									<li>
+										<a href="https://www.linkedin.com" target="_blank">
+											<i class="fa-brands fa-linkedin"></i>
+										</a>
+									</li>
+									<li>
+										<a href="https://www.instagram.com" target="_blank">
+											<i class="fa-brands fa-instagram"></i>
+										</a>
+									</li>
+								</ul>
+							</div>
+                            <p class="copyright-text">تمامی حقوق و محتوای سایت متعلق به آزمایشگاه تخصصی آرمیتاژن می‌باشد.</p>
+						</div>
+					</div>
+				</div>
+				<div class="col-xxl-6 col-xl-6 col-lg-6 px-0">
+					<div class="dz-coming-media">
+						<img src="{% static 'assets/images/coming-soon.jpg' %}" alt="">
+					</div>
+				</div>
+			</div>
+		</section>
+		
+	</main>
+	
+	
+</div>
+<!-- JAVASCRIPT FILES ========================================= -->
+<script src="{% static 'assets/js/global.min-2.js' %}"></script>
+<script src="{% static 'assets/vendor/countdown/jquery.countdown-2.js' %}"></script>
+<script src="{% static 'assets/js/dz.ajax-2.js' %}"></script>
+<script src="{% static 'assets/assets/js/custom-2.js' %}"></script>
+
+</body>
+</html>

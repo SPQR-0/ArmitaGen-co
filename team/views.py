@@ -20,3 +20,23 @@ class ContactUsView(View):
     
     def post(self, request):
         return render(request, self.temp)
+    
+
+class TeamView(View):
+    temp = 'team/team.html'
+
+    def get(self, request):
+        return render(request, self.temp)
+    
+    def post(self, request):
+        return render(request, self.temp)
+    
+
+class SoonView(View):
+    temp = 'team/soon.html'
+
+    def get(self, request):
+        return render(request, self.temp)
+    
+    def post(self, request):
+        return render(request, self.temp)
