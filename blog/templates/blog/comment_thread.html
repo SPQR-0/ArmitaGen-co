@@ -1,3 +1,4 @@
+{% comment %}
 {% load comment_tags %}
 {% load jalali %}
 <!-- Single Comment with Recursive Replies -->
@@ -155,4 +156,329 @@
             </div>
         {% endif %}
     {% endwith %}
-</div>
+</div>{% endcomment %}
+
+
+{% load comment_tags %}
+{% load jalali %}
+
+<!-- آیتم کامنت با قابلیت نمایش بازگشتی -->
+<li id="comment-{{ comment.id }}" class="comment-item" style="margin-bottom: 20px;">
+    <div class="comment-body"
+         style="border-radius: 12px;
+                background: {% if depth == 0 %}#ffffff{% else %}#fafafa{% endif %};
+                padding: 24px;
+                border: 1px solid {% if depth == 0 %}#e5e5e5{% else %}#f0f0f0{% endif %};
+                box-shadow: {% if depth == 0 %}0 2px 8px rgba(0,0,0,0.05){% else %}0 1px 4px rgba(0,0,0,0.03){% endif %};
+                {% if depth > 0 %}
+                    margin-right: 40px;
+                    border-right: 3px solid {% if depth == 1 %}#2196f3{% elif depth == 2 %}#4caf50{% elif depth == 3 %}#ff9800{% else %}#9e9e9e{% endif %};
+                {% endif %}">
+
+        <!-- هدر کامنت -->
+        <div class="comment-header" style="display: flex; align-items: center; gap: 15px; margin-bottom: 16px;">
+            <!-- آواتار -->
+            <div class="comment-avatar"
+                 style="width: {% if depth == 0 %}48{% else %}40{% endif %}px;
+                        height: {% if depth == 0 %}48{% else %}40{% endif %}px;
+                        border-radius: 50%;
+                        background: {% if comment.is_anonymous %}linear-gradient(135deg, #667eea 0%, #764ba2 100%){% else %}linear-gradient(135deg, #f093fb 0%, #f5576c 100%){% endif %};
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-weight: 700;
+                        font-size: {% if depth == 0 %}18{% else %}16{% endif %}px;
+                        flex-shrink: 0;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                {% if comment.is_anonymous %}؟{% else %}{{ comment.name.0|upper }}{% endif %}
+            </div>
+
+            <!-- اطلاعات کاربر -->
+            <div class="comment-meta" style="flex: 1;">
+                <div class="comment-author" style="font-weight: 600; color: #222; font-size: {% if depth == 0 %}16{% else %}15{% endif %}px; margin-bottom: 4px;">
+                    {{ comment.get_display_name }}
+                    {% if depth > 0 and comment.parent %}
+                        <span style="color: #999; font-weight: 400; font-size: 13px;">
+                            → در پاسخ به {{ comment.parent.get_display_name }}
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="comment-date" style="font-size: 12px; color: #888;">
+                    <i class="fa-regular fa-clock" style="margin-left: 4px;"></i>
+                    {{ comment.created_at|jalali:"%d %B %Y - %H:%M" }}
+                </div>
+            </div>
+
+            <!-- دکمه پاسخ -->
+            <button type="button"
+                    onclick="toggleReplyForm({{ comment.id }})"
+                    class="btn-reply"
+                    style="padding: {% if depth == 0 %}10px 20px{% else %}8px 16px{% endif %};
+                           background: #f5f5f5;
+                           color: #666;
+                           border: 1px solid #e0e0e0;
+                           border-radius: 8px;
+                           font-size: {% if depth == 0 %}14{% else %}13{% endif %}px;
+                           cursor: pointer;
+                           transition: all 0.3s ease;
+                           font-weight: 500;
+                           display: flex;
+                           align-items: center;
+                           gap: 6px;">
+                <i class="fa-solid fa-reply"></i>
+                پاسخ
+            </button>
+        </div>
+
+        <!-- محتوای کامنت -->
+        <div class="comment-content"
+             style="color: #333;
+                    line-height: 1.8;
+                    font-size: {% if depth == 0 %}15{% else %}14{% endif %}px;
+                    margin-bottom: 16px;
+                    padding-right: {% if depth == 0 %}63{% else %}55{% endif %}px;
+                    text-align: justify;">
+            {{ comment.content|linebreaks }}
+        </div>
+
+        <!-- پاسخ ادمین -->
+        {% if comment.admin_reply %}
+            <div class="admin-reply"
+                 style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+                        padding: 20px;
+                        border-radius: 10px;
+                        margin: 0 0 20px 0;
+                        border: 2px solid #2196f3;
+                        box-shadow: 0 3px 10px rgba(33, 150, 243, 0.2);">
+                <div class="admin-reply-header" style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+                    <div class="admin-avatar"
+                         style="width: 40px;
+                                height: 40px;
+                                border-radius: 50%;
+                                background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                font-size: 20px;
+                                flex-shrink: 0;
+                                box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);">
+                        🛡️
+                    </div>
+                    <div>
+                        <div class="admin-name" style="font-weight: 700; color: #1976d2; font-size: 15px;">
+                            پاسخ مدیر سایت
+                        </div>
+                        {% if comment.admin_replied_at %}
+                            <div class="admin-date" style="font-size: 12px; color: #1976d2; opacity: 0.8;">
+                                <i class="fa-regular fa-clock" style="margin-left: 4px;"></i>
+                                {{ comment.admin_replied_at|jalali:"%d %B %Y - %H:%M" }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="admin-reply-content"
+                     style="color: #0d47a1;
+                            line-height: 1.8;
+                            font-size: 14px;
+                            padding-right: 52px;
+                            text-align: justify;">
+                    {{ comment.admin_reply|linebreaks }}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- فرم پاسخ (مخفی به صورت پیش‌فرض) -->
+        <div id="reply-form-{{ comment.id }}"
+             class="reply-form-container"
+             style="display: none;
+                    padding: 24px;
+                    background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+                    border-radius: 10px;
+                    margin-top: 20px;
+                    border: 2px solid #e0e0e0;
+                    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+
+            <h5 style="font-size: 15px; color: #666; margin-bottom: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-reply" style="color: #d8a05c;"></i>
+                پاسخ به <span style="color: #222;">{{ comment.get_display_name }}</span>
+            </h5>
+
+            <form method="post" action="{% url 'blog:post_comment_reply' post.slug comment.id %}" class="reply-form">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <input type="text"
+                               name="name"
+                               placeholder="نام شما (اختیاری)"
+                               class="form-control reply-input"
+                               style="padding: 12px 16px;
+                                      border: 1px solid #ddd;
+                                      border-radius: 8px;
+                                      font-size: 14px;
+                                      transition: all 0.3s ease;">
+                    </div>
+                    <div class="col-md-6">
+                        <input type="email"
+                               name="email"
+                               placeholder="ایمیل شما (اختیاری)"
+                               class="form-control reply-input"
+                               style="padding: 12px 16px;
+                                      border: 1px solid #ddd;
+                                      border-radius: 8px;
+                                      font-size: 14px;
+                                      transition: all 0.3s ease;">
+                    </div>
+                    <div class="col-12">
+                        <textarea name="content"
+                                  rows="4"
+                                  placeholder="پاسخ خود را بنویسید..."
+                                  required
+                                  class="form-control reply-textarea"
+                                  style="padding: 14px 16px;
+                                         border: 1px solid #ddd;
+                                         border-radius: 8px;
+                                         font-size: 14px;
+                                         resize: vertical;
+                                         transition: all 0.3s ease;"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit"
+                                    class="btn btn-primary"
+                                    style="padding: 12px 28px;
+                                           border-radius: 8px;
+                                           font-size: 14px;
+                                           font-weight: 600;
+                                           transition: all 0.3s ease;">
+                                <i class="fa-solid fa-paper-plane" style="margin-left: 6px;"></i>
+                                ارسال پاسخ
+                            </button>
+                            <button type="button"
+                                    onclick="toggleReplyForm({{ comment.id }})"
+                                    class="btn btn-outline-secondary"
+                                    style="padding: 12px 28px;
+                                           border-radius: 8px;
+                                           font-size: 14px;
+                                           font-weight: 600;
+                                           transition: all 0.3s ease;">
+                                <i class="fa-solid fa-times" style="margin-left: 6px;"></i>
+                                انصراف
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+<br>
+
+    <!-- نمایش بازگشتی پاسخ‌ها (Thread) -->
+    {% with replies=comment.get_replies %}
+        {% if replies %}
+            <ol class="children comment-list" style="list-style: none; padding: 0; margin: 20px 0 0 0;">
+                {% for reply in replies %}
+                    {% render_comment reply depth|add:1 %}
+                {% endfor %}
+            </ol>
+        {% endif %}
+    {% endwith %}
+</li>
+<br>
+<style>
+    /* استایل‌های hover برای دکمه‌ها */
+    .btn-reply:hover {
+        background: #e8e8e8 !important;
+        border-color: #d0d0d0 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    /* استایل‌های input و textarea در فرم پاسخ */
+    .reply-input:focus,
+    .reply-textarea:focus {
+        border-color: #d8a05c !important;
+        box-shadow: 0 0 0 0.2rem rgba(216, 160, 92, 0.15) !important;
+        outline: none;
+    }
+
+    /* استایل‌های دکمه‌های فرم */
+    .reply-form .btn-primary {
+        background-color: #d8a05c;
+        border-color: #d8a05c;
+    }
+
+    .reply-form .btn-primary:hover {
+        background-color: #c48b4c;
+        border-color: #c48b4c;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(216, 160, 92, 0.3);
+    }
+
+    .reply-form .btn-outline-secondary {
+        border-color: #ddd;
+        color: #666;
+    }
+
+    .reply-form .btn-outline-secondary:hover {
+        background-color: #f5f5f5;
+        border-color: #ccc;
+        color: #333;
+        transform: translateY(-2px);
+    }
+
+    /* انیمیشن برای باز شدن فرم */
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .reply-form-container[style*="display: block"] {
+        animation: slideDown 0.3s ease;
+    }
+
+    /* ریسپانسیو */
+    @media (max-width: 768px) {
+        .comment-body {
+            padding: 16px !important;
+        }
+
+        .comment-body[style*="margin-right"] {
+            margin-right: 20px !important;
+        }
+
+        .comment-header {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 10px !important;
+        }
+
+        .btn-reply {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .comment-content {
+            padding-right: 0 !important;
+        }
+
+        .admin-reply-content {
+            padding-right: 0 !important;
+        }
+
+        .reply-form .btn {
+            width: 100%;
+        }
+
+        .reply-form .col-12 > div {
+            flex-direction: column;
+        }
+    }
+</style>

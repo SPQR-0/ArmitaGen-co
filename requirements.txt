@@ -22,6 +22,7 @@ django-imagekit==5.0.0
 django-import-export==4.3.14
 django-jalali-date==2.0.0
 django-js-asset==3.0.1
+django-ratelimit==4.1.0
 django-render-partial==0.4
 django-taggit==6.1.0
 et_xmlfile==2.0.0

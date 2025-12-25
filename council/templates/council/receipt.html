@@ -1,4 +1,5 @@
 {% load static %}
+{% load jalali_tags %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -210,7 +211,7 @@
             <div class="receipt-row">
                 <span class="receipt-label">تاریخ و زمان:</span>
                 <span class="receipt-value" style="direction: ltr;">
-                    {{ jalali_date_str }} - {{ reservation.time_slot.start_time|time:"H:i" }}
+                    {{ reservation.time_slot.date|to_jalali:"%Y/%m/%d" }} - {{ reservation.time_slot.start_time|time:"H:i" }}
                 </span>
             </div>
             <div class="receipt-row">

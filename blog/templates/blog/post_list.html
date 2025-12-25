@@ -1,4 +1,596 @@
+{% comment %}
+{% load jalali %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لیست پست‌ها - بلاگ</title>
+
+    <style>
+        /* ==================== Global Styles ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Vazir', 'Tahoma', sans-serif;
+            background: #fafafa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+
+        /* ==================== Layout ==================== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* ==================== Header ==================== */
+        header {
+            background: white;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 20px 0;
+            margin-bottom: 40px;
+        }
+
+        .site-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #222;
+            letter-spacing: -0.5px;
+        }
+
+        nav {
+            margin-top: 15px;
+            display: flex;
+            gap: 20px;
+        }
+
+        nav a {
+            color: #666;
+            font-size: 14px;
+            padding: 6px 0;
+            border-bottom: 2px solid transparent;
+        }
+
+        nav a:hover {
+            color: #222;
+            border-bottom-color: #222;
+        }
+
+        /* ==================== Search Box ==================== */
+        .search-box {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            margin-bottom: 30px;
+        }
+
+        .search-box form {
+            display: flex;
+            gap: 12px;
+        }
+
+        .search-box input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #fafafa;
+            transition: all 0.2s;
+        }
+
+        .search-box input[type="text"]:focus {
+            outline: none;
+            border-color: #999;
+            background: white;
+        }
+
+        .search-box button {
+            padding: 12px 24px;
+            background: #222;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .search-box button:hover {
+            background: #000;
+        }
+
+        /* ==================== Filters ==================== */
+        .filters {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            margin-bottom: 30px;
+        }
+
+        .filters h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filters form {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .filters label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .filters select {
+            padding: 10px 14px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #fafafa;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .filters select:focus {
+            outline: none;
+            border-color: #999;
+        }
+
+        .filters button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-apply {
+            background: #222;
+            color: white;
+        }
+
+        .btn-apply:hover {
+            background: #000;
+        }
+
+        .btn-clear {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-clear:hover {
+            background: #e8e8e8;
+            color: #222;
+        }
+
+        /* ==================== Page Specific Styles ==================== */
+        /* Post Grid */
+        .post-grid {
+            display: grid;
+            gap: 24px;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .post-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .post-card-content {
+            display: flex;
+            gap: 20px;
+            padding: 24px;
+        }
+
+        .post-thumbnail {
+            flex-shrink: 0;
+            width: 180px;
+            height: 135px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .post-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .post-info {
+            flex: 1;
+        }
+
+        .post-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .post-title:hover {
+            color: #555;
+        }
+
+        .post-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 12px;
+        }
+
+        .post-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .post-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .read-more {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #f5f5f5;
+            color: #333;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .read-more:hover {
+            background: #222;
+            color: white;
+        }
+
+        /* Pagination */
+        .pagination {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .pagination-inner {
+            display: inline-flex;
+            gap: 6px;
+            background: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            align-items: center;
+        }
+
+        .pagination a, .pagination span {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-block;
+            min-width: 36px;
+            text-align: center;
+        }
+
+        .pagination a {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .pagination a:hover {
+            background: #222;
+            color: white;
+        }
+
+        .pagination .current-page {
+            background: #222;
+            color: white;
+        }
+
+        .pagination .page-number {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .pagination .page-number.active {
+            background: #222;
+            color: white;
+        }
+
+        .pagination .page-number:hover:not(.active) {
+            background: #e8e8e8;
+        }
+
+        .pagination .ellipsis {
+            padding: 8px 6px;
+            color: #999;
+            pointer-events: none;
+            background: transparent;
+        }
+
+        /* Alert */
+        .alert {
+            background: white;
+            padding: 32px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            text-align: center;
+        }
+
+        .alert p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 60px;
+            padding: 30px 0;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .post-card-content {
+                flex-direction: column;
+            }
+
+            .post-thumbnail {
+                width: 100%;
+                height: 200px;
+            }
+
+            .filters form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filters button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <div class="site-title">📝 بلاگ</div>
+        <nav>
+            <a href="{% url 'blog:post_list' %}">خانه</a>
+            <a href="{% url 'blog:post_search' %}">جستجو</a>
+            {% if user.is_staff %}
+                <a href="/admin/">پنل ادمین</a>
+            {% endif %}
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+
+    <!-- Search Box -->
+    <div class="search-box">
+        <form method="get" action="{% url 'blog:post_search' %}">
+            <input type="text" name="q" placeholder="جستجو در پست‌ها..." value="{{ query|default:'' }}">
+            <button type="submit">جستجو</button>
+        </form>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <h3>فیلترها</h3>
+        <form method="get">
+            <div>
+                <label>سال</label>
+                <select name="year">
+                    <option value="">همه</option>
+                    {% for year in available_years %}
+                        <option value="{{ year }}"
+                                {% if current_year == year|stringformat:"s" %}selected{% endif %}>
+                            {{ year }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>ماه</label>
+                <select name="month">
+                    <option value="">همه</option>
+                    {% for m in jalali_months %}
+                        <option value="{{ m.value }}"
+                                {% if current_month == m.value|stringformat:"s" %}selected{% endif %}>
+                            {{ m.label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>مرتب‌سازی</label>
+                <select name="sort">
+                    <option value="-published_at" {% if current_sort == "-published_at" %}selected{% endif %}>جدیدترین
+                    </option>
+                    <option value="published_at" {% if current_sort == "published_at" %}selected{% endif %}>قدیمی‌ترین
+                    </option>
+                    <option value="title" {% if current_sort == "title" %}selected{% endif %}>الفبایی (الف-ی)</option>
+                    <option value="-title" {% if current_sort == "-title" %}selected{% endif %}>الفبایی (ی-الف)</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-apply">اعمال</button>
+            <a href="{% url 'blog:post_list' %}" class="btn-clear"
+               style="display: inline-block; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 500;">پاک
+                کردن</a>
+        </form>
+    </div>
+
+
+    <!-- Post List -->
+    {% if posts %}
+        <div class="post-grid">
+            {% for post in posts %}
+                <article class="post-card">
+                    <div class="post-card-content">
+                        {% if post.featured_image %}
+                            <div class="post-thumbnail">
+                                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
+                            </div>
+                        {% endif %}
+
+                        <div class="post-info">
+                            <h2 class="post-title">
+                                <a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a>
+                            </h2>
+
+                            <div class="post-meta">
+                                {% if post.authors.exists %}
+                                    <span>{{ post.authors.first.name }}{% if post.authors.count > 1 %} و
+                                        {{ post.authors.count|add:"-1" }} نفر دیگر{% endif %}</span>
+                                {% else %}
+                                    <span>بدون نویسنده</span>
+                                {% endif %}
+                                <span>{{ post.published_at|jalali:"%Y/%m/%d" }}</span>
+                            </div>
+
+                            {% if post.meta_description %}
+                                <p class="post-description">{{ post.meta_description|truncatewords:25 }}</p>
+                            {% endif %}
+
+                            <a href="{% url 'blog:post_detail' post.slug %}" class="read-more">ادامه مطلب</a>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <div class="pagination">
+                <div class="pagination-inner">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1
+
+
+
+
+                                {% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                           title="اولین صفحه">«</a>
+                        <a href="?page=
+
+
+
+
+                                {{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                           title="صفحه قبل">‹</a>
+                    {% endif %}
+
+                    {% for page_num in page_obj.paginator.page_range %}
+                        {% if page_num == page_obj.number %}
+                            <span class="page-number active">{{ page_num }}</span>
+                        {% elif page_num > page_obj.number|add:'-3' and page_num < page_obj.number|add:'3' %}
+                            <a href="?page=
+
+
+
+
+                                    {{ page_num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                               class="page-number">{{ page_num }}</a>
+                        {% elif page_num == 1 or page_num == page_obj.paginator.num_pages %}
+                            <a href="?page=
+
+
+
+
+                                    {{ page_num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                               class="page-number">{{ page_num }}</a>
+                        {% elif page_num == page_obj.number|add:'-3' or page_num == page_obj.number|add:'3' %}
+                            <span class="ellipsis">...</span>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a href="?page=
+
+
+
+
+                                {{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                           title="صفحه بعد">›</a>
+                        <a href="?page=
+
+
+
+
+                                {{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                           title="آخرین صفحه">»</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+    {% else %}
+        <div class="alert">
+            <p>هیچ پستی یافت نشد</p>
+        </div>
+    {% endif %}
+
+</main>
+
+<footer>
+    <div class="container">
+        © 2024 بلاگ. تمامی حقوق محفوظ است.
+    </div>
+</footer>
+
+</body>
+</html>{% endcomment %}
+
 {% load static %}
+{% load jalali %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl" data-theme-color="skin-1">
 <head>
@@ -542,10 +1134,29 @@
         opacity: 1;
     }
 </style>
-
+<style>
+        /* استایل اختصاصی برای ویجت فیلتر */
+        .filter-widget select, .filter-widget input {
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            font-size: 14px;
+        }
+        .btn-filter-apply {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn-filter-clear {
+            width: 100%;
+            margin-top: 5px;
+            background: #f8f9fa;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+        .btn-filter-clear:hover { background: #eee; }
+    </style>
 <body id="bg">
 <div class="page-wraper">
-
     <div class="dz-preloader-1" id="dzPreloader">
         <div class="preloader-inner">
             <svg class="dz_svg" width="240" height="240" viewbox="0 0 240 240">
@@ -946,389 +1557,144 @@
     <!-- Header End -->
 
     <main class="page-content">
-
-        <div class="dz-bnr-inr dz-banner-dark overlay-secondary-middle dz-bnr-inr-md"
-             style="background-image:url({% static 'assets/images/banner/bnr2.webp' %});">
+        <div class="dz-bnr-inr dz-banner-dark overlay-secondary-middle dz-bnr-inr-md" style="background-image:url({% static 'assets/images/banner/bnr2.webp' %});">
             <div class="container">
                 <div class="dz-bnr-inr-entry d-table-cell">
-                    <h1 class="wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">آرمیتابلاگ</h1>
-                    <nav aria-label="breadcrumb" class="breadcrumb-row wow fadeInUp" data-wow-delay="0.4s"
-                         data-wow-duration="0.8s">
-                        <ul class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{% url 'home:index' %}">خانه</a></li>
-                            <li class="breadcrumb-item">آرمیتابلاگ</li>
-                        </ul>
-                    </nav>
-                    <div class="dz-btn">
-					<a href="tel:+989108622597" class="btn btn-lg btn-icon btn-primary radius-xl btn-shadow mb-3 mb-sm-0">
-						<span class="left-icon">
-							<i class="feather icon-phone-call"></i>
-						</span>
-						<!-- 5291-3 8898 (21) 98+ -->
-						2597 862 910 98+
-					</a>					
-				</div>
+                    <h1>مقالات و اخبار ژنتیک</h1>
                 </div>
             </div>
-            <span class="text-vertical">24/7 سرویس اضطراری</span>
-            <ul class="dz-social">
-                <li>
-                    <a href="https://www.instagram.com" target="_blank">
-                        <i class="fa-brands fa-instagram"></i>
-                    </a>
-                </li>
-                <li>
-                    <a href="https://www.facebook.com" target="_blank">
-                        <i class="fa-brands fa-facebook-f"></i>
-                    </a>
-                </li>
-                <li>
-                    <a href="https://twitter.com" target="_blank">
-                        <i class="fa-brands fa-x-twitter"></i>
-                    </a>
-                </li>
-                <li>
-                    <a href="https://www.youtube.com" target="_blank">
-                        <i class="fa-brands fa-youtube"></i>
-                    </a>
-                </li>
-            </ul>
         </div>
 
         <section class="content-inner">
             <div class="container">
                 <div class="row">
+
                     <div class="col-xl-9 col-lg-12 m-b30 pe-xl-5">
-                        {% for post in posts %}
-                            <div class="loadmore-content">
-                                <div class="dz-card style-2 blog-half m-b35 wow fadeInUp" data-wow-delay="0.1s"
-                                     data-wow-duration="0.5s">
-                                    {% if post.featured_image %}
-                                        <div class="dz-media">
-                                            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
-                                        </div>
-                                    {% endif %}
+                        {% if posts %}
+                            {% for post in posts %}
+                                <div class="dz-card style-2 blog-half m-b35">
+                                    <div class="dz-media">
+                                        <a href="{% url 'blog:post_detail' post.slug %}">
+                                            {% if post.featured_image %}
+                                                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
+                                            {% endif %}
+                                        </a>
+                                    </div>
                                     <div class="dz-info">
                                         <div class="dz-meta">
                                             <ul>
-                                                <li class="post-date">{{ post.published_at|date:"Y/m/d" }}</li>
-                                                {% if post.authors.exists %}
-                                                    <li class="post-author">توسط <a href="">
-                                                        {{ post.authors.first.name }}{% if post.authors.count > 1 %} و
-                                                            {{ post.authors.count|add:"-1" }} نفر دیگر{% endif %}</a>
-                                                    </li>
-                                                {% else %}
-                                                    <span>بدون نویسنده</span>
-                                                {% endif %}
-
-                                                <li class="post-comments">{{ post.comments.count }} نظر</li>
+                                                <li class="post-date">{{ post.published_at|jalali:"%d %B %Y" }}</li>
+                                                <li class="post-author">توسط {{ post.authors.first.name }}</li>
                                             </ul>
                                         </div>
-                                        <h3 class="dz-title"><a
-                                                href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a></h3>
-                                        {% if post.meta_description %}
-                                            <p>{{ post.meta_description|truncatewords:25 }}</p>
-                                        {% endif %}
-                                        <a href="{% url 'blog:post_detail' post.slug %}"
-                                           class="btn icon-link-hover-end btn-primary radius-sm">
-                                            بیشتر بخوانید <i class="feather icon-arrow-left"></i>
-                                        </a>
+                                        <h3 class="dz-title"><a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a></h3>
+                                        <p>{{ post.meta_description|truncatewords:20 }}</p>
+                                        <a href="{% url 'blog:post_detail' post.slug %}" class="btn btn-primary btn-sm">ادامه مطلب</a>
                                     </div>
                                 </div>
-                            </div>
-                        {% endfor %}
-                        {#						<div class="text-center m-t30 m-lg-t0 wow fadeInUp" data-wow-delay="0.7s" data-wow-duration="0.5s">#}
-                        {#							<a href="javascript:void(0);" class="btn btn-lg btn-icon btn-primary dz-load-more" rel="ajax/blog-list.html">#}
-                        {#								بارگذاری بیشتر#}
-                        {#								<span class="right-icon"><i class="feather icon-refresh-ccw"></i></span>#}
-                        {#							</a>#}
-                        {#						</div>#}
+                            {% endfor %}
+
+                            {% if is_paginated %}
+                            <nav>
+                                <ul class="pagination style-1">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">قبلی</a></li>
+                                    {% endif %}
+
+                                    <li class="page-item"><span class="page-link active">{{ page_obj.number }}</span></li>
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">بعدی</a></li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-warning">مطلبی با این مشخصات یافت نشد.</div>
+                        {% endif %}
                     </div>
+
                     <div class="col-xl-3 col-lg-12">
-                        <aside class="side-bar sticky-top right m-b30 p-0">
-                            <div class="widget wow fadeInUp" data-wow-delay="0.1s" data-wow-duration="0.5s">
+                        <aside class="side-bar sticky-top">
+
+                            <div class="widget">
                                 <div class="widget-title">
                                     <h4 class="title">جستجو</h4>
                                 </div>
                                 <div class="search-bx">
-                                    <form role="search" method="post">
+                                    <form role="search" method="get" action="{% url 'blog:post_list' %}">
                                         <div class="input-group">
-                                            <input name="text" class="form-control" placeholder="جستجو" type="text">
+                                            <input name="q" class="form-control" placeholder="کلمه کلیدی..." type="text" value="{{ request.GET.q|default:'' }}">
                                             <div class="input-group-btn">
-                                                <button type="submit">
-                                                    <i class="feather icon-search"></i>
-                                                </button>
+                                                <button type="submit"><i class="feather icon-search"></i></button>
                                             </div>
                                         </div>
                                     </form>
                                 </div>
                             </div>
-                            <div class="widget widget_categories style-1 wow fadeInUp" data-wow-delay="0.2s"
-                                 data-wow-duration="0.5s">
+
+                            <div class="widget filter-widget">
                                 <div class="widget-title">
-                                    <h4 class="title"> دسته‌بندی </h4>
+                                    <h4 class="title">فیلتر مطالب</h4>
                                 </div>
-                                <ul>
-                                    <li class="cat-item"><a href="javascript:void(0);"> طب سوزنی </a> (10)</li>
-                                    <li class="cat-item"><a href="javascript:void(0);"> عمومی </a> (5)</li>
-                                    <li class="cat-item"><a href="javascript:void(0);"> خون </a> (17)</li>
-                                    <li class="cat-item"><a href="javascript:void(0);"> غذا </a> (13)</li>
-                                    <li class="cat-item"><a href="javascript:void(0);"> سلامتی </a> (06)</li>
-                                    <li class="cat-item"><a href="javascript:void(0);"> سلامت روانی </a> (17)</li>
-                                    <li class="cat-item"><a href="javascript:void(0);"> درمان </a> (13)</li>
-                                    <li class="cat-item"><a href="javascript:void(0);"> پیاده روی </a> (06)</li>
-                                </ul>
+                                <form method="get">
+                                    {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+
+                                    <label class="form-label small">انتخاب سال</label>
+                                    <select name="year" class="form-control">
+                                        <option value="">همه سال‌ها</option>
+                                        {% for year in available_years %}
+                                            <option value="{{ year }}" {% if current_year == year|stringformat:"s" %}selected{% endif %}>{{ year }}</option>
+                                        {% endfor %}
+                                    </select>
+
+                                    <label class="form-label small m-t10">انتخاب ماه</label>
+                                    <select name="month" class="form-control">
+                                        <option value="">همه ماه‌ها</option>
+                                        {% for m in jalali_months %}
+                                            <option value="{{ m.value }}" {% if current_month == m.value|stringformat:"s" %}selected{% endif %}>{{ m.label }}</option>
+                                        {% endfor %}
+                                    </select>
+
+                                    <label class="form-label small m-t10">مرتب‌سازی</label>
+                                    <select name="sort" class="form-control">
+                                        <option value="-published_at" {% if current_sort == "-published_at" %}selected{% endif %}>جدیدترین</option>
+                                        <option value="published_at" {% if current_sort == "published_at" %}selected{% endif %}>قدیمی‌ترین</option>
+                                        <option value="title" {% if current_sort == "title" %}selected{% endif %}>الفبا (الف-ی)</option>
+                                    </select>
+
+                                    <button type="submit" class="btn btn-primary btn-filter-apply">اعمال فیلتر</button>
+                                    <a href="{% url 'blog:post_list' %}" class="btn btn-filter-clear">پاک کردن همه</a>
+                                </form>
                             </div>
-                            <div class="widget recent-posts-entry wow fadeInUp" data-wow-delay="0.3s"
-                                 data-wow-duration="0.5s">
+
+{% comment %}                            <div class="widget widget_tag_cloud">
                                 <div class="widget-title">
-                                    <h4 class="title"> آخرین پست </h4>
-                                </div>
-                                <div class="widget-post-bx">
-                                    <div class="widget-post clearfix">
-                                        <div class="dz-media">
-                                            <img src="{% static 'assets/images/blog/small/img1.webp' %}" alt="/">
-                                        </div>
-                                        <div class="dz-info">
-                                            <div class="dz-meta">
-                                                <ul>
-                                                    <li class="post-date"><a href="javascript:void(0);">17 دی 1403</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <h6 class="title"><a href="blog-details.html"> هنر مدیریت تجارت و مراقبت از
-                                                بیمار </a></h6>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="widget widget_tag_cloud wow fadeInUp" data-wow-delay="0.4s"
-                                 data-wow-duration="0.5s">
-                                <div class="widget-title">
-                                    <h4 class="title">برچسب ها</h4>
+                                    <h4 class="title">برچسب‌های محبوب</h4>
                                 </div>
                                 <div class="tagcloud">
-                                    <a href="javascript:void(0);"> طب سوزنی </a>
-                                    <a href="javascript:void(0);"> عمومی </a>
-                                    <a href="javascript:void(0);"> خون </a>
-                                    <a href="javascript:void(0);"> غذا </a>
-                                    <a href="javascript:void(0);"> سلامتی </a>
-                                    <a href="javascript:void(0);"> سلامت روانی </a>
-                                    <a href="javascript:void(0);"> درمان </a>
-                                    <a href="javascript:void(0);"> پیاده روی </a>
+                                    {% for tag in all_tags %}
+                                        <a href="{% url 'blog:post_list' %}?tag={{ tag.slug }}">
+                                            {{ tag.name }}
+                                            <span class="small">({{ tag.num_times }})</span>
+                                        </a>
+                                    {% empty %}
+                                        <p class="small text-muted">برچسبی موجود نیست.</p>
+                                    {% endfor %}
                                 </div>
-                            </div>
+                            </div>{% endcomment %}
+
                         </aside>
                     </div>
+
                 </div>
             </div>
         </section>
-
     </main>
-
-    <!-- Footer -->
-	<footer class="site-footer style-1 overlay-primary-light" style="background-image: url('{% static 'assets/images/background/bg4.webp' %}')">
-		
-		<div class="footer-head">
-			<div class="container">
-				<div class="fh-inner">
-					<div class="row g-3 align-items-center">
-						<div class="col-xl-3 col-md-12 col-sm-6 wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">
-							<h3 class="title">با ما در تماس باشید</h3>
-							<p class="text">آزمایشگاه ژنتیکی آرمیتاژن</p>
-						</div>
-						<div class="col-xl-3 col-md-4 col-sm-6 wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
-							<div class="icon-bx-wraper style-1">
-								<div class="icon-bx bg-secondary">
-									<span class="icon-cell">
-										<i class="feather icon-phone"></i>
-									</span>
-								</div>
-								<div class="icon-content">
-									<h5 class="dz-title">تماس با ما</h5>
-									<p><a href="tel:02188985291" class="text-body" dir="ltr">+98 (21) 8898 5291-3</a><br>
-									<a href="tel:+989108622597" class="text-body" dir="ltr">+98  910 862 2597</a></p>
-								</div>
-							</div>
-						</div>
-						<div class="col-xl-3 col-md-4 col-sm-6 wow fadeInUp" data-wow-delay="0.6s" data-wow-duration="0.8s">
-							<div class="icon-bx-wraper style-1">
-								<div class="icon-bx bg-secondary">
-									<span class="icon-cell">
-										<i class="feather icon-mail"></i>
-									</span>
-								</div>
-								<div class="icon-content">
-									<h5 class="dz-title"> برای ما نامه ارسال کنید </h5>
-									<p><a href="mailto:info@example.ir" class="text-body">info@armitagen.ir</a></p>
-								</div>
-							</div>
-						</div>
-						<div class="col-xl-3 col-md-4 col-sm-6 wow fadeInUp" data-wow-delay="0.8s" data-wow-duration="0.8s">
-							<div class="icon-bx-wraper style-1">
-								<div class="icon-bx bg-secondary">
-									<span class="icon-cell">
-										<i class="feather icon-clock"></i>
-									</span>
-								</div>
-								<div class="icon-content">
-									<h5 class="dz-title">ساعات کاری</h5>
-									<p>شنبه - پنج شنبه: 08:30 - 19:30</p>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		
-		<!-- Footer Top -->
-		<div class="footer-top">
-			<div class="container">
-				<div class="row">
-        <div class="col-xl-3 col-sm-12 wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">
-			<div class="widget widget_about me-2">
-				<div class="footer-logo logo-white">
-					<a href="index.html"><img src="{% static 'assets/images/logo/Armita2.png' %}" alt=""></a> 
-				</div>
-				<p style="text-align: justify;">در آرمیتاژن، ما با قدرت دانش و فناوری‌های جدید در حوزه‌های مختلف پزشکی باور داریم و مفتخریم در خط مقدم این حوزه با عنوان پیشگام در حوزه پزشکی فرادقیق (Precision Medicine) در حال خدمت رسانی به انسانها می‌باشیم. با شما در کشف اطلاعات ژنتیکی مورد نیاز برای آینده‌ای سالم‌تر همراه خواهیم بود.</p>
-			</div>
-		</div>
-        
-        <div class="col-xl-2 col-md-3 col-6 wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
-            <div class="widget widget_services">
-                <h2 class="footer-title">خدمات آزمایشگاهی</h2>
-                <ul class="list-hover1">
-                    <li><a href="#"><span> آزمایشگاه سرطان </span></a></li>
-                    <li><a href="#"><span>آزمایشگاه سلامت مادر و جنین</span></a></li>
-                    <li><a href="#"><span> ژنتیک مولکولی</span></a></li>
-                    <li><a href="#"><span> آنالیز میکروبیوم</span></a></li>
-                    <li><a href="#"><span> پنل استعدادیابی</span></a></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="col-xl-2 col-md-3 col-6 wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
-            <div class="widget widget_services">
-                <h2 class="footer-title">راهنمای مراجعین</h2>
-                <ul class="list-hover1">
-                    <li><a href="#"><span> خدمات حضوری و غیرحضوری </span></a></li>
-                    <li><a href="#"><span> مشاوره آنلاین </span></a></li>
-                    <li><a href="#"><span> نمونه گیری در محل  </span></a></li>
-                    <li><a href="#"><span> جوابدهی آنلاین </span></a></li>
-                    <li><a href="#"><span> همکاری با ما </span></a></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="col-xl-2 col-md-3 col-6 wow fadeInUp" data-wow-delay="1.0s" data-wow-duration="0.8s">
-            <div class="widget widget_services">
-                <h2 class="footer-title">پیوندهای سریع</h2>
-                <ul class="list-hover1">
-                    <li><a href="#"><span>درباره ما</span></a></li>
-                    <li><a href="#"><span> تماس ما </span></a></li>
-                    <li><a href="#"><span> آرمیتابلاگ </span></a></li>
-                    <li><a href="#"><span> آکادمی ژنتیک </span></a></li>
-                    <li><a href="#"><span>مشاوره ژنتیک</span></a></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 col-12 wow fadeInUp" data-wow-delay="0.6s" data-wow-duration="0.8s">
-            <div class="footer-widget app-download-widget">
-                <h2 class="footer-title">با ما در ارتباط باشید</h2>
-                <p>
-                    <a href="https://www.youtube.com/channel/UCa6y_3rVfGRXnT-3LqpKaJw" target="_blank" class="youtube-link">
-                        <i class="fab fa-youtube"></i>یوتیوب
-                    </a>
-                </p>
-                <p>
-                    <a href="https://www.instagram.com/motiongate.ir?igsh=MWpkN2F0bnF5amlsbQ==" target="_blank" class="instagram-link">
-                        <i class="fab fa-instagram"></i>اینستاگرام
-                    </a>
-                </p>
-                <p>
-                    <a href="https://www.linkedin.com/in/yourprofile" target="_blank" class="linkedin-link">
-                        <i class="fab fa-linkedin"></i>لینکداین
-                    </a>
-                </p>
-                <p>
-                    <a href="https://chat.whatsapp.com/H6yFGTDTxJD2tausLgvCEz?mode=ac_t" target="_blank" class="whatsapp-link">
-                        <i class="fab fa-whatsapp"></i>واتساپ
-                    </a>
-                </p>
-            </div>
-        </div>
-        
-        <div class="col-xl-2 col-md-6 col-12 wow fadeInUp" data-wow-delay="0.8s" data-wow-duration="0.8s">
-            <div class="widget">
-                </div>
-        </div>
-    </div>
-			</div>
-		</div>
-		<!-- Footer Top End -->
-		
-		<!-- Footer Top -->
-		
-		<!-- Footer Bottom -->
-		<div class="footer-bottom">
-			<div class="container">
-				<div class="fb-inner">
-					<div class="row">
-						<div class="col-lg-6 col-md-12 text-start"> 
-							<p class="copyright-text">تمامی حقوق و محتوای سایت متعلق به تیم آرمیتاژن می‌باشد.</p>
-						</div>
-						<div class="col-lg-6 col-md-12 text-end"> 
-							<div class="d-flex align-items-center justify-content-center justify-content-md-center justify-content-xl-end">
-								<div class="widget-rating1">
-									<img src="{% static 'assets/images/google.svg' %}" alt="">
-									<ul class="star-list">
-										<li><i class="fa fa-star"></i></li>
-										<li><i class="fa fa-star"></i></li>
-										<li><i class="fa fa-star"></i></li>
-										<li><i class="fa fa-star"></i></li>
-										<li><i class="fa fa-star"></i></li>
-									</ul>
-									<span class="rating">(4.8)</span>
-									<span class="text">12 هزار امتیاز در گوگل</span>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!-- Footer Bottom End -->
-		
-		<div class="item1">
-			<div class="info-widget style-4">
-				<div class="widget-media">
-					<img src="{% static 'assets/images/avatar/small/avatar6.webp' %}" alt="">
-				</div>
-				<div class="widget-content">
-					<h6 class="title">سوالی دارید؟</h6>
-					<a href="mailto:info@example.com">info@armitagen.ir</a>
-					<span class="text">جانی ویتی</span>
-				</div>
-			</div>
-		</div>
-		
-	</footer>
-	<!-- Footer End -->
-	
-	<button class="scroltop" type="button"><i class="fas fa-arrow-up"></i></button>
-
 </div>
-<!-- JAVASCRIPT FILES ========================================= -->
-<script src="{% static 'assets/js/global.min-2.js' %}"></script>
-<script src="{% static 'assets/vendor/swiper/swiper-bundle.min-2.js' %}"></script>
-<script src="{% static 'assets/vendor/lightgallery/lightgallery.min-1.js' %}"></script>
-<script src="{% static 'assets/vendor/lightgallery/plugins/thumbnail/lg-thumbnail.min-1.js' %}"></script>
-<script src="{% static 'assets/vendor/lightgallery/plugins/zoom/lg-zoom.min-1.js' %}"></script>
-<script src="{% static 'assets/js/dz.carousel-2.js' %}"></script>
-<script src="{% static 'assets/js/dz.ajax-2.js' %}"></script>
-<script src="{% static 'assets/js/custom-2.js' %}"></script>
 
+<script src="{% static 'assets/js/global.min-2.js' %}"></script>
+<script src="{% static 'assets/js/custom-2.js' %}"></script>
 </body>
+
 </html>

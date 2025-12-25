@@ -107,32 +107,32 @@ WSGI_APPLICATION = 'armitagen.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Old sht
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ArmitaGen',
-        'USER': 'postgres',      
-        'PASSWORD': 'Victus_009',  
-        'HOST': 'localhost',   
-        'PORT': '5432',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'ArmitaGen',
+#         'USER': 'postgres',
+#         'PASSWORD': 'Victus_009',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
 # Note: On cPanel host
 # 'ENGINE': 'mysql.connector.django',
 # 'USER': 'armitagen__admin',
 # 'PASSWORD': 'armitagen@1234',
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': env('DB_ENGINE'),
-#         'NAME': env('DB_NAME'),
-#         'USER': env('DB_USER'),
-#         'PASSWORD': env('DB_PASSWORD'),
-#         'HOST': env('DB_HOST', default='127.0.0.1'),
-#         'PORT': env('DB_PORT', default='3306'),
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': env('DB_ENGINE'),
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST', default='127.0.0.1'),
+        'PORT': env('DB_PORT', default='3306'),
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
